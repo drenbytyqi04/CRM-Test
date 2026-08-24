@@ -7,9 +7,6 @@ import { STATUS_CLASSES, statusLabel, type Client } from "@/lib/types";
 // I thotë Next.js-it ta ndërtojë faqen sa herë hapet, që lista të jetë e freskët.
 export const dynamic = "force-dynamic";
 
-/** Klienti bashkë me numrin e shënimeve të tij. */
-type ClientRow = Client & { notes: { count: number }[] };
-
 export default async function Page() {
   // Nëse çelësat mungojnë, tregojmë udhëzimet në vend të një gabimi.
   if (!hasSupabaseConfig()) {
@@ -25,14 +22,25 @@ export default async function Page() {
 
   const supabase = getSupabase();
 
-  // Marrim klientët, më i riu i pari, bashkë me numrin e shënimeve.
-  const { data, error } = await supabase
-    .from("clients")
-    .select("id, name, phone, email, status, created_at, notes(count)")
-    .order("created_at", { ascending: false })
-    .returns<ClientRow[]>();
+  // Dy kërkesa njëherësh: klientët (më i riu i pari) dhe shënimet.
+  // Nga shënimet marrim vetëm kolonën `client_id`, sa për t'i numëruar.
+  const [clientsResult, notesResult] = await Promise.all([
+    supabase
+      .from("clients")
+      .select("id, name, phone, email, status, created_at")
+      .order("created_at", { ascending: false })
+      .returns<Client[]>(),
+    supabase.from("notes").select("client_id").returns<{ client_id: string }[]>(),
+  ]);
 
-  const clients = data ?? [];
+  const clients = clientsResult.data ?? [];
+  const error = clientsResult.error;
+
+  // Numërojmë sa shënime ka secili klient.
+  const noteCounts = new Map<string, number>();
+  for (const note of notesResult.data ?? []) {
+    noteCounts.set(note.client_id, (noteCounts.get(note.client_id) ?? 0) + 1);
+  }
 
   return (
     <main className="mx-auto w-full max-w-4xl px-5 py-10">
@@ -82,7 +90,7 @@ export default async function Page() {
 
                   <div className="flex shrink-0 items-center gap-3">
                     <span className="text-xs text-slate-400">
-                      {client.notes[0]?.count ?? 0} shënime
+                      {noteCounts.get(client.id) ?? 0} shënime
                     </span>
                     <span
                       className={`rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${
