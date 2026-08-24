@@ -57,42 +57,49 @@ npm install
 Kjo krijon dosjen `node_modules` (kod i shkruar nga të tjerët që projekti e
 përdor). Zgjat një-dy minuta dhe bëhet vetëm një herë.
 
-### Hapi 4: Krijo bazën e të dhënave në Supabase
+### Hapi 4: Baza e të dhënave — E GATSHME ✅
 
-1. Hap <https://supabase.com> dhe regjistrohu (falas).
-2. Kliko **New project**. Vendos një emër, zgjidh një fjalëkalim për bazën
-   (ruaje diku) dhe një rajon afër teje, p.sh. *Frankfurt*.
-3. Prit 1–2 minuta derisa projekti të bëhet gati.
+Projekti në Supabase është krijuar tashmë në llogarinë tënde:
 
-### Hapi 5: Krijo tabelat
+| | |
+| --- | --- |
+| Emri i projektit | **crm-test** |
+| Adresa (URL) | `https://zfdavzndfhsjckvifxur.supabase.co` |
+| Rajoni | Frankfurt (eu-central-1) |
+| Kostoja | 0 € — plani falas |
 
-1. Në Supabase, në menynë e majtë kliko **SQL Editor** → **New query**.
-2. Hap skedën `supabase/schema.sql` të këtij projekti, kopjo **gjithë**
-   përmbajtjen dhe ngjite në dritaren e SQL-it.
-3. Kliko **Run**.
+Mund ta shohësh te <https://supabase.com/dashboard>.
 
-Nëse shkruan *Success*, tabelat `clients` dhe `notes` u krijuan. Mund t'i shohësh
-te **Table Editor** në menynë e majtë.
+### Hapi 5: Tabelat — TË GATSHME ✅
 
-### Hapi 6: Lidh aplikacionin me Supabase
+Tabelat `clients` dhe `notes` janë krijuar dhe të provuara. Për t'i parë: në
+Supabase kliko **Table Editor** në menynë e majtë.
 
-1. Në Supabase kliko **Settings** (ikona e ingranazhit) → **API**.
-2. Aty gjen dy vlera:
-   - **Project URL** — diçka si `https://abcdxyz.supabase.co`
-   - **service_role** — një varg i gjatë shkronjash (kliko *Reveal* për ta parë).
-3. Në dosjen e projektit, bëj një kopje të skedës `.env.local.example` dhe
-   emëroje `.env.local`. Në terminal:
+Skeda `supabase/schema.sql` mbetet si dëshmi e asaj që u ekzekutua. Do të të
+duhej vetëm nëse një ditë krijon një projekt tjetër: e ngjit atje te **SQL
+Editor** → **Run**.
+
+### Hapi 6: Vendos çelësin (i vetmi hap që të mbetet)
+
+1. Hap <https://supabase.com/dashboard> → projekti **crm-test** → **Settings**
+   (ikona e ingranazhit) → **API**.
+2. Te "Project API keys" gjej rreshtin **`service_role`** dhe kliko **Reveal**.
+   Kopjo vargun e gjatë që shfaqet.
+3. Në dosjen e projektit, në terminal:
 
    ```bash
    cp .env.local.example .env.local
    ```
 
-4. Hap `.env.local` me çdo redaktues teksti dhe ngjit të dyja vlerat:
+4. Hap skedën `.env.local` me çdo redaktues teksti dhe ngjit çelësin pas
+   shenjës `=`:
 
    ```
-   SUPABASE_URL=https://abcdxyz.supabase.co
+   SUPABASE_URL=https://zfdavzndfhsjckvifxur.supabase.co
    SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOi...
    ```
+
+   Adresa është e mbushur tashmë; ti shton vetëm çelësin.
 
 > ⚠️ Çelësi `service_role` është si çelësi kryesor i shtëpisë. Mos ia dërgo
 > askujt dhe mos e vendos në asnjë skedë tjetër. `.env.local` nuk ruhet në git,
@@ -158,7 +165,8 @@ Aplikacioni **nuk ka autentikim**, siç u kërkua. Mbrojtja aktuale është:
 
 - Të gjitha kërkesat drejt Supabase bëhen në server.
 - Tabelat kanë **RLS të ndezur pa asnjë rregull**, që do të thotë se askush nuk i
-  lexon dot nga jashtë me çelësin publik.
+  lexon dot nga jashtë me çelësin publik. Kjo është provuar: një përdorues me
+  çelësin publik merr 0 rreshta kur lexon dhe i refuzohet shkrimi.
 
 Prandaj: **mbaje në kompjuterin tënd** derisa të shtosh autentikim. Nëse e
 publikon (p.sh. në Vercel), kushdo që e di adresën mund të shtojë, lexojë dhe
@@ -176,7 +184,8 @@ Kur të shtosh autentikim, ndryshimet janë:
 | Problemi | Zgjidhja |
 | --- | --- |
 | Faqja tregon kutinë e verdhë "nuk është konfiguruar" | `.env.local` mungon ose është bosh. Përsërit Hapin 6 dhe rinis serverin. |
-| `Nuk u ruajt dot klienti: relation "clients" does not exist` | SQL-i nuk u ekzekutua. Përsërit Hapin 5. |
+| `Nuk u ruajt dot klienti: relation "clients" does not exist` | Je lidhur me një projekt tjetër. Kontrollo që `SUPABASE_URL` te `.env.local` të jetë ai i Hapit 4. |
+| `Invalid API key` | Çelësi u kopjua gabim ose është marrë çelësi `anon` në vend të `service_role`. Përsërit Hapin 6. |
 | `command not found: npm` | Node.js nuk është instaluar. Përsërit Hapin 1. |
 | Porta 3000 është e zënë | Nise me `npm run dev -- -p 3001`. |
 | Ndryshimet nuk duken | Rifresko faqen; nëse s'mjafton, ndal serverin (Ctrl+C) dhe nise sërish. |

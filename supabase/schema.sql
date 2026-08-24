@@ -1,7 +1,12 @@
 -- =====================================================================
 -- Skema e bazës së të dhënave për CRM-in.
 --
--- Si përdoret:
+-- STATUSI: kjo skemë është ZBATUAR TASHMË në projektin "crm-test"
+-- (https://zfdavzndfhsjckvifxur.supabase.co). Tabelat janë gati për përdorim.
+-- Skeda ruhet këtu si dëshmi e strukturës dhe të duhet vetëm nëse një ditë
+-- krijon një projekt tjetër Supabase.
+--
+-- Si përdoret (për një projekt të ri):
 --   1. Hyr në https://supabase.com/dashboard dhe zgjidh projektin tënd.
 --   2. Në menynë e majtë kliko "SQL Editor" -> "New query".
 --   3. Kopjo GJITHË këtë skedë, ngjite atje dhe kliko "Run".
