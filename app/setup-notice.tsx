@@ -7,26 +7,22 @@ export default function SetupNotice() {
       </h2>
       <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-amber-900">
         <li>
-          Krijo një projekt falas në{" "}
-          <a className="underline" href="https://supabase.com/dashboard">
-            supabase.com/dashboard
-          </a>
-          .
-        </li>
-        <li>
-          Në Supabase hap <b>SQL Editor</b>, ngjit përmbajtjen e skedës{" "}
-          <code className="rounded bg-amber-100 px-1">supabase/schema.sql</code> dhe
-          kliko <b>Run</b>.
-        </li>
-        <li>
-          Në <b>Settings → API</b> kopjo <b>Project URL</b> dhe çelësin sekret{" "}
-          <b>service_role</b>.
-        </li>
-        <li>
           Në dosjen e projektit kopjo{" "}
           <code className="rounded bg-amber-100 px-1">.env.local.example</code> si{" "}
-          <code className="rounded bg-amber-100 px-1">.env.local</code> dhe vendos
-          aty të dyja vlerat.
+          <code className="rounded bg-amber-100 px-1">.env.local</code>:
+          <br />
+          <code className="rounded bg-amber-100 px-1">
+            cp .env.local.example .env.local
+          </code>
+        </li>
+        <li>
+          Skeda i ka të dyja vlerat tashmë të mbushura
+          (<code className="rounded bg-amber-100 px-1">NEXT_PUBLIC_SUPABASE_URL</code>{" "}
+          dhe{" "}
+          <code className="rounded bg-amber-100 px-1">
+            NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+          </code>
+          ).
         </li>
         <li>
           Ndale serverin (Ctrl+C) dhe nise sërish me{" "}

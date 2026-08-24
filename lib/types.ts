@@ -40,6 +40,8 @@ export type Note = {
 export type FormState = {
   ok?: boolean;
   error?: string;
+  /** Njoftim pozitiv për përdoruesin, p.sh. "kontrollo emailin". */
+  message?: string;
 };
 
 /** Datë e lexueshme në shqip, p.sh. "24 gusht 2026, 14:30". */

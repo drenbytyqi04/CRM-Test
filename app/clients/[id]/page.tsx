@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import NoteForm from "./note-form";
 import SetupNotice from "@/app/setup-notice";
-import { getSupabase, hasSupabaseConfig } from "@/lib/supabase";
+import { createClient, hasSupabaseConfig } from "@/lib/supabase/server";
+import { requireUser } from "@/lib/auth";
 import {
   STATUS_CLASSES,
   formatDate,
@@ -25,7 +26,8 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
     );
   }
 
-  const supabase = getSupabase();
+  const user = await requireUser();
+  const supabase = await createClient();
 
   // Dy kërkesa njëherësh: të dhënat e klientit dhe shënimet e tij.
   const [clientResult, notesResult] = await Promise.all([
@@ -33,11 +35,13 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
       .from("clients")
       .select("id, name, phone, email, status, created_at")
       .eq("id", id)
+      .eq("user_id", user.id)
       .maybeSingle<Client>(),
     supabase
       .from("notes")
       .select("id, client_id, body, created_at")
       .eq("client_id", id)
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .returns<Note[]>(),
   ]);

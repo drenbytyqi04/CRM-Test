@@ -1,7 +1,9 @@
 import Link from "next/link";
 import ClientForm from "./client-form";
 import SetupNotice from "./setup-notice";
-import { getSupabase, hasSupabaseConfig } from "@/lib/supabase";
+import SignOutButton from "./sign-out-button";
+import { createClient, hasSupabaseConfig } from "@/lib/supabase/server";
+import { requireUser } from "@/lib/auth";
 import { STATUS_CLASSES, statusLabel, type Client } from "@/lib/types";
 
 // I thotë Next.js-it ta ndërtojë faqen sa herë hapet, që lista të jetë e freskët.
@@ -20,17 +22,26 @@ export default async function Page() {
     );
   }
 
-  const supabase = getSupabase();
+  // Kush është i kyçur? Nëse askush, na dërgon te faqja e hyrjes.
+  const user = await requireUser();
+  const supabase = await createClient();
 
+  // Dy mbrojtje njëkohësisht: rregullat e bazës (RLS) e ndalojnë leximin e
+  // rreshtave të të tjerëve, dhe ne e kërkojmë shprehimisht `user_id`-në tonë.
   // Dy kërkesa njëherësh: klientët (më i riu i pari) dhe shënimet.
   // Nga shënimet marrim vetëm kolonën `client_id`, sa për t'i numëruar.
   const [clientsResult, notesResult] = await Promise.all([
     supabase
       .from("clients")
       .select("id, name, phone, email, status, created_at")
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .returns<Client[]>(),
-    supabase.from("notes").select("client_id").returns<{ client_id: string }[]>(),
+    supabase
+      .from("notes")
+      .select("client_id")
+      .eq("user_id", user.id)
+      .returns<{ client_id: string }[]>(),
   ]);
 
   const clients = clientsResult.data ?? [];
@@ -44,13 +55,21 @@ export default async function Page() {
 
   return (
     <main className="mx-auto w-full max-w-4xl px-5 py-10">
-      <header className="mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-          Klientët
-        </h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Shto klientë dhe mbaj shënime për secilin.
-        </p>
+      <header className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
+            Klientët
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Shto klientë dhe mbaj shënime për secilin.
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-3">
+          <span className="hidden text-sm text-slate-500 sm:inline">
+            {user.email}
+          </span>
+          <SignOutButton />
+        </div>
       </header>
 
       <ClientForm />
