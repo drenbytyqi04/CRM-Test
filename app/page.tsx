@@ -39,16 +39,27 @@ export default async function Page({ searchParams }: PageProps<"/">) {
     .select("id, user_id, name, phone, email, status, created_at")
     .order("created_at", { ascending: false });
 
-  let notesQuery = supabase.from("notes").select("client_id");
-
   if (!showAll) {
     clientsQuery = clientsQuery.eq("user_id", user.id);
-    notesQuery = notesQuery.eq("user_id", user.id);
   }
 
-  const [clientsResult, notesResult, ownersResult] = await Promise.all([
-    clientsQuery.returns<Client[]>(),
-    notesQuery.returns<{ client_id: string }[]>(),
+  const clientsResult = await clientsQuery.returns<Client[]>();
+  const clients = clientsResult.data ?? [];
+  const error = clientsResult.error;
+
+  // Shënimet i numërojmë sipas klientëve që sapo morëm — jo sipas autorit,
+  // sepse te një klient mund të ketë shkruar edhe administratori.
+  const [notesResult, ownersResult] = await Promise.all([
+    clients.length > 0
+      ? supabase
+          .from("notes")
+          .select("client_id")
+          .in(
+            "client_id",
+            clients.map((c) => c.id)
+          )
+          .returns<{ client_id: string }[]>()
+      : Promise.resolve({ data: [], error: null }),
     showAll
       ? supabase
           .from("profiles")
@@ -56,9 +67,6 @@ export default async function Page({ searchParams }: PageProps<"/">) {
           .returns<{ id: string; email: string | null }[]>()
       : Promise.resolve({ data: [], error: null }),
   ]);
-
-  const clients = clientsResult.data ?? [];
-  const error = clientsResult.error;
 
   // Numërojmë sa shënime ka secili klient.
   const noteCounts = new Map<string, number>();

@@ -116,6 +116,10 @@ create policy "notes_select_own_or_admin" on public.notes
 
 -- Shtimi mbetet si ishte: secili shton vetëm në emër të vetvetes,
 -- edhe administratori.
+--
+-- VINI RE: dy rregullat e shënimeve më poshtë zëvendësohen nga skeda
+-- `supabase/admin-edit.sql`, e cila i lidh ato me klientin në vend të autorit
+-- dhe i jep administratorit të drejtën të shkruajë e të redaktojë kudo.
 
 -- =====================================================================
 -- 6. BËJE VETEN ADMIN

@@ -60,6 +60,29 @@ export async function addClient(
   return { ok: true };
 }
 
+/**
+ * A ka të drejtë ky përdorues të prekë këtë klient?
+ *
+ * Kthen klientin nëse po, ose `null` nëse jo. Administratori i prek të gjithë;
+ * të tjerët vetëm të vetët. Kjo kontrollohet edhe këtu, edhe nga rregullat e
+ * bazës — dy mbrojtje të pavarura për të njëjtën gjë.
+ */
+async function findEditableClient(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  clientId: string,
+  user: { id: string; isAdmin: boolean }
+) {
+  const { data: client } = await supabase
+    .from("clients")
+    .select("id, user_id")
+    .eq("id", clientId)
+    .maybeSingle<{ id: string; user_id: string }>();
+
+  if (!client) return null;
+  if (!user.isAdmin && client.user_id !== user.id) return null;
+  return client;
+}
+
 /** Shton një shënim te një klient i caktuar. */
 export async function addNote(
   _prevState: FormState,
@@ -78,6 +101,11 @@ export async function addNote(
   }
 
   const supabase = await createClient();
+
+  if (!(await findEditableClient(supabase, clientId, user))) {
+    return { error: "Ky klient nuk u gjet ose nuk ke të drejtë mbi të." };
+  }
+
   const { error } = await supabase
     .from("notes")
     .insert({ client_id: clientId, body, user_id: user.id });
@@ -89,4 +117,55 @@ export async function addNote(
   revalidatePath(`/clients/${clientId}`);
   revalidatePath("/");
   return { ok: true };
+}
+
+/**
+ * Ndryshon të dhënat e një klienti.
+ *
+ * Administratori e bën këtë për çdo klient, edhe për ata që i ka krijuar
+ * dikush tjetër. Përdoruesi i zakonshëm vetëm për klientët e vet.
+ */
+export async function updateClient(
+  _prevState: FormState,
+  formData: FormData
+): Promise<FormState> {
+  const user = await requireUser();
+
+  const clientId = String(formData.get("clientId") ?? "");
+  const name = textOrNull(formData.get("name"));
+  const phone = textOrNull(formData.get("phone"));
+  const email = textOrNull(formData.get("email"));
+  const status = String(formData.get("status") ?? "lead");
+
+  if (!clientId) {
+    return { error: "Mungon klienti që duhet ndryshuar." };
+  }
+  if (!name) {
+    return { error: "Emri është i detyrueshëm." };
+  }
+  if (email && !looksLikeEmail(email)) {
+    return { error: "Emaili nuk duket i saktë (shembull: emri@shembull.com)." };
+  }
+  if (!STATUSES.some((s) => s.value === status)) {
+    return { error: "Statusi i zgjedhur nuk njihet." };
+  }
+
+  const supabase = await createClient();
+
+  if (!(await findEditableClient(supabase, clientId, user))) {
+    return { error: "Ky klient nuk u gjet ose nuk ke të drejtë mbi të." };
+  }
+
+  const { error } = await supabase
+    .from("clients")
+    .update({ name, phone, email, status })
+    .eq("id", clientId);
+
+  if (error) {
+    return { error: `Nuk u ruajtën dot ndryshimet: ${error.message}` };
+  }
+
+  revalidatePath(`/clients/${clientId}`);
+  revalidatePath("/");
+  return { ok: true, message: "Ndryshimet u ruajtën." };
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import NoteForm from "./note-form";
+import EditForm from "./edit-form";
 import SetupNotice from "@/app/setup-notice";
 import { createClient, hasSupabaseConfig } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
@@ -29,28 +30,17 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
   const user = await requireUser();
   const supabase = await createClient();
 
-  // Dy kërkesa njëherësh: të dhënat e klientit dhe shënimet e tij.
-  // Administratori e hap çdo klient; të tjerët vetëm të vetët.
+  // Së pari klienti. Administratori e hap çdo klient; të tjerët vetëm të vetët.
   let clientQuery = supabase
     .from("clients")
     .select("id, user_id, name, phone, email, status, created_at")
     .eq("id", id);
 
-  let notesQuery = supabase
-    .from("notes")
-    .select("id, client_id, body, created_at")
-    .eq("client_id", id)
-    .order("created_at", { ascending: false });
-
   if (!user.isAdmin) {
     clientQuery = clientQuery.eq("user_id", user.id);
-    notesQuery = notesQuery.eq("user_id", user.id);
   }
 
-  const [clientResult, notesResult] = await Promise.all([
-    clientQuery.maybeSingle<Client>(),
-    notesQuery.returns<Note[]>(),
-  ]);
+  const clientResult = await clientQuery.maybeSingle<Client>();
 
   if (clientResult.error) {
     throw new Error(clientResult.error.message);
@@ -61,7 +51,28 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
     notFound(); // Shfaq faqen "404 – nuk u gjet".
   }
 
+  // Pastaj shënimet. Këtu nuk filtrojmë sipas autorit: te një klient i imi
+  // dua t'i shoh të gjitha shënimet, edhe ato që i ka shkruar administratori.
+  // Deri këtu kemi vërtetuar tashmë se kemi të drejtë mbi këtë klient.
+  const [notesResult, ownerResult] = await Promise.all([
+    supabase
+      .from("notes")
+      .select("id, client_id, body, created_at")
+      .eq("client_id", client.id)
+      .order("created_at", { ascending: false })
+      .returns<Note[]>(),
+    // Administratorit i tregojmë se kujt i përket klienti.
+    user.isAdmin && client.user_id !== user.id
+      ? supabase
+          .from("profiles")
+          .select("email")
+          .eq("id", client.user_id)
+          .maybeSingle<{ email: string | null }>()
+      : Promise.resolve({ data: null, error: null }),
+  ]);
+
   const notes = notesResult.data ?? [];
+  const ownerEmail = ownerResult.data?.email ?? null;
 
   return (
     <main className="mx-auto w-full max-w-3xl px-5 py-10">
@@ -83,6 +94,11 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
         >
           {statusLabel(client.status)}
         </span>
+        {ownerEmail && (
+          <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600 ring-1 ring-slate-200 ring-inset">
+            Klient i {ownerEmail}
+          </span>
+        )}
       </header>
 
       <dl className="mb-8 grid gap-4 rounded-xl border border-slate-200 bg-white p-5 text-sm sm:grid-cols-3">
@@ -99,6 +115,10 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
           <dd className="mt-1 text-slate-900">{formatDate(client.created_at)}</dd>
         </div>
       </dl>
+
+      <div className="mb-8">
+        <EditForm client={client} />
+      </div>
 
       <NoteForm clientId={client.id} />
 

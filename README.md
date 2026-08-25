@@ -132,6 +132,17 @@ update public.profiles set role = 'admin' where email = 'emaili.i.ri@shembull.co
 Për ta hequr rolin, po ashtu: `set role = 'user'`. E njëjta gjë bëhet edhe pa
 SQL: Table Editor → `profiles` → kliko qelizën `role`.
 
+### Hapi 10: Akses i plotë për administratorin ⚠️ i mbetur
+
+Që administratori të shkruajë shënime dhe të ndryshojë të dhënat te klientët e
+të tjerëve, duhet ekzekutuar edhe një skedë SQL — një herë:
+
+Supabase → **SQL Editor** → **New query** → ngjit gjithë përmbajtjen e
+`supabase/admin-edit.sql` → **Run**.
+
+Pa këtë hap, aplikacioni punon normalisht dhe paneli "Ndrysho të dhënat"
+shfaqet, por ruajtja te klienti i dikujt tjetër do të refuzohet nga baza.
+
 ## Pjesa 3 — Si përdoret
 
 - **Shto klient:** plotëso emrin (i detyrueshëm), telefonin, emailin dhe
@@ -142,12 +153,21 @@ SQL: Table Editor → `profiles` → kliko qelizën `role`.
 - **Statuset:** *I ri* (lead), *Aktiv*, *Joaktiv*.
 - **Dil:** butoni lart djathtas. Të dhënat e tua i sheh vetëm llogaria jote.
 
+- **Ndrysho të dhënat:** te faqja e klientit, paneli që hapet me një klikim.
+  Aty ndryshon emrin, telefonin, emailin dhe statusin.
+
 Nëse je **administrator**, ke edhe:
 
 - **Të gjitha / Të mijat** — çelës lart, për të parë të dhënat e krejt
   përdoruesve ose vetëm të tuat. Te lista shfaqet edhe pronari i secilit klient.
 - **Përdoruesit** — faqe me të gjitha llogaritë, rolin e secilit dhe sa klientë
   e shënime ka. Rolet ndryshohen vetëm nga paneli i Supabase-it.
+- **Akses i plotë mbi çdo klient** — hap klientin e kujtdo, shkruaj shënime aty
+  dhe ndrysho të dhënat e tij, edhe kur e ka krijuar dikush tjetër. Te koka e
+  faqes shfaqet se kujt i përket klienti.
+
+Shënimet që shkruan administratori te klienti i dikujt tjetër i sheh edhe
+pronari i atij klienti — pra bashkëpunimi mbetet i dukshëm për të dyja anët.
 
 ---
 
@@ -171,6 +191,7 @@ app/
   clients/[id]/
     page.tsx                Faqja e një klienti + shënimet e tij
     note-form.tsx           Formulari për të shtuar shënim
+    edit-form.tsx           Paneli "Ndrysho të dhënat"
 lib/
   supabase/server.ts        Lidhja me bazën për kodin në server
   supabase/proxy.ts         Mban sesionin e freskët në çdo kërkesë
@@ -180,6 +201,7 @@ proxy.ts                    Ndalon të pakyçurit para se të hapin faqet
 supabase/
   schema.sql                SQL-i i tabelave dhe i rregullave RLS
   admin.sql                 SQL-i i roleve dhe i administratorit
+  admin-edit.sql            SQL-i i redaktimit dhe i shënimeve të adminit
 ```
 
 Tri koncepte që i ndeshni në kod:
