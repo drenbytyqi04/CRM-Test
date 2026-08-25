@@ -115,6 +115,25 @@ kliko lidhjen brenda tij, pastaj kthehu dhe kliko **Hyr**.
 
 ---
 
+### Hapi 9: Bëhu administrator (vetëm pronari)
+
+Administratori sheh të gjithë përdoruesit dhe të gjitha të dhënat e tyre.
+Bëhet një herë, me dy kopje-ngjitje:
+
+1. Supabase → **SQL Editor** → **New query** → ngjit gjithë përmbajtjen e
+   `supabase/admin.sql` → **Run**.
+2. Në të njëjtin editor ekzekuto edhe këtë rresht, me emailin tënd:
+
+   ```sql
+   update public.profiles set role = 'admin' where email = 'emaili.yt@shembull.com';
+   ```
+
+3. Rifresko faqen. Pranë emailit do të shfaqet shenja **Admin** dhe një lidhje
+   e re, **Përdoruesit**.
+
+Nëse hapi 1 nuk është ekzekutuar ende, aplikacioni punon normalisht — thjesht
+askush nuk është admin.
+
 ## Pjesa 3 — Si përdoret
 
 - **Shto klient:** plotëso emrin (i detyrueshëm), telefonin, emailin dhe
@@ -124,6 +143,13 @@ kliko lidhjen brenda tij, pastaj kthehu dhe kliko **Hyr**.
   *Ruaj shënimin*. Shënimet renditen nga më i riu te më i vjetri.
 - **Statuset:** *I ri* (lead), *Aktiv*, *Joaktiv*.
 - **Dil:** butoni lart djathtas. Të dhënat e tua i sheh vetëm llogaria jote.
+
+Nëse je **administrator**, ke edhe:
+
+- **Të gjitha / Të mijat** — çelës lart, për të parë të dhënat e krejt
+  përdoruesve ose vetëm të tuat. Te lista shfaqet edhe pronari i secilit klient.
+- **Përdoruesit** — faqe me të gjitha llogaritë, rolin e secilit dhe sa klientë
+  e shënime ka. Rolet ndryshohen vetëm nga paneli i Supabase-it.
 
 ---
 
@@ -143,17 +169,19 @@ app/
     login-form.tsx          Formulari "Hyr / Regjistrohu"
     actions.ts              Hyrja, regjistrimi dhe dalja
   auth/confirm/route.ts     Aty bie lidhja e konfirmimit nga emaili
+  admin/page.tsx            Faqja e administratorit: të gjithë përdoruesit
   clients/[id]/
     page.tsx                Faqja e një klienti + shënimet e tij
     note-form.tsx           Formulari për të shtuar shënim
 lib/
   supabase/server.ts        Lidhja me bazën për kodin në server
   supabase/proxy.ts         Mban sesionin e freskët në çdo kërkesë
-  auth.ts                   "Kush është i kyçur?" — kontrolli i sigurisë
+  auth.ts                   "Kush është i kyçur?" dhe "a është admin?"
   types.ts                  Tipat, statuset dhe ndihmësit e vegjël
 proxy.ts                    Ndalon të pakyçurit para se të hapin faqet
 supabase/
   schema.sql                SQL-i i tabelave dhe i rregullave RLS
+  admin.sql                 SQL-i i roleve dhe i administratorit
 ```
 
 Tri koncepte që i ndeshni në kod:
@@ -182,6 +210,10 @@ Të dhënat mbrohen në tri shtresa, njëra mbi tjetrën:
 
 Çelësi te `.env.local` është **publik me qëllim** (Supabase e quan
 "publishable"). Pa llogari, ai çelës nuk hap asgjë.
+
+**Rolet.** Roli ruhet në tabelën `profiles`, e cila ka RLS pa asnjë rregull
+ndryshimi — pra askush nuk e bën dot veten admin nga aplikacioni. Roli
+ndryshohet vetëm nga paneli i Supabase-it, ku hyn vetëm ti.
 
 ### Publikimi në Vercel
 
@@ -213,6 +245,7 @@ Dy gjëra për t'i mbajtur mend:
 | --- | --- |
 | Faqja tregon kutinë e verdhë "nuk është konfiguruar" | `.env.local` mungon. Përsërit Hapin 6 dhe rinis serverin. |
 | "Email ose fjalëkalim i gabuar" | Llogaria s'është krijuar ende ose emaili s'është konfirmuar. Shih Hapin 8. |
+| S'të shfaqet shenja "Admin" | SQL-i i `supabase/admin.sql` s'është ekzekutuar, ose rreshti `update ... set role = 'admin'` ka email tjetër. Shih Hapin 9. |
 | Regjistrohesh po s'të vjen emaili | Përdor rrugën B të Hapit 8 (krijo përdoruesin nga paneli me *Auto Confirm*). |
 | `Nuk u ruajt dot klienti: relation "clients" does not exist` | Je lidhur me një projekt tjetër. Kontrollo `NEXT_PUBLIC_SUPABASE_URL` te `.env.local`. |
 | `Invalid API key` | Vlerat te `.env.local` u ndryshuan. Kopjoje sërish nga `.env.local.example`. |

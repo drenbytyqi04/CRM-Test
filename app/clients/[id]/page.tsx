@@ -30,20 +30,26 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
   const supabase = await createClient();
 
   // Dy kërkesa njëherësh: të dhënat e klientit dhe shënimet e tij.
+  // Administratori e hap çdo klient; të tjerët vetëm të vetët.
+  let clientQuery = supabase
+    .from("clients")
+    .select("id, user_id, name, phone, email, status, created_at")
+    .eq("id", id);
+
+  let notesQuery = supabase
+    .from("notes")
+    .select("id, client_id, body, created_at")
+    .eq("client_id", id)
+    .order("created_at", { ascending: false });
+
+  if (!user.isAdmin) {
+    clientQuery = clientQuery.eq("user_id", user.id);
+    notesQuery = notesQuery.eq("user_id", user.id);
+  }
+
   const [clientResult, notesResult] = await Promise.all([
-    supabase
-      .from("clients")
-      .select("id, name, phone, email, status, created_at")
-      .eq("id", id)
-      .eq("user_id", user.id)
-      .maybeSingle<Client>(),
-    supabase
-      .from("notes")
-      .select("id, client_id, body, created_at")
-      .eq("client_id", id)
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .returns<Note[]>(),
+    clientQuery.maybeSingle<Client>(),
+    notesQuery.returns<Note[]>(),
   ]);
 
   if (clientResult.error) {

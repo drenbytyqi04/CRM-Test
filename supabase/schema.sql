@@ -12,6 +12,10 @@
 --   3. Kopjo GJITHË këtë skedë, ngjite atje dhe kliko "Run".
 --
 -- Mund ta ekzekutosh disa herë pa problem: përdor "if not exists".
+--
+-- SHËNIM: rolet (admin) dhe rregullat përkatëse janë në skedën fqinje
+-- `supabase/admin.sql`. Ajo i zëvendëson dy rregullat e leximit të mëposhtme
+-- me variante që e lejojnë administratorin të shohë gjithçka.
 -- =====================================================================
 
 -- ---------------------------------------------------------------------

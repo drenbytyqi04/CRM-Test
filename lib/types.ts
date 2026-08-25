@@ -21,6 +21,8 @@ export const STATUS_CLASSES: Record<string, string> = {
 /** Një rresht i tabelës `clients`. */
 export type Client = {
   id: string;
+  /** Kujt përdoruesi i përket ky klient. */
+  user_id: string;
   name: string;
   phone: string | null;
   email: string | null;
@@ -33,6 +35,14 @@ export type Note = {
   id: string;
   client_id: string;
   body: string;
+  created_at: string;
+};
+
+/** Një rresht i tabelës `profiles` (llogaria dhe roli i saj). */
+export type Profile = {
+  id: string;
+  email: string | null;
+  role: "user" | "admin";
   created_at: string;
 };
 
