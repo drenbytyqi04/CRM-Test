@@ -115,24 +115,22 @@ kliko lidhjen brenda tij, pastaj kthehu dhe kliko **Hyr**.
 
 ---
 
-### Hapi 9: Bëhu administrator (vetëm pronari)
+### Hapi 9: Administratori — I GATSHËM ✅
 
 Administratori sheh të gjithë përdoruesit dhe të gjitha të dhënat e tyre.
-Bëhet një herë, me dy kopje-ngjitje:
+Kjo është kryer tashmë: tabela e roleve u krijua dhe llogaria
+**dren.bytyqi19@gmail.com** është vendosur admin. Kur hyn me të, pranë emailit
+del shenja **Admin** dhe një lidhje e re, **Përdoruesit**.
 
-1. Supabase → **SQL Editor** → **New query** → ngjit gjithë përmbajtjen e
-   `supabase/admin.sql` → **Run**.
-2. Në të njëjtin editor ekzekuto edhe këtë rresht, me emailin tënd:
+Për të ndryshuar ose shtuar një administrator tjetër, një rresht i vetëm te
+Supabase → **SQL Editor**:
 
-   ```sql
-   update public.profiles set role = 'admin' where email = 'emaili.yt@shembull.com';
-   ```
+```sql
+update public.profiles set role = 'admin' where email = 'emaili.i.ri@shembull.com';
+```
 
-3. Rifresko faqen. Pranë emailit do të shfaqet shenja **Admin** dhe një lidhje
-   e re, **Përdoruesit**.
-
-Nëse hapi 1 nuk është ekzekutuar ende, aplikacioni punon normalisht — thjesht
-askush nuk është admin.
+Për ta hequr rolin, po ashtu: `set role = 'user'`. E njëjta gjë bëhet edhe pa
+SQL: Table Editor → `profiles` → kliko qelizën `role`.
 
 ## Pjesa 3 — Si përdoret
 

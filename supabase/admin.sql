@@ -5,8 +5,12 @@
 -- të gjitha të dhënat, ndërsa përdoruesit e zakonshëm mbeten të kufizuar
 -- te të vetat.
 --
--- SI PËRDORET (një herë):
---   1. https://supabase.com/dashboard -> projekti "crm-test"
+-- STATUSI: kjo skedë është ZBATUAR TASHMË në projektin "crm-test", dhe
+-- llogaria `dren.bytyqi19@gmail.com` është vendosur admin. Skeda ruhet si
+-- dëshmi e strukturës; do të të duhej vetëm për një projekt tjetër.
+--
+-- SI PËRDORET (për një projekt të ri):
+--   1. https://supabase.com/dashboard -> projekti yt
 --   2. Menyja e majtë -> "SQL Editor" -> "New query"
 --   3. Kopjo GJITHË këtë skedë, ngjite atje, kliko "Run"
 --   4. Pastaj ekzekuto rreshtin e fundit (poshtë) me emailin tënd
@@ -70,6 +74,16 @@ as $$
     where id = auth.uid() and role = 'admin'
   );
 $$;
+
+-- Këta dy funksione punojnë me të drejtat e pronarit, prandaj ua heqim
+-- mundësinë e thirrjes nga jashtë atyre që s'u duhet:
+--   - `handle_new_user()` është vetëm për trigger-in, askush s'duhet ta thërrasë.
+--   - `is_admin()` u duhet përdoruesve të kyçur (thirret brenda rregullave RLS),
+--     por jo vizitorëve pa llogari. Kthen thjesht "a jam unë admin?", prandaj
+--     nuk zbulon asgjë për të tjerët.
+revoke execute on function public.handle_new_user() from anon, authenticated, public;
+revoke execute on function public.is_admin() from anon, public;
+grant  execute on function public.is_admin() to authenticated;
 
 -- ---------------------------------------------------------------------
 -- 4. Kush i sheh rolet
