@@ -9,6 +9,7 @@ import {
   APPOINTMENT_STATUSES,
   APPOINTMENT_STATUS_CLASSES,
   ROLE_CLASSES,
+  appointmentPath,
   appointmentStatusLabel,
   defaultAppointmentSlot,
   formatDuration,
@@ -221,11 +222,18 @@ export default async function Page({ searchParams }: PageProps<"/">) {
           {terminet.map((t) => (
             <li key={t.id}>
               <Link
-                href={`/terminet/${t.id}`}
+                href={appointmentPath(t)}
                 className="flex items-center justify-between gap-4 p-4 transition hover:bg-slate-50"
               >
                 <div className="min-w-0">
-                  <p className="truncate font-medium text-slate-900">{t.name}</p>
+                  <p className="truncate font-medium text-slate-900">
+                    {t.nr != null && (
+                      <span className="mr-2 font-normal text-slate-400">
+                        #{t.nr}
+                      </span>
+                    )}
+                    {t.name}
+                  </p>
                   <p className="truncate text-sm text-slate-500">
                     {formatTirane(t.scheduled_at)}
                     {t.current_insurance ? ` · ${t.current_insurance}` : ""}

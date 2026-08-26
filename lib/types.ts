@@ -44,6 +44,13 @@ export const APPOINTMENT_STATUS_CLASSES: Record<string, string> = {
 /** Një rresht i tabelës `appointments`. */
 export type Appointment = {
   id: string;
+  /**
+   * Numri i shkurtër i terminit — ai që del në adresë: `/terminet/1001`.
+   *
+   * Është `null` vetëm nëse `supabase/nr.sql` nuk është ekzekutuar ende;
+   * atëherë adresa bie prapa te `id`. Shih `appointmentPath()`.
+   */
+  nr: number | null;
   /** Kush e caktoi terminin. */
   user_id: string;
 
@@ -83,6 +90,17 @@ export type Appointment = {
 /** Kolonat e terminit që lexojmë. `*` e mban faqen të gjallë edhe nëse
  * ndonjë kolonë e re nuk është krijuar ende në bazë. */
 export const APPOINTMENT_COLUMNS = "*";
+
+/**
+ * Adresa e faqes së një termini.
+ *
+ * Normalisht numri i shkurtër (`/terminet/1001`). Nëse `supabase/nr.sql`
+ * nuk është ekzekutuar ende, kolona `nr` mungon dhe kthehet adresa e vjetër
+ * me `id` — kështu asnjë lidhje nuk prishet gjatë kalimit.
+ */
+export function appointmentPath(t: { id: string; nr?: number | null }): string {
+  return `/terminet/${t.nr ?? t.id}`;
+}
 
 const TZ = "Europe/Tirane";
 

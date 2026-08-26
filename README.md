@@ -80,7 +80,13 @@ në Supabase kliko **Table Editor** në menynë e majtë.
 
 Skeda `supabase/schema.sql` mbetet si dëshmi e asaj që u ekzekutua. Do të të
 duhej vetëm nëse një ditë krijon një projekt tjetër: e ngjit atje te **SQL
-Editor** → **Run**.
+Editor** → **Run**. Radha e skedave për një projekt të ri është:
+`schema.sql` → `admin.sql` → `roles.sql` → `nr.sql` → `activity.sql`.
+
+> **Mbetet për t'u ekzekutuar:** `supabase/nr.sql` — ai që i jep secilit termin
+> numrin e shkurtër (`#1000`). Pa të, aplikacioni punon njësoj, por adresat
+> mbeten me numrin e gjatë të brendshëm. Hape **SQL Editor** → **New query**,
+> ngjit gjithë skedën, **Run**.
 
 ### Hapi 6: Kopjo skedën e rregullimeve
 
@@ -170,6 +176,10 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
   mbajtën dhe sa kontrata u mbyllën.
 - **Hap një termin:** kliko mbi emrin. Aty ndryshon çdo fushë dhe shënon
   rezultatin.
+- **Numri i terminit:** çdo termin ka një numër të shkurtër — `#1000`, `#1001`
+  e kështu me radhë — që del te lista, te kreu i faqes dhe te adresa:
+  `/terminet/1001`. Numri jepet nga baza, nuk ndryshohet kurrë, dhe kështu
+  mund ta thuash me gojë ose ta shkruash në një mesazh.
 - **Rezultati:** një status i vetëm (I hapur, U mbajt, I anuluar, Nuk u arrit,
   S'deshi termin, Negativ, S'ishte në shtëpi, Adresa s'u gjet, S'u këshillua dot)
   plus kontratat e mbyllura. Baza nuk lejon më shumë kontrata se persona.
@@ -223,9 +233,9 @@ app/
   admin/aktiviteti/page.tsx Koha e secilit përdorues, ditë pas dite
   terminet/
     appointment-form.tsx    Formulari i terminit (caktim dhe ndryshim)
-    [id]/page.tsx           Një termin i vetëm + tabela e feedback-ut
-    [id]/note-form.tsx      Kutia e shpejtë për të shtuar shënim
-    [id]/note-row.tsx       Një rresht i tabelës, me ndryshim brenda rreshtit
+    [nr]/page.tsx           Një termin i vetëm + tabela e feedback-ut
+    [nr]/note-form.tsx      Kutia e shpejtë për të shtuar shënim
+    [nr]/note-row.tsx       Një rresht i tabelës, me ndryshim brenda rreshtit
 lib/
   supabase/server.ts        Lidhja me bazën për kodin në server
   supabase/proxy.ts         Mban sesionin e freskët në çdo kërkesë
@@ -236,6 +246,7 @@ supabase/
   schema.sql                Tabelat `appointments` dhe `notes`
   admin.sql                 Profilet, roli admin dhe trigger-i
   roles.sql                 Tri rolet dhe lejet
+  nr.sql                    Numri i shkurtër i terminit (#1000)
   activity.sql              Përcjellja e kohës
 ```
 

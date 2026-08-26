@@ -55,7 +55,9 @@ export async function addNote(
     return { error: `Nuk u ruajt dot shënimi: ${error.message}` };
   }
 
-  revalidatePath(`/terminet/${appointmentId}`);
+  // Adresa e faqes mban numrin e shkurtër, jo `id`-në që kemi këtu —
+  // prandaj freskohet e gjithë ruta e terminit.
+  revalidatePath("/terminet/[nr]", "page");
   return { ok: true };
 }
 
@@ -71,7 +73,6 @@ export async function updateNote(
   const user = await requireUser();
 
   const noteId = String(formData.get("noteId") ?? "");
-  const appointmentId = String(formData.get("appointmentId") ?? "");
   const body = textOrNull(formData.get("body"));
 
   if (!noteId) {
@@ -110,7 +111,7 @@ export async function updateNote(
     return { error: "Shënimi nuk u ruajt: baza nuk e lejoi këtë veprim." };
   }
 
-  revalidatePath(`/terminet/${appointmentId || note.appointment_id}`);
+  revalidatePath("/terminet/[nr]", "page");
   return { ok: true, message: "Shënimi u ndryshua." };
 }
 
@@ -293,7 +294,7 @@ export async function updateAppointment(
     return { error: "Ndryshimet nuk u ruajtën: baza nuk e lejoi këtë veprim." };
   }
 
-  revalidatePath(`/terminet/${id}`);
+  revalidatePath("/terminet/[nr]", "page");
   revalidatePath("/");
   return { ok: true, message: "Termini u përditësua." };
 }

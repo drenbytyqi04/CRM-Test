@@ -33,17 +33,20 @@ function Fusha({ etiketa, vlera }: { etiketa: string; vlera: string | null }) {
 
 export default async function AppointmentPage({
   params,
-}: PageProps<"/terminet/[id]">) {
-  const { id } = await params;
+}: PageProps<"/terminet/[nr]">) {
+  const { nr } = await params;
   const user = await requireUser();
   const supabase = await createClient();
 
+  // Adresa mban numrin e shkurtër (`/terminet/1001`). Lidhjet e vjetra e
+  // kanë `id`-në e gjatë brenda, prandaj i njohim të dyja format.
+  const eshteNumer = /^\d+$/.test(nr);
+
   // Terminin e hap çdo i kyçur; e ndryshon vetëm menaxheri.
-  const terminiResult = await supabase
-    .from("appointments")
-    .select(APPOINTMENT_COLUMNS)
-    .eq("id", id)
-    .maybeSingle<Appointment>();
+  const kerkesa = supabase.from("appointments").select(APPOINTMENT_COLUMNS);
+  const terminiResult = await (
+    eshteNumer ? kerkesa.eq("nr", Number(nr)) : kerkesa.eq("id", nr)
+  ).maybeSingle<Appointment>();
 
   if (terminiResult.error) throw new Error(terminiResult.error.message);
 
@@ -88,6 +91,11 @@ export default async function AppointmentPage({
           </Link>
           <div className="mt-2 flex flex-wrap items-center gap-3">
             <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
+              {termini.nr != null && (
+                <span className="mr-2 font-normal text-slate-400">
+                  #{termini.nr}
+                </span>
+              )}
               {termini.name}
             </h1>
             <span

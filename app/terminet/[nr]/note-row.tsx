@@ -46,11 +46,6 @@ export default function NoteRow({
         {editing ? (
           <form action={action}>
             <input type="hidden" name="noteId" value={note.id} />
-            <input
-              type="hidden"
-              name="appointmentId"
-              value={note.appointment_id}
-            />
             <textarea
               name="body"
               data-testid="note-edit"
