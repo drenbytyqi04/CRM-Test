@@ -1,20 +1,17 @@
 import Link from "next/link";
 import AppointmentForm from "./terminet/appointment-form";
 import SetupNotice from "./setup-notice";
-import SignOutButton from "./sign-out-button";
 import { createClient, hasSupabaseConfig } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
 import {
   APPOINTMENT_COLUMNS,
   APPOINTMENT_STATUSES,
   APPOINTMENT_STATUS_CLASSES,
-  ROLE_CLASSES,
   appointmentPath,
   appointmentStatusLabel,
   defaultAppointmentSlot,
   formatDuration,
   formatBeograd,
-  roleLabel,
   todayInBeograd,
   type Appointment,
 } from "@/lib/types";
@@ -116,35 +113,13 @@ export default async function Page({ searchParams }: PageProps<"/">) {
           </p>
         </div>
 
-        <div className="flex shrink-0 items-center gap-3">
-          {user.isAdmin && (
-            <Link
-              href="/admin"
-              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 transition hover:bg-white"
-            >
-              Përdoruesit
-            </Link>
-          )}
-          <span
-            className="hidden text-sm text-slate-500 sm:inline"
-            title="Koha e kaluar sot brenda CRM-së"
-          >
-            Aktiv sot: {formatDuration(aktivitetiIm.data?.active_seconds ?? 0)}
-          </span>
-          <span className="hidden items-center gap-2 text-sm text-slate-500 sm:flex">
-            {user.email}
-            {user.role !== "user" && (
-              <span
-                className={`rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${
-                  ROLE_CLASSES[user.role]
-                }`}
-              >
-                {roleLabel(user.role)}
-              </span>
-            )}
-          </span>
-          <SignOutButton />
-        </div>
+        {/* Emaili, roli dhe "Dil" rrinë te menyja anash. */}
+        <span
+          className="shrink-0 text-sm text-slate-500"
+          title="Koha e kaluar sot brenda CRM-së"
+        >
+          Aktiv sot: {formatDuration(aktivitetiIm.data?.active_seconds ?? 0)}
+        </span>
       </header>
 
       {user.isManager && (

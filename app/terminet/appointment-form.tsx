@@ -8,6 +8,7 @@ import {
   type Appointment,
   type FormState,
 } from "@/lib/types";
+import { TabPanel } from "./tabs";
 
 const input =
   "w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none placeholder:text-slate-400 focus:border-slate-900";
@@ -61,6 +62,7 @@ export default function AppointmentForm({
       )}
 
       {/* ---------- Personalia ---------- */}
+      <TabPanel id="personalia">
       <section className="rounded-xl border border-slate-200 bg-white p-5">
         <h2 className="mb-4 text-base font-semibold text-slate-900">
           Personalia
@@ -183,7 +185,10 @@ export default function AppointmentForm({
         </div>
       </section>
 
+      </TabPanel>
+
       {/* ---------- Të dhëna teknike ---------- */}
+      <TabPanel id="teknike">
       <section className="rounded-xl border border-slate-200 bg-white p-5">
         <h2 className="mb-4 text-base font-semibold text-slate-900">
           Të dhëna teknike
@@ -250,7 +255,10 @@ export default function AppointmentForm({
         </div>
       </section>
 
+      </TabPanel>
+
       {/* ---------- Rezultati ---------- */}
+      <TabPanel id="rezultati">
       <section className="rounded-xl border border-slate-200 bg-white p-5">
         <h2 className="mb-4 text-base font-semibold text-slate-900">
           Rezultati
@@ -310,7 +318,10 @@ export default function AppointmentForm({
         </div>
       </section>
 
+      </TabPanel>
+
       {/* ---------- Detaje të këshillimit ---------- */}
+      <TabPanel id="detaje">
       <section className="rounded-xl border border-slate-200 bg-white p-5">
         <h2 className="mb-1 text-base font-semibold text-slate-900">
           Detaje të këshillimit
@@ -362,7 +373,11 @@ export default function AppointmentForm({
           </label>
         </div>
       </section>
+      </TabPanel>
 
+      {/* Butoni i ruajtjes duket te çdo skedë e formularit, jo te Feedback-u:
+          ai bllok nuk i përket formularit. */}
+      <TabPanel id={["personalia", "teknike", "rezultati", "detaje"]}>
       <div className="flex items-center gap-3">
         <button
           type="submit"
@@ -385,6 +400,7 @@ export default function AppointmentForm({
           <p className="text-sm text-emerald-700">{state.message}</p>
         )}
       </div>
+      </TabPanel>
     </form>
   );
 }

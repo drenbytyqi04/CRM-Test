@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import AppointmentForm from "./appointment-form";
 import NoteForm from "./note-form";
 import NoteRow from "./note-row";
-import SignOutButton from "@/app/sign-out-button";
+import { Tabs, TabPanel } from "./tabs";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
 import {
@@ -98,7 +98,7 @@ export default async function AppointmentPage({
 
   return (
     <main className="mx-auto w-full max-w-4xl px-5 py-10">
-      <header className="mb-8 flex items-start justify-between gap-4">
+      <header className="mb-6">
         <div>
           <Link
             href="/"
@@ -137,14 +137,17 @@ export default async function AppointmentPage({
             Regjistruar më {formatDate(termini.created_at)} · ora e Beogradit
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-3">
-          <span className="hidden text-sm text-slate-500 sm:inline">
-            {user.email}
-          </span>
-          <SignOutButton />
-        </div>
       </header>
 
+      <Tabs
+        tabs={[
+          { id: "personalia", label: "Personalia" },
+          { id: "teknike", label: "Të dhëna teknike" },
+          { id: "rezultati", label: "Rezultati" },
+          { id: "detaje", label: "Detaje" },
+          { id: "feedback", label: `Feedback (${notes.length})` },
+        ]}
+      >
       {user.isManager ? (
         <AppointmentForm
           appointment={termini}
@@ -153,6 +156,7 @@ export default async function AppointmentPage({
       ) : (
         /* Përdoruesi i thjeshtë e lexon terminin, por nuk e ndryshon. */
         <div className="space-y-6">
+          <TabPanel id="personalia">
           <section className="rounded-xl border border-slate-200 bg-white p-5">
             <h2 className="mb-4 text-base font-semibold text-slate-900">
               Personalia
@@ -182,6 +186,9 @@ export default async function AppointmentPage({
             </dl>
           </section>
 
+          </TabPanel>
+
+          <TabPanel id="teknike">
           <section className="rounded-xl border border-slate-200 bg-white p-5">
             <h2 className="mb-4 text-base font-semibold text-slate-900">
               Të dhëna teknike
@@ -202,6 +209,9 @@ export default async function AppointmentPage({
             </dl>
           </section>
 
+          </TabPanel>
+
+          <TabPanel id="rezultati">
           <section className="rounded-xl border border-slate-200 bg-white p-5">
             <h2 className="mb-4 text-base font-semibold text-slate-900">
               Rezultati
@@ -222,6 +232,9 @@ export default async function AppointmentPage({
             </dl>
           </section>
 
+          </TabPanel>
+
+          <TabPanel id="detaje">
           <section className="rounded-xl border border-slate-200 bg-white p-5">
             <h2 className="mb-4 text-base font-semibold text-slate-900">
               Detaje të këshillimit
@@ -234,18 +247,16 @@ export default async function AppointmentPage({
             </dl>
             <p className="mt-4 text-xs text-slate-500">
               Terminet i cakton dhe i ndryshon vetëm menaxheri. Ti mund të
-              shkruash shënime më poshtë.
+              shkruash shënime te skeda «Feedback».
             </p>
           </section>
+          </TabPanel>
         </div>
       )}
 
       {/* ---------- Shënimet ---------- */}
-      <section className="mt-8">
-        <h2 className="mb-3 text-base font-semibold text-slate-900">
-          Feedback i terminit
-        </h2>
-
+      <TabPanel id="feedback">
+      <section>
         <div className="mb-4">
           <NoteForm appointmentId={termini.id} />
         </div>
@@ -297,6 +308,8 @@ export default async function AppointmentPage({
           {notes.length} shënime · Ctrl+Enter te kutia lart e ruan menjëherë.
         </p>
       </section>
+      </TabPanel>
+      </Tabs>
     </main>
   );
 }

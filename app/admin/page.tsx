@@ -1,5 +1,3 @@
-import Link from "next/link";
-import SignOutButton from "@/app/sign-out-button";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
 import {
@@ -18,7 +16,8 @@ export const dynamic = "force-dynamic";
 /** Faqja e administratorit: të gjithë përdoruesit dhe sa të dhëna ka secili. */
 export default async function AdminPage() {
   // Kush s'është admin, dërgohet te faqja kryesore.
-  const admin = await requireAdmin();
+  // Vetëm admini e hap këtë faqe.
+  await requireAdmin();
   const supabase = await createClient();
 
   // Dita e sotme sipas orës së Beogradit, si te funksioni në bazë.
@@ -67,33 +66,14 @@ export default async function AdminPage() {
 
   return (
     <main className="mx-auto w-full max-w-4xl px-5 py-10">
-      <header className="mb-8 flex items-start justify-between gap-4">
-        <div>
-          <Link
-            href="/"
-            className="text-sm text-slate-500 transition hover:text-slate-900"
-          >
-            ← Terminet
-          </Link>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">
-            Përdoruesit
-          </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Të gjitha llogaritë e regjistruara në sistem.
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-3">
-          <Link
-            href="/admin/aktiviteti"
-            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 transition hover:bg-white"
-          >
-            Aktiviteti
-          </Link>
-          <span className="hidden text-sm text-slate-500 sm:inline">
-            {admin.email}
-          </span>
-          <SignOutButton />
-        </div>
+      {/* Lidhjet, emaili dhe "Dil" rrinë te menyja anash. */}
+      <header className="mb-6">
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
+          Përdoruesit
+        </h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Të gjitha llogaritë e regjistruara në sistem.
+        </p>
       </header>
 
       {profilesResult.error && (

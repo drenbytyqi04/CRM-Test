@@ -181,8 +181,12 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
   edhe se kur u regjistrua: *Regjistruar më ... · ora e Beogradit*.
 - **Filtro:** butonat e statuseve lart. Përmbledhja tregon sa termine, sa u
   mbajtën dhe sa kontrata u mbyllën.
-- **Hap një termin:** kliko mbi emrin. Aty ndryshon çdo fushë dhe shënon
-  rezultatin.
+- **Hap një termin:** kliko mbi emrin. Faqja ndahet në pesë skeda —
+  *Personalia*, *Të dhëna teknike*, *Rezultati*, *Detaje*, *Feedback* — dhe
+  duket vetëm njëra njëherësh, që të mos zbresësh gjatë. Butoni *Ruaj
+  ndryshimet* i ruan të gjitha skedat njëherësh, jo vetëm atë që sheh.
+- **Menyja anash:** shtylla e majtë mban lidhjet, emailin, rolin dhe *Dil*.
+  Në telefon shndërrohet në një shirit të hollë sipër.
 - **Numri i terminit:** çdo termin ka një numër të shkurtër — `#1000`, `#1001`
   e kështu me radhë — që del te lista, te kreu i faqes dhe te adresa. Numri
   jepet nga baza, nuk ndryshohet kurrë, dhe kështu mund ta thuash me gojë ose
@@ -243,8 +247,11 @@ app/
   auth/confirm/route.ts     Aty bie lidhja e konfirmimit nga emaili
   admin/page.tsx            Faqja e administratorit: të gjithë përdoruesit
   admin/aktiviteti/page.tsx Koha e secilit përdorues, ditë pas dite
+  sidebar.tsx               Menyja anash: lidhjet, roli dhe "Dil"
+  sidebar-link.tsx          Një lidhje e menysë, që ndriçon te faqja e vet
   terminet/
     appointment-page.tsx    Faqja e një termini (e përbashkët për tri rolet)
+    tabs.tsx                Skedat e faqes së terminit
     appointment-form.tsx    Formulari i terminit (caktim dhe ndryshim)
     note-form.tsx           Kutia e shpejtë për të shtuar shënim
     note-row.tsx            Një rresht i tabelës, me ndryshim brenda rreshtit
