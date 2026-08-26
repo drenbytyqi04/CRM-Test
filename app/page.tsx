@@ -44,10 +44,12 @@ export default async function Page({ searchParams }: PageProps<"/">) {
   const showAll = view !== "mine";
   const sot = todayInTirane();
 
+  // Radha: i fundit i regjistruar rri lart. Kështu termini që sapo u shtua
+  // gjendet menjëherë, pa varur nga data për të cilën është caktuar.
   let query = supabase
     .from("appointments")
     .select(APPOINTMENT_COLUMNS)
-    .order("scheduled_at", { ascending: false });
+    .order("created_at", { ascending: false });
 
   if (!showAll) query = query.eq("user_id", user.id);
   if (APPOINTMENT_STATUSES.some((s) => s.value === filtri)) {
