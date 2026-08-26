@@ -6,7 +6,7 @@ import {
   formatDayLabel,
   formatDuration,
   isRecent,
-  todayInTirane,
+  todayInBeograd,
   type ActivityDay,
   type Profile,
 } from "@/lib/types";
@@ -18,7 +18,7 @@ const DITE = 7;
 
 /** Lista e ditëve, nga më e vjetra te sotmja. */
 function ditetEFundit(): string[] {
-  const sot = new Date(`${todayInTirane()}T12:00:00Z`);
+  const sot = new Date(`${todayInBeograd()}T12:00:00Z`);
   const lista: string[] = [];
   for (let i = DITE - 1; i >= 0; i--) {
     const d = new Date(sot);

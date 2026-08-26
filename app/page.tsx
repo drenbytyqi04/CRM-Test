@@ -13,9 +13,9 @@ import {
   appointmentStatusLabel,
   defaultAppointmentSlot,
   formatDuration,
-  formatTirane,
+  formatBeograd,
   roleLabel,
-  todayInTirane,
+  todayInBeograd,
   type Appointment,
 } from "@/lib/types";
 
@@ -42,7 +42,7 @@ export default async function Page({ searchParams }: PageProps<"/">) {
   // Terminet e regjistruara i sheh çdo i kyçur. Menaxheri mund t'i ngushtojë
   // te "Të mijat".
   const showAll = view !== "mine";
-  const sot = todayInTirane();
+  const sot = todayInBeograd();
 
   // Radha: i fundit i regjistruar rri lart. Kështu termini që sapo u shtua
   // gjendet menjëherë, pa varur nga data për të cilën është caktuar.
@@ -237,7 +237,7 @@ export default async function Page({ searchParams }: PageProps<"/">) {
                     {t.name}
                   </p>
                   <p className="truncate text-sm text-slate-500">
-                    {formatTirane(t.scheduled_at)}
+                    {formatBeograd(t.scheduled_at)}
                     {t.current_insurance ? ` · ${t.current_insurance}` : ""}
                     {` · ${t.persons_count} persona`}
                   </p>

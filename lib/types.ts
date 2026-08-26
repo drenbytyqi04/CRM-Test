@@ -128,13 +128,13 @@ export function appointmentPath(
   return `/${rolePrefix(role)}/terminet/${t.nr ?? t.id}`;
 }
 
-const TZ = "Europe/Tirane";
+const TZ = "Europe/Belgrade";
 
 /**
- * Sa minuta larg orës botërore është Tirana në atë çast (60 ose 120).
+ * Sa minuta larg orës botërore është Beogradi në atë çast (60 ose 120).
  * E llogarisim, sepse ora e verës e ndryshon dy herë në vit.
  */
-function tiraneOffsetMinutes(date: Date): number {
+function beogradOffsetMinutes(date: Date): number {
   const parts = Object.fromEntries(
     new Intl.DateTimeFormat("en-US", {
       timeZone: TZ,
@@ -162,12 +162,12 @@ function tiraneOffsetMinutes(date: Date): number {
 
 /**
  * Nga data e ruajtur në formën që pret fusha `datetime-local`, në orën e
- * Tiranës: "2026-01-30T10:00".
+ * Beogradit: "2026-01-30T10:00".
  *
- * E llogarisim gjithmonë me orën e Tiranës (jo me orën e kompjuterit), që
+ * E llogarisim gjithmonë me orën e Beogradit (jo me orën e kompjuterit), që
  * serveri dhe shfletuesi të nxjerrin saktësisht të njëjtin tekst.
  */
-export function toTiraneInput(iso: string): string {
+export function toBeogradInput(iso: string): string {
   return new Intl.DateTimeFormat("sv-SE", {
     timeZone: TZ,
     year: "numeric",
@@ -181,12 +181,12 @@ export function toTiraneInput(iso: string): string {
     .replace(" ", "T");
 }
 
-/** E kundërta: "2026-01-30T10:00" (orë Tirane) -> data e plotë për ruajtje. */
-export function fromTiraneInput(local: string): string | null {
+/** E kundërta: "2026-01-30T10:00" (orë Beograd) -> data e plotë për ruajtje. */
+export function fromBeogradInput(local: string): string | null {
   if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(local)) return null;
   const sikurUTC = new Date(`${local.slice(0, 16)}:00Z`);
   if (Number.isNaN(sikurUTC.getTime())) return null;
-  const offset = tiraneOffsetMinutes(sikurUTC);
+  const offset = beogradOffsetMinutes(sikurUTC);
   return new Date(sikurUTC.getTime() - offset * 60000).toISOString();
 }
 
@@ -198,8 +198,8 @@ export function defaultAppointmentSlot(): string {
   )}T10:00`;
 }
 
-/** Data dhe ora e terminit për ta lexuar njeriu, në orën e Tiranës. */
-export function formatTirane(iso: string): string {
+/** Data dhe ora e terminit për ta lexuar njeriu, në orën e Beogradit. */
+export function formatBeograd(iso: string): string {
   return new Intl.DateTimeFormat("sq-AL", {
     timeZone: TZ,
     day: "numeric",
@@ -264,10 +264,10 @@ export type ActivityDay = {
   last_seen_at: string;
 };
 
-/** Data e sotme sipas orës së Tiranës, p.sh. "2026-08-26". */
-export function todayInTirane(): string {
+/** Data e sotme sipas orës së Beogradit, p.sh. "2026-08-26". */
+export function todayInBeograd(): string {
   return new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Europe/Tirane",
+    timeZone: "Europe/Belgrade",
   }).format(new Date());
 }
 
@@ -290,12 +290,12 @@ export function formatDuration(seconds: number): string {
 
 /** Data e shkurtër e një dite, p.sh. "e mar 25/8". */
 export function formatDayLabel(day: string): string {
-  const d = new Date(`${day}T12:00:00Z`);
-  return d.toLocaleDateString("sq-AL", {
+  return new Intl.DateTimeFormat("sq-AL", {
+    timeZone: TZ,
     weekday: "short",
     day: "numeric",
     month: "numeric",
-  });
+  }).format(new Date(`${day}T12:00:00Z`));
 }
 
 /** Vetëm data, pa orë: "28 janar 1985". Për datëlindje e ngjashme. */
@@ -307,13 +307,20 @@ export function formatDateOnly(day: string): string {
   });
 }
 
-/** Datë e lexueshme në shqip, p.sh. "24 gusht 2026, 14:30". */
+/**
+ * Datë e lexueshme në shqip, me orën e Beogradit: "24 gusht 2026, 14:30".
+ *
+ * Zona kohore shkruhet shprehimisht. Pa të, ora dilte sipas kompjuterit që
+ * e ndërton faqen — dhe serverat e Vercel-it punojnë me orën botërore (UTC),
+ * pra ora e krijimit shfaqej 1–2 orë prapa.
+ */
 export function formatDate(iso: string): string {
-  return new Date(iso).toLocaleString("sq-AL", {
+  return new Intl.DateTimeFormat("sq-AL", {
+    timeZone: TZ,
     day: "numeric",
     month: "long",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-  });
+  }).format(new Date(iso));
 }

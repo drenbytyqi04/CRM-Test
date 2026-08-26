@@ -23,7 +23,7 @@
 -- ---------------------------------------------------------------------
 create table if not exists public.activity_days (
   user_id uuid not null references auth.users (id) on delete cascade,
-  -- Dita llogaritet me orën e Tiranës, që "dita" të mos ndahet në mesnatë
+  -- Dita llogaritet me orën e Beogradit, që "dita" të mos ndahet në mesnatë
   -- sipas orës botërore.
   day date not null,
   active_seconds integer not null default 0,
@@ -52,7 +52,7 @@ set search_path = public
 as $$
 declare
   uid   uuid := auth.uid();
-  sot   date := (now() at time zone 'Europe/Tirane')::date;
+  sot   date := (now() at time zone 'Europe/Belgrade')::date;
   boshllek numeric;
 begin
   if uid is null then

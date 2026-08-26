@@ -13,9 +13,9 @@ import {
   appointmentPath,
   formatDate,
   formatDateOnly,
-  formatTirane,
+  formatBeograd,
   genderLabel,
-  toTiraneInput,
+  toBeogradInput,
   type Appointment,
   type Note,
   type RolePrefix,
@@ -130,7 +130,11 @@ export default async function AppointmentPage({
             )}
           </div>
           <p className="mt-1 text-sm text-slate-500">
-            {formatTirane(termini.scheduled_at)}
+            {formatBeograd(termini.scheduled_at)}
+          </p>
+          {/* Koha e regjistrimit e sheh çdo rol, jo vetëm përdoruesi. */}
+          <p className="mt-0.5 text-xs text-slate-400">
+            Regjistruar më {formatDate(termini.created_at)} · ora e Beogradit
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-3">
@@ -144,7 +148,7 @@ export default async function AppointmentPage({
       {user.isManager ? (
         <AppointmentForm
           appointment={termini}
-          scheduledDefault={toTiraneInput(termini.scheduled_at)}
+          scheduledDefault={toBeogradInput(termini.scheduled_at)}
         />
       ) : (
         /* Përdoruesi i thjeshtë e lexon terminin, por nuk e ndryshon. */

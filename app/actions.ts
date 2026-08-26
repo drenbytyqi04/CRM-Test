@@ -6,7 +6,7 @@ import { getCurrentUser, requireManager, requireUser } from "@/lib/auth";
 import {
   APPOINTMENT_STATUSES,
   ROLE_PREFIXES,
-  fromTiraneInput,
+  fromBeogradInput,
   type FormState,
 } from "@/lib/types";
 
@@ -148,7 +148,7 @@ export async function recordActivity(): Promise<void> {
 
 /** Lexon fushat e përbashkëta të formularit të terminit. */
 function readAppointmentFields(formData: FormData) {
-  const scheduled = fromTiraneInput(String(formData.get("scheduledAt") ?? ""));
+  const scheduled = fromBeogradInput(String(formData.get("scheduledAt") ?? ""));
   const persons = Number(formData.get("personsCount") ?? 1);
   const contracts = Number(formData.get("contractsClosed") ?? 0);
   const status = String(formData.get("status") ?? "open");

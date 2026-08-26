@@ -174,6 +174,11 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
   (i detyrueshëm), personalinë, të dhënat teknike dhe datën e terminit.
 - **Radha e listës:** termini i regjistruar i fundit rri lart, pavarësisht se
   për cilën datë është caktuar. Kështu ai që sapo u shtua gjendet menjëherë.
+- **Ora:** të gjitha datat dhe orët shfaqen me **orën e Beogradit**
+  (`Europe/Belgrade`), me orën e verës të llogaritur vetvetiu. Kjo shkruhet
+  shprehimisht në kod: serverat e Vercel-it punojnë me orën botërore (UTC),
+  prandaj pa këtë ora do të dilte 1–2 orë prapa. Te faqja e terminit shkruhet
+  edhe se kur u regjistrua: *Regjistruar më ... · ora e Beogradit*.
 - **Filtro:** butonat e statuseve lart. Përmbledhja tregon sa termine, sa u
   mbajtën dhe sa kontrata u mbyllën.
 - **Hap një termin:** kliko mbi emrin. Aty ndryshon çdo fushë dhe shënon

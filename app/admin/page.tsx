@@ -8,7 +8,7 @@ import {
   formatDuration,
   isRecent,
   roleLabel,
-  todayInTirane,
+  todayInBeograd,
   type ActivityDay,
   type Profile,
 } from "@/lib/types";
@@ -21,8 +21,8 @@ export default async function AdminPage() {
   const admin = await requireAdmin();
   const supabase = await createClient();
 
-  // Dita e sotme sipas orës së Tiranës, si te funksioni në bazë.
-  const sot = todayInTirane();
+  // Dita e sotme sipas orës së Beogradit, si te funksioni në bazë.
+  const sot = todayInBeograd();
 
   const [profilesResult, terminetResult, notesResult, activityResult] =
     await Promise.all([
