@@ -132,16 +132,11 @@ update public.profiles set role = 'admin' where email = 'emaili.i.ri@shembull.co
 Për ta hequr rolin, po ashtu: `set role = 'user'`. E njëjta gjë bëhet edhe pa
 SQL: Table Editor → `profiles` → kliko qelizën `role`.
 
-### Hapi 10: Akses i plotë për administratorin ⚠️ i mbetur
+### Hapi 10: Akses i plotë për administratorin — I GATSHËM ✅
 
-Që administratori të shkruajë shënime dhe të ndryshojë të dhënat te klientët e
-të tjerëve, duhet ekzekutuar edhe një skedë SQL — një herë:
-
-Supabase → **SQL Editor** → **New query** → ngjit gjithë përmbajtjen e
-`supabase/admin-edit.sql` → **Run**.
-
-Pa këtë hap, aplikacioni punon normalisht dhe paneli "Ndrysho të dhënat"
-shfaqet, por ruajtja te klienti i dikujt tjetër do të refuzohet nga baza.
+Rregullat që i japin administratorit të drejtën të shkruajë shënime, t'i
+ndryshojë ato dhe të redaktojë të dhënat te klientët e të tjerëve janë zbatuar
+tashmë (skeda `supabase/admin-edit.sql`).
 
 ## Pjesa 3 — Si përdoret
 
@@ -155,6 +150,8 @@ shfaqet, por ruajtja te klienti i dikujt tjetër do të refuzohet nga baza.
 
 - **Ndrysho të dhënat:** te faqja e klientit, paneli që hapet me një klikim.
   Aty ndryshon emrin, telefonin, emailin dhe statusin.
+- **Ndrysho një shënim:** butoni *Ndrysho* poshtë secilit shënim që ke shkruar
+  ti. Pas ndryshimit, te data shfaqet edhe "ndryshuar më".
 
 Nëse je **administrator**, ke edhe:
 
@@ -162,9 +159,9 @@ Nëse je **administrator**, ke edhe:
   përdoruesve ose vetëm të tuat. Te lista shfaqet edhe pronari i secilit klient.
 - **Përdoruesit** — faqe me të gjitha llogaritë, rolin e secilit dhe sa klientë
   e shënime ka. Rolet ndryshohen vetëm nga paneli i Supabase-it.
-- **Akses i plotë mbi çdo klient** — hap klientin e kujtdo, shkruaj shënime aty
-  dhe ndrysho të dhënat e tij, edhe kur e ka krijuar dikush tjetër. Te koka e
-  faqes shfaqet se kujt i përket klienti.
+- **Akses i plotë mbi çdo klient** — hap klientin e kujtdo, shkruaj shënime aty,
+  ndrysho shënimet e shkruara nga të tjerët dhe redakto të dhënat e klientit,
+  edhe kur e ka krijuar dikush tjetër. Te koka e faqes shfaqet se kujt i përket.
 
 Shënimet që shkruan administratori te klienti i dikujt tjetër i sheh edhe
 pronari i atij klienti — pra bashkëpunimi mbetet i dukshëm për të dyja anët.
@@ -192,6 +189,7 @@ app/
     page.tsx                Faqja e një klienti + shënimet e tij
     note-form.tsx           Formulari për të shtuar shënim
     edit-form.tsx           Paneli "Ndrysho të dhënat"
+    note-item.tsx           Një shënim, me mundësinë për ta ndryshuar
 lib/
   supabase/server.ts        Lidhja me bazën për kodin në server
   supabase/proxy.ts         Mban sesionin e freskët në çdo kërkesë

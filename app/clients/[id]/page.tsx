@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import NoteForm from "./note-form";
 import EditForm from "./edit-form";
+import NoteItem from "./note-item";
 import SetupNotice from "@/app/setup-notice";
 import { createClient, hasSupabaseConfig } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
@@ -57,7 +58,7 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
   const [notesResult, ownerResult] = await Promise.all([
     supabase
       .from("notes")
-      .select("id, client_id, body, created_at")
+      .select("id, client_id, user_id, body, created_at, updated_at")
       .eq("client_id", client.id)
       .order("created_at", { ascending: false })
       .returns<Note[]>(),
@@ -140,15 +141,14 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
         ) : (
           <ul className="space-y-3">
             {notes.map((note) => (
-              <li
+              <NoteItem
                 key={note.id}
-                className="rounded-xl border border-slate-200 bg-white p-4"
-              >
-                <p className="whitespace-pre-wrap text-slate-900">{note.body}</p>
-                <p className="mt-2 text-xs text-slate-400">
-                  {formatDate(note.created_at)}
-                </p>
-              </li>
+                note={note}
+                // Shënimin e ndryshon autori i tij, ose administratori.
+                canEdit={user.isAdmin || note.user_id === user.id}
+                createdLabel={formatDate(note.created_at)}
+                updatedLabel={note.updated_at ? formatDate(note.updated_at) : null}
+              />
             ))}
           </ul>
         )}

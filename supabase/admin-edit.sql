@@ -8,9 +8,13 @@
 --   3. Çdo përdorues mund të ndryshojë klientët e vet.
 --   4. Pronari i klientit i sheh të gjitha shënimet e atij klienti — edhe ato
 --      që i ka shkruar administratori.
+--   5. Shënimin e ndryshon autori i tij; administratori ndryshon çdo shënim.
 --
--- SI PËRDORET (një herë):
---   1. https://supabase.com/dashboard -> projekti "crm-test"
+-- STATUSI: kjo skedë është ZBATUAR TASHMË në projektin "crm-test".
+-- Ruhet këtu si dëshmi e strukturës; do të të duhej për një projekt tjetër.
+--
+-- SI PËRDORET (për një projekt të ri):
+--   1. https://supabase.com/dashboard -> projekti yt
 --   2. Menyja e majtë -> "SQL Editor" -> "New query"
 --   3. Kopjo GJITHË këtë skedë, ngjite atje, kliko "Run"
 --
@@ -57,7 +61,21 @@ create policy "notes_insert_by_client_or_admin" on public.notes
   );
 
 -- ---------------------------------------------------------------------
--- 3. Kush i ndryshon të dhënat e klientit
+-- 3. Kush i ndryshon shënimet
+-- ---------------------------------------------------------------------
+-- Kolona `updated_at` mban gjurmën se kur u prek shënimi për herë të fundit.
+-- Shënimin e ndryshon autori i tij; administratori e ndryshon çdo shënim.
+alter table public.notes
+  add column if not exists updated_at timestamptz;
+
+drop policy if exists "notes_update_author_or_admin" on public.notes;
+create policy "notes_update_author_or_admin" on public.notes
+  for update to authenticated
+  using (user_id = auth.uid() or public.is_admin())
+  with check (user_id = auth.uid() or public.is_admin());
+
+-- ---------------------------------------------------------------------
+-- 4. Kush i ndryshon të dhënat e klientit
 -- ---------------------------------------------------------------------
 -- `using`      = cilët rreshta lejohet t'i prekësh.
 -- `with check` = si lejohet të duket rreshti PAS ndryshimit. Kjo e dyta

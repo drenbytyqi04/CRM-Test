@@ -34,8 +34,12 @@ export type Client = {
 export type Note = {
   id: string;
   client_id: string;
+  /** Kush e shkroi shënimin. */
+  user_id: string;
   body: string;
   created_at: string;
+  /** Kur u ndryshua për herë të fundit; `null` nëse s'është prekur kurrë. */
+  updated_at: string | null;
 };
 
 /** Një rresht i tabelës `profiles` (llogaria dhe roli i saj). */

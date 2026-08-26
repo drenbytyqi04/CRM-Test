@@ -156,16 +156,78 @@ export async function updateClient(
     return { error: "Ky klient nuk u gjet ose nuk ke të drejtë mbi të." };
   }
 
-  const { error } = await supabase
+  // `.select()` në fund na kthen rreshtat që u prekën vërtet. Pa të, një
+  // ndryshim i bllokuar nga rregullat e bazës do të kalonte pa gabim dhe do
+  // të dukej sikur u ruajt.
+  const { data, error } = await supabase
     .from("clients")
     .update({ name, phone, email, status })
-    .eq("id", clientId);
+    .eq("id", clientId)
+    .select("id");
 
   if (error) {
     return { error: `Nuk u ruajtën dot ndryshimet: ${error.message}` };
+  }
+  if (!data || data.length === 0) {
+    return { error: "Ndryshimet nuk u ruajtën: baza nuk e lejoi këtë veprim." };
   }
 
   revalidatePath(`/clients/${clientId}`);
   revalidatePath("/");
   return { ok: true, message: "Ndryshimet u ruajtën." };
+}
+
+/**
+ * Ndryshon tekstin e një shënimi.
+ *
+ * E bën autori i shënimit, ose administratori për çdo shënim.
+ */
+export async function updateNote(
+  _prevState: FormState,
+  formData: FormData
+): Promise<FormState> {
+  const user = await requireUser();
+
+  const noteId = String(formData.get("noteId") ?? "");
+  const clientId = String(formData.get("clientId") ?? "");
+  const body = textOrNull(formData.get("body"));
+
+  if (!noteId) {
+    return { error: "Mungon shënimi që duhet ndryshuar." };
+  }
+  if (!body) {
+    return { error: "Shënimi nuk mund të jetë bosh." };
+  }
+
+  const supabase = await createClient();
+
+  // Kontrolli i lejeve edhe këtu, jo vetëm te rregullat e bazës.
+  const { data: note } = await supabase
+    .from("notes")
+    .select("id, user_id, client_id")
+    .eq("id", noteId)
+    .maybeSingle<{ id: string; user_id: string; client_id: string }>();
+
+  if (!note) {
+    return { error: "Ky shënim nuk u gjet." };
+  }
+  if (!user.isAdmin && note.user_id !== user.id) {
+    return { error: "Këtë shënim e ka shkruar dikush tjetër." };
+  }
+
+  const { data, error } = await supabase
+    .from("notes")
+    .update({ body, updated_at: new Date().toISOString() })
+    .eq("id", noteId)
+    .select("id");
+
+  if (error) {
+    return { error: `Nuk u ruajt dot shënimi: ${error.message}` };
+  }
+  if (!data || data.length === 0) {
+    return { error: "Shënimi nuk u ruajt: baza nuk e lejoi këtë veprim." };
+  }
+
+  revalidatePath(`/clients/${clientId || note.client_id}`);
+  return { ok: true, message: "Shënimi u ndryshua." };
 }
