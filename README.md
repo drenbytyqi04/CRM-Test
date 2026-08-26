@@ -149,6 +149,17 @@ Tabela `appointments` dhe fushat e reja te klientët janë krijuar
 (skeda `supabase/appointments.sql`). Shih **Pjesa 7** për mënyrën si janë
 menduar takimet.
 
+### Hapi 13: Tri rolet — TË GATSHME ✅
+
+Rregullat e roleve `user`, `manager` dhe `admin` janë zbatuar
+(skeda `supabase/roles.sql`). Shih tabelën te **Pjesa 3**.
+
+Roli caktohet me një rresht te Supabase → SQL Editor:
+
+```sql
+update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
+```
+
 ---
 
 ## Pjesa 3 — Si përdoret
@@ -181,10 +192,23 @@ menduar takimet.
 - **Personalia:** numri i klientit, gjinia, kombësia, datëlindja, adresa e plotë
   dhe celulari plotësohen te kartela e klientit dhe shfaqen te çdo takim i tij.
 
+### Kush çfarë mundet
+
+| Veprimi | Përdorues | Menaxher | Admin |
+| --- | :---: | :---: | :---: |
+| Lexon klientët dhe takimet | ✅ | ✅ | ✅ |
+| Shkruan shënime | ✅ | ✅ | ✅ |
+| Shton dhe ndryshon klientë | ❌ | ✅ | ✅ |
+| Cakton dhe ndryshon takime | ❌ | ✅ | ✅ |
+| Faqja *Përdoruesit* dhe *Aktiviteti* | ❌ | ❌ | ✅ |
+
+Përdoruesi i thjeshtë e hap çdo takim dhe çdo kartelë klienti, por i sheh si
+tekst — pa formularë. Puna e tij regjistrohet përmes shënimeve.
+
 Nëse je **administrator**, ke edhe:
 
-- **Të gjitha / Të mijat** — çelës lart, për të parë të dhënat e krejt
-  përdoruesve ose vetëm të tuat. Te lista shfaqet edhe pronari i secilit klient.
+- **Të gjitha / Të mijat** — çelës lart (edhe menaxheri e ka), për të parë të
+  dhënat e krejt përdoruesve ose vetëm të tuat.
 - **Përdoruesit** — faqe me të gjitha llogaritë, rolin e secilit, kohën aktive
   sot dhe sa klientë e shënime ka. Rolet ndryshohen vetëm nga paneli i
   Supabase-it.
@@ -241,6 +265,7 @@ supabase/
   admin-edit.sql            SQL-i i redaktimit dhe i shënimeve të adminit
   activity.sql              SQL-i i përcjelljes së kohës
   appointments.sql          SQL-i i takimeve dhe i personalive
+  roles.sql                 SQL-i i tri roleve dhe i lejeve
 ```
 
 Tri koncepte që i ndeshni në kod:
@@ -271,8 +296,14 @@ Të dhënat mbrohen në tri shtresa, njëra mbi tjetrën:
 "publishable"). Pa llogari, ai çelës nuk hap asgjë.
 
 **Rolet.** Roli ruhet në tabelën `profiles`, e cila ka RLS pa asnjë rregull
-ndryshimi — pra askush nuk e bën dot veten admin nga aplikacioni. Roli
-ndryshohet vetëm nga paneli i Supabase-it, ku hyn vetëm ti.
+ndryshimi — pra askush nuk e bën dot veten admin apo menaxher nga aplikacioni.
+Roli ndryshohet vetëm nga paneli i Supabase-it, ku hyn vetëm ti.
+
+**Leximi është i përbashkët, shkrimi jo.** Që një përdorues t'i shohë takimet e
+regjistruara, ai duhet të shohë edhe klientët pas tyre; prandaj të gjithë të
+kyçurit i lexojnë klientët, takimet dhe shënimet. Shtimi dhe ndryshimi mbeten
+të mbyllura: klientët e takimet i prek vetëm menaxheri, shënimin e vet e ndryshon
+vetëm autori (ose admini).
 
 ### Publikimi në Vercel
 

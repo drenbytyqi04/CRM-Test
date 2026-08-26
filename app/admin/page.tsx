@@ -3,9 +3,11 @@ import SignOutButton from "@/app/sign-out-button";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
 import {
+  ROLE_CLASSES,
   formatDate,
   formatDuration,
   isRecent,
+  roleLabel,
   todayInTirane,
   type ActivityDay,
   type Profile,
@@ -126,12 +128,10 @@ export default async function AdminPage() {
                 <td className="p-4">
                   <span
                     className={`rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${
-                      profile.role === "admin"
-                        ? "bg-slate-900 text-white ring-slate-900"
-                        : "bg-slate-100 text-slate-600 ring-slate-200"
+                      ROLE_CLASSES[profile.role] ?? ROLE_CLASSES.user
                     }`}
                   >
-                    {profile.role === "admin" ? "Admin" : "Përdorues"}
+                    {roleLabel(profile.role)}
                   </span>
                 </td>
                 <td className="p-4 whitespace-nowrap text-slate-600">
@@ -155,7 +155,10 @@ export default async function AdminPage() {
       <p className="mt-4 text-sm text-slate-500">
         Rolet ndryshohen vetëm nga paneli i Supabase-it (Table Editor →{" "}
         <code className="rounded bg-slate-100 px-1">profiles</code>), që askush
-        të mos e bëjë dot veten admin nga aplikacioni.
+        të mos e bëjë dot veten admin nga aplikacioni. Vlerat:{" "}
+        <code className="rounded bg-slate-100 px-1">user</code>,{" "}
+        <code className="rounded bg-slate-100 px-1">manager</code>,{" "}
+        <code className="rounded bg-slate-100 px-1">admin</code>.
       </p>
     </main>
   );

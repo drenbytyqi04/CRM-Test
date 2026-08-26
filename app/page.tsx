@@ -6,8 +6,10 @@ import { createClient, hasSupabaseConfig } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
 import {
   CLIENT_COLUMNS,
+  ROLE_CLASSES,
   STATUS_CLASSES,
   formatDuration,
+  roleLabel,
   statusLabel,
   todayInTirane,
   type Client,
@@ -33,14 +35,10 @@ export default async function Page({ searchParams }: PageProps<"/">) {
   const user = await requireUser();
   const supabase = await createClient();
 
-  // Administratori i sheh të gjitha si parazgjedhje, por mund të kalojë
-  // te "Të mijat" me anë të lidhjes lart.
+  // Klientët i sheh çdo i kyçur. Menaxheri dhe admini mund të ngushtojnë
+  // pamjen te "Të mijat" me anë të lidhjes lart.
   const { view } = await searchParams;
-  const showAll = user.isAdmin && view !== "mine";
-
-  // Dy mbrojtje njëkohësisht: rregullat e bazës (RLS) e ndalojnë leximin e
-  // rreshtave të të tjerëve, dhe ne e kërkojmë shprehimisht `user_id`-në tonë
-  // (përveç administratorit, kur ai po i shikon të gjitha).
+  const showAll = view !== "mine";
   let clientsQuery = supabase
     .from("clients")
     .select(CLIENT_COLUMNS)
@@ -49,6 +47,7 @@ export default async function Page({ searchParams }: PageProps<"/">) {
   if (!showAll) {
     clientsQuery = clientsQuery.eq("user_id", user.id);
   }
+
 
   const clientsResult = await clientsQuery.returns<Client[]>();
   const clients = clientsResult.data ?? [];
@@ -69,12 +68,10 @@ export default async function Page({ searchParams }: PageProps<"/">) {
           )
           .returns<{ client_id: string }[]>()
       : Promise.resolve({ data: [], error: null }),
-    showAll
-      ? supabase
-          .from("profiles")
-          .select("id, email")
-          .returns<{ id: string; email: string | null }[]>()
-      : Promise.resolve({ data: [], error: null }),
+    supabase
+      .from("profiles")
+      .select("id, email")
+      .returns<{ id: string; email: string | null }[]>(),
     // Koha ime e sotme — çdo përdorues e sheh numrin e vet.
     supabase
       .from("activity_days")
@@ -104,9 +101,9 @@ export default async function Page({ searchParams }: PageProps<"/">) {
             Klientët
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            {showAll
-              ? "Po shikon të dhënat e të gjithë përdoruesve."
-              : "Shto klientë dhe mbaj shënime për secilin."}
+            {user.isManager
+              ? "Shto klientë, cakto takime dhe mbaj shënime."
+              : "Lexo klientët dhe takimet; mund të shkruash shënime."}
           </p>
         </div>
 
@@ -133,9 +130,13 @@ export default async function Page({ searchParams }: PageProps<"/">) {
           </span>
           <span className="hidden items-center gap-2 text-sm text-slate-500 sm:flex">
             {user.email}
-            {user.isAdmin && (
-              <span className="rounded-full bg-slate-900 px-2 py-0.5 text-xs font-medium text-white">
-                Admin
+            {user.role !== "user" && (
+              <span
+                className={`rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${
+                  ROLE_CLASSES[user.role]
+                }`}
+              >
+                {roleLabel(user.role)}
               </span>
             )}
           </span>
@@ -143,7 +144,7 @@ export default async function Page({ searchParams }: PageProps<"/">) {
         </div>
       </header>
 
-      {user.isAdmin && (
+      {user.isManager && (
         <nav className="mb-6 flex gap-2 text-sm">
           <Link
             href="/?view=all"
@@ -168,7 +169,7 @@ export default async function Page({ searchParams }: PageProps<"/">) {
         </nav>
       )}
 
-      <ClientForm />
+      {user.isManager && <ClientForm />}
 
       {error && (
         <p className="mt-6 rounded-lg bg-red-50 p-4 text-sm text-red-700">
@@ -183,7 +184,7 @@ export default async function Page({ searchParams }: PageProps<"/">) {
 
         {clients.length === 0 && !error ? (
           <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">
-            Ende s&apos;ka klientë. Shto të parin me formularin lart.
+            Ende s&apos;ka klientë këtu.
           </p>
         ) : (
           <ul className="divide-y divide-slate-200 overflow-hidden rounded-xl border border-slate-200 bg-white">
@@ -201,7 +202,7 @@ export default async function Page({ searchParams }: PageProps<"/">) {
                       {[client.phone, client.email].filter(Boolean).join(" · ") ||
                         "Pa kontakt"}
                     </p>
-                    {showAll && (
+                    {client.user_id !== user.id && (
                       <p className="mt-1 truncate text-xs text-slate-400">
                         Pronari: {owners.get(client.user_id) ?? "—"}
                       </p>

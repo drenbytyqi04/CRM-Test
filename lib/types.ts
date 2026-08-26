@@ -215,8 +215,26 @@ export type Note = {
 export type Profile = {
   id: string;
   email: string | null;
-  role: "user" | "admin";
+  role: "user" | "manager" | "admin";
   created_at: string;
+};
+
+/** Emrat e roleve në shqip. */
+export const ROLE_LABELS: Record<string, string> = {
+  user: "Përdorues",
+  manager: "Menaxher",
+  admin: "Admin",
+};
+
+export function roleLabel(role: string): string {
+  return ROLE_LABELS[role] ?? role;
+}
+
+/** Ngjyrat e etiketës së rolit. */
+export const ROLE_CLASSES: Record<string, string> = {
+  user: "bg-slate-100 text-slate-600 ring-slate-200",
+  manager: "bg-sky-100 text-sky-800 ring-sky-200",
+  admin: "bg-slate-900 text-white ring-slate-900",
 };
 
 /** Formati i përgjigjes që kthejnë format tona (Server Actions). */

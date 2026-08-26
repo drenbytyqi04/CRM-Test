@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUser, requireUser } from "@/lib/auth";
+import { getCurrentUser, requireManager, requireUser } from "@/lib/auth";
 import {
   APPOINTMENT_STATUSES,
   STATUSES,
@@ -30,12 +30,12 @@ function looksLikeEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
-/** Shton një klient të ri për përdoruesin e kyçur. */
+/** Shton një klient të ri. Vetëm menaxheri dhe admini. */
 export async function addClient(
   _prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
-  const user = await requireUser();
+  const user = await requireManager();
 
   const name = textOrNull(formData.get("name"));
   const phone = textOrNull(formData.get("phone"));
@@ -66,16 +66,14 @@ export async function addClient(
 }
 
 /**
- * A ka të drejtë ky përdorues të prekë këtë klient?
+ * A ekziston ky klient dhe a e sheh dot përdoruesi?
  *
- * Kthen klientin nëse po, ose `null` nëse jo. Administratori i prek të gjithë;
- * të tjerët vetëm të vetët. Kjo kontrollohet edhe këtu, edhe nga rregullat e
- * bazës — dy mbrojtje të pavarura për të njëjtën gjë.
+ * Të gjithë të kyçurit i lexojnë klientët, prandaj këtu mjafton ekzistenca.
+ * Kush lejohet t'i NDRYSHOJË, kontrollohet veçmas me `requireManager()`.
  */
-async function findEditableClient(
+async function findClient(
   supabase: Awaited<ReturnType<typeof createClient>>,
-  clientId: string,
-  user: { id: string; isAdmin: boolean }
+  clientId: string
 ) {
   const { data: client } = await supabase
     .from("clients")
@@ -83,9 +81,7 @@ async function findEditableClient(
     .eq("id", clientId)
     .maybeSingle<{ id: string; user_id: string }>();
 
-  if (!client) return null;
-  if (!user.isAdmin && client.user_id !== user.id) return null;
-  return client;
+  return client ?? null;
 }
 
 /** Shton një shënim te një klient i caktuar. */
@@ -107,8 +103,8 @@ export async function addNote(
 
   const supabase = await createClient();
 
-  if (!(await findEditableClient(supabase, clientId, user))) {
-    return { error: "Ky klient nuk u gjet ose nuk ke të drejtë mbi të." };
+  if (!(await findClient(supabase, clientId))) {
+    return { error: "Ky klient nuk u gjet." };
   }
 
   const { error } = await supabase
@@ -134,7 +130,7 @@ export async function updateClient(
   _prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
-  const user = await requireUser();
+  await requireManager();
 
   const clientId = String(formData.get("clientId") ?? "");
   const name = textOrNull(formData.get("name"));
@@ -157,8 +153,8 @@ export async function updateClient(
 
   const supabase = await createClient();
 
-  if (!(await findEditableClient(supabase, clientId, user))) {
-    return { error: "Ky klient nuk u gjet ose nuk ke të drejtë mbi të." };
+  if (!(await findClient(supabase, clientId))) {
+    return { error: "Ky klient nuk u gjet." };
   }
 
   // `.select()` në fund na kthen rreshtat që u prekën vërtet. Pa të, një
@@ -326,7 +322,7 @@ export async function createAppointment(
   _prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
-  const user = await requireUser();
+  const user = await requireManager();
   const clientId = String(formData.get("clientId") ?? "");
   const { scheduled, persons, contracts, status, values } =
     readAppointmentFields(formData);
@@ -337,8 +333,8 @@ export async function createAppointment(
   if (gabim) return { error: gabim };
 
   const supabase = await createClient();
-  if (!(await findEditableClient(supabase, clientId, user))) {
-    return { error: "Ky klient nuk u gjet ose nuk ke të drejtë mbi të." };
+  if (!(await findClient(supabase, clientId))) {
+    return { error: "Ky klient nuk u gjet." };
   }
 
   const { error } = await supabase.from("appointments").insert({
@@ -365,7 +361,7 @@ export async function updateAppointment(
   _prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
-  const user = await requireUser();
+  await requireManager();
   const id = String(formData.get("appointmentId") ?? "");
   const { scheduled, persons, contracts, status, values } =
     readAppointmentFields(formData);
@@ -385,9 +381,6 @@ export async function updateAppointment(
     .maybeSingle<{ id: string; user_id: string; client_id: string }>();
 
   if (!takimi) return { error: "Ky takim nuk u gjet." };
-  if (!user.isAdmin && takimi.user_id !== user.id) {
-    return { error: "Këtë takim e ka caktuar dikush tjetër." };
-  }
 
   const { data, error } = await supabase
     .from("appointments")

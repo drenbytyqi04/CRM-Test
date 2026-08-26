@@ -41,17 +41,12 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
   const user = await requireUser();
   const supabase = await createClient();
 
-  // Së pari klienti. Administratori e hap çdo klient; të tjerët vetëm të vetët.
-  let clientQuery = supabase
+  // Kartelën e klientit e hap çdo i kyçur; ndryshimet i bën vetëm menaxheri.
+  const clientResult = await supabase
     .from("clients")
     .select(CLIENT_COLUMNS)
-    .eq("id", id);
-
-  if (!user.isAdmin) {
-    clientQuery = clientQuery.eq("user_id", user.id);
-  }
-
-  const clientResult = await clientQuery.maybeSingle<Client>();
+    .eq("id", id)
+    .maybeSingle<Client>();
 
   if (clientResult.error) {
     throw new Error(clientResult.error.message);
@@ -72,8 +67,8 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
       .eq("client_id", client.id)
       .order("created_at", { ascending: false })
       .returns<Note[]>(),
-    // Administratorit i tregojmë se kujt i përket klienti.
-    user.isAdmin && client.user_id !== user.id
+    // Tregojmë se kujt i përket klienti, kur nuk është i yni.
+    client.user_id !== user.id
       ? supabase
           .from("profiles")
           .select("email")
@@ -167,9 +162,11 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
         </div>
       </dl>
 
-      <div className="mb-8">
-        <EditForm client={client} />
-      </div>
+      {user.isManager && (
+        <div className="mb-8">
+          <EditForm client={client} />
+        </div>
+      )}
 
       {/* ---------- Takimet ---------- */}
       <section className="mb-8">
@@ -211,17 +208,19 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
           </ul>
         )}
 
-        <details className="rounded-xl border border-slate-200 bg-white">
-          <summary className="cursor-pointer px-5 py-4 text-sm font-medium text-slate-700 select-none">
-            Cakto takim të ri
-          </summary>
-          <div className="border-t border-slate-200 p-5">
-            <AppointmentForm
-              clientId={client.id}
-              scheduledDefault={defaultAppointmentSlot()}
-            />
-          </div>
-        </details>
+        {user.isManager && (
+          <details className="rounded-xl border border-slate-200 bg-white">
+            <summary className="cursor-pointer px-5 py-4 text-sm font-medium text-slate-700 select-none">
+              Cakto takim të ri
+            </summary>
+            <div className="border-t border-slate-200 p-5">
+              <AppointmentForm
+                clientId={client.id}
+                scheduledDefault={defaultAppointmentSlot()}
+              />
+            </div>
+          </details>
+        )}
       </section>
 
       <NoteForm clientId={client.id} />

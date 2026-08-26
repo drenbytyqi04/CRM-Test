@@ -30,7 +30,9 @@ export default async function AppointmentsPage({
 
   const { status, view } = await searchParams;
   const filtri = typeof status === "string" ? status : "";
-  const showAll = user.isAdmin && view !== "mine";
+  // Takimet e regjistruara i sheh çdo i kyçur. Menaxheri mund t'i ngushtojë
+  // te "Të mijat".
+  const showAll = view !== "mine";
 
   let query = supabase
     .from("appointments")
@@ -55,12 +57,10 @@ export default async function AppointmentsPage({
           .in("id", clientIds)
           .returns<{ id: string; name: string }[]>()
       : Promise.resolve({ data: [], error: null }),
-    showAll
-      ? supabase
-          .from("profiles")
-          .select("id, email")
-          .returns<{ id: string; email: string | null }[]>()
-      : Promise.resolve({ data: [], error: null }),
+    supabase
+      .from("profiles")
+      .select("id, email")
+      .returns<{ id: string; email: string | null }[]>(),
   ]);
 
   const emrat = new Map((clientsResult.data ?? []).map((c) => [c.id, c.name]));
@@ -97,7 +97,7 @@ export default async function AppointmentsPage({
         </div>
       </header>
 
-      {user.isAdmin && (
+      {user.isManager && (
         <nav className="mb-4 flex gap-2 text-sm">
           <Link
             href={`/takimet?view=all${filtri ? `&status=${filtri}` : ""}`}
@@ -124,7 +124,7 @@ export default async function AppointmentsPage({
 
       <nav className="mb-6 flex flex-wrap gap-2 text-sm">
         <Link
-          href={`/takimet${showAll && user.isAdmin ? "?view=all" : ""}`}
+          href={`/takimet${showAll && user.isManager ? "?view=all" : ""}`}
           className={`rounded-lg px-3 py-1.5 transition ${
             filtri === ""
               ? "bg-slate-200 text-slate-900"
@@ -137,7 +137,7 @@ export default async function AppointmentsPage({
           <Link
             key={s.value}
             href={`/takimet?status=${s.value}${
-              showAll && user.isAdmin ? "&view=all" : ""
+              showAll && user.isManager ? "&view=all" : ""
             }`}
             className={`rounded-lg px-3 py-1.5 transition ${
               filtri === s.value
@@ -158,7 +158,7 @@ export default async function AppointmentsPage({
 
       {takimet.length === 0 && !takimetResult.error ? (
         <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">
-          Nuk ka takime këtu. Cakto një takim nga faqja e një klienti.
+          Nuk ka takime këtu.
         </p>
       ) : (
         <ul className="divide-y divide-slate-200 overflow-hidden rounded-xl border border-slate-200 bg-white">
@@ -177,9 +177,9 @@ export default async function AppointmentsPage({
                     {t.current_insurance ? ` · ${t.current_insurance}` : ""}
                     {` · ${t.persons_count} persona`}
                   </p>
-                  {showAll && (
+                  {t.user_id !== user.id && (
                     <p className="mt-1 truncate text-xs text-slate-400">
-                      Agjenti: {agjentet.get(t.user_id) ?? "—"}
+                      Caktuar nga: {agjentet.get(t.user_id) ?? "—"}
                     </p>
                   )}
                 </div>

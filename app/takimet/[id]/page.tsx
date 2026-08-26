@@ -10,6 +10,7 @@ import {
   CLIENT_COLUMNS,
   appointmentStatusLabel,
   formatDateOnly,
+  formatTirane,
   genderLabel,
   toTiraneInput,
   type Appointment,
@@ -35,14 +36,12 @@ export default async function AppointmentPage({
   const user = await requireUser();
   const supabase = await createClient();
 
-  let query = supabase
+  // Takimin e hap çdo i kyçur; e ndryshon vetëm menaxheri.
+  const takimiResult = await supabase
     .from("appointments")
     .select(APPOINTMENT_COLUMNS)
-    .eq("id", id);
-
-  if (!user.isAdmin) query = query.eq("user_id", user.id);
-
-  const takimiResult = await query.maybeSingle<Appointment>();
+    .eq("id", id)
+    .maybeSingle<Appointment>();
   if (takimiResult.error) throw new Error(takimiResult.error.message);
 
   const takimi = takimiResult.data;
@@ -54,7 +53,7 @@ export default async function AppointmentPage({
       .select(CLIENT_COLUMNS)
       .eq("id", takimi.client_id)
       .maybeSingle<Client>(),
-    user.isAdmin && takimi.user_id !== user.id
+    takimi.user_id !== user.id
       ? supabase
           .from("profiles")
           .select("email")
@@ -90,7 +89,7 @@ export default async function AppointmentPage({
             </span>
             {agjenti && (
               <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600 ring-1 ring-slate-200 ring-inset">
-                Agjenti: {agjenti}
+                Caktuar nga: {agjenti}
               </span>
             )}
           </div>
@@ -139,11 +138,74 @@ export default async function AppointmentPage({
         </section>
       )}
 
-      <AppointmentForm
-        clientId={takimi.client_id}
-        appointment={takimi}
-        scheduledDefault={toTiraneInput(takimi.scheduled_at)}
-      />
+      {user.isManager ? (
+        <AppointmentForm
+          clientId={takimi.client_id}
+          appointment={takimi}
+          scheduledDefault={toTiraneInput(takimi.scheduled_at)}
+        />
+      ) : (
+        /* Përdoruesi i thjeshtë e lexon takimin, por nuk e ndryshon. */
+        <>
+          <section className="mb-6 rounded-xl border border-slate-200 bg-white p-5">
+            <h2 className="mb-4 text-base font-semibold text-slate-900">
+              Të dhëna teknike
+            </h2>
+            <dl className="grid gap-4 text-sm sm:grid-cols-3">
+              <Fusha etiketa="Call center" vlera={takimi.call_center} />
+              <Fusha etiketa="Sigurimi aktual" vlera={takimi.current_insurance} />
+              <Fusha etiketa="Gjuha" vlera={takimi.language} />
+              <Fusha
+                etiketa="Data e telefonatës"
+                vlera={takimi.call_date ? formatDateOnly(takimi.call_date) : null}
+              />
+              <Fusha
+                etiketa="Data dhe ora"
+                vlera={formatTirane(takimi.scheduled_at)}
+              />
+              <Fusha
+                etiketa="Numri i personave"
+                vlera={String(takimi.persons_count)}
+              />
+            </dl>
+          </section>
+
+          <section className="mb-6 rounded-xl border border-slate-200 bg-white p-5">
+            <h2 className="mb-4 text-base font-semibold text-slate-900">
+              Rezultati
+            </h2>
+            <dl className="grid gap-4 text-sm sm:grid-cols-3">
+              <Fusha
+                etiketa="Statusi"
+                vlera={appointmentStatusLabel(takimi.status)}
+              />
+              <Fusha
+                etiketa="Kontrata të mbyllura"
+                vlera={String(takimi.contracts_closed)}
+              />
+              <Fusha
+                etiketa="Kontratë shumëvjeçare"
+                vlera={takimi.multi_year_contract ? "Po" : "Jo"}
+              />
+            </dl>
+          </section>
+
+          <section className="rounded-xl border border-slate-200 bg-white p-5">
+            <h2 className="mb-4 text-base font-semibold text-slate-900">
+              Detaje të këshillimit
+            </h2>
+            <dl className="grid gap-4 text-sm sm:grid-cols-2">
+              <Fusha etiketa="Detaje familjare" vlera={takimi.family_details} />
+              <Fusha etiketa="Trajtim aktual" vlera={takimi.current_treatment} />
+              <Fusha etiketa="Lloji i trajtimit" vlera={takimi.treatment_type} />
+              <Fusha etiketa="Medikamente" vlera={takimi.medications} />
+            </dl>
+            <p className="mt-4 text-xs text-slate-500">
+              Takimet i cakton dhe i ndryshon vetëm menaxheri.
+            </p>
+          </section>
+        </>
+      )}
     </main>
   );
 }

@@ -2,11 +2,20 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
+/** Rolet e mundshme. Duhet të përputhen me `supabase/roles.sql`. */
+export type Role = "user" | "manager" | "admin";
+
 export type CurrentUser = {
   id: string;
   email: string;
-  /** true vetëm për administratorin: sheh të gjithë përdoruesit dhe të dhënat. */
+  role: Role;
+  /** Admini: gjithçka, plus përdoruesit dhe aktiviteti. */
   isAdmin: boolean;
+  /**
+   * Menaxheri ose admini: shtojnë e ndryshojnë klientë dhe takime.
+   * Përdoruesi i thjeshtë vetëm i lexon ato dhe shkruan shënime.
+   */
+  isManager: boolean;
 };
 
 /**
@@ -37,7 +46,20 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
     .eq("id", id)
     .maybeSingle<{ role: string }>();
 
-  return { id, email, isAdmin: profile?.role === "admin" };
+  const role: Role =
+    profile?.role === "admin"
+      ? "admin"
+      : profile?.role === "manager"
+        ? "manager"
+        : "user";
+
+  return {
+    id,
+    email,
+    role,
+    isAdmin: role === "admin",
+    isManager: role === "admin" || role === "manager",
+  };
 });
 
 /** Si më sipër, por dërgon te faqja e hyrjes nëse s'ka njeri të kyçur. */
@@ -51,5 +73,12 @@ export async function requireUser(): Promise<CurrentUser> {
 export async function requireAdmin(): Promise<CurrentUser> {
   const user = await requireUser();
   if (!user.isAdmin) redirect("/");
+  return user;
+}
+
+/** Për veprimet që i lejohen vetëm menaxherit dhe adminit. */
+export async function requireManager(): Promise<CurrentUser> {
+  const user = await requireUser();
+  if (!user.isManager) redirect("/");
   return user;
 }
