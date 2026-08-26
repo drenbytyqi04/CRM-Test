@@ -1,3 +1,4 @@
+import UserForm from "./user-form";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
 import {
@@ -72,9 +73,11 @@ export default async function AdminPage() {
           Përdoruesit
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          Të gjitha llogaritë e regjistruara në sistem.
+          Të gjitha llogaritë e sistemit. Vetëm ti mund të hapësh të reja.
         </p>
       </header>
+
+      <UserForm />
 
       {profilesResult.error && (
         <p className="mb-6 rounded-lg bg-red-50 p-4 text-sm text-red-700">

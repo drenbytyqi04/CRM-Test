@@ -108,18 +108,26 @@ Hap shfletuesin te <http://localhost:3000>. Do të të dalë faqja e hyrjes.
 
 Për ta ndalur serverin: kliko në terminal dhe shtyp **Ctrl + C**.
 
-### Hapi 8: Krijo llogarinë tënde
+### Hapi 8: Llogaritë
 
-Ke dy rrugë — e dyta është më e shpejta:
+**Nuk ka regjistrim të lirë.** Faqja e hyrjes ka vetëm butonin *Hyr*.
 
-**A) Nga vetë aplikacioni:** shkruaj emailin dhe një fjalëkalim (të paktën 6
-shenja) dhe kliko **Regjistrohu**. Supabase të dërgon një email konfirmimi;
-kliko lidhjen brenda tij, pastaj kthehu dhe kliko **Hyr**.
+Llogaritë e reja i hap **administratori** nga faqja **Përdoruesit** →
+*Hap llogari të re*: shkruan emailin, një fjalëkalim të parë (të paktën 8
+shenja) dhe zgjedh rolin — *Përdorues* ose *Menaxher*. Emaili shënohet i
+konfirmuar vetvetiu, prandaj njeriu hyn menjëherë; ti ia jep fjalëkalimin dhe
+ai e ndryshon më pas.
 
-**B) Nga paneli i Supabase-it (pa email):** hyr te
+Që kjo të punojë, aplikacionit i duhet çelësi `service_role` — shih
+**Hapi 6** dhe skedën `.env.local.example`.
+
+Roli **admin** nuk jepet nga aplikacioni. Një admin i dytë caktohet me dorë te
+Supabase → **Table Editor** → `profiles`. Kjo është me qëllim: një llogari
+admin e vjedhur nuk duhet të krijojë dot të tjera si vetja.
+
+Llogaria e parë (kjo është kryer tashmë) u hap nga paneli:
 <https://supabase.com/dashboard> → projekti **crm-test** → **Authentication** →
-**Users** → **Add user** → shëno emailin, fjalëkalimin dhe zgjidh
-**Auto Confirm User**. Pastaj hyr në aplikacion me ato të dhëna.
+**Users** → **Add user** → emaili, fjalëkalimi dhe **Auto Confirm User**.
 
 ---
 
@@ -250,10 +258,12 @@ app/
   globals.css               Stilet
   login/
     page.tsx                Faqja e hyrjes
-    login-form.tsx          Formulari "Hyr / Regjistrohu"
+    login-form.tsx          Formulari i hyrjes (vetëm "Hyr")
     actions.ts              Hyrja, regjistrimi dhe dalja
   auth/confirm/route.ts     Aty bie lidhja e konfirmimit nga emaili
   admin/page.tsx            Faqja e administratorit: të gjithë përdoruesit
+  admin/actions.ts          Hapja e llogarive (vetëm admini)
+  admin/user-form.tsx       Paneli "Hap llogari të re"
   admin/aktiviteti/page.tsx Koha e secilit përdorues, ditë pas dite
   dashboard/page.tsx        Dashboard-i: numrat dhe grafikët
   profili/page.tsx          Profili im: koha, puna dhe lejet
@@ -273,6 +283,7 @@ app/
 lib/
   supabase/server.ts        Lidhja me bazën për kodin në server
   supabase/proxy.ts         Mban sesionin e freskët në çdo kërkesë
+  supabase/admin.ts         Lidhja me çelësin sekret — vetëm për hapjen e llogarive
   auth.ts                   "Kush është i kyçur?" dhe "çfarë roli ka?"
   types.ts                  Tipat, statuset dhe ndihmësit e vegjël
 proxy.ts                    Ndalon të pakyçurit para se të hapin faqet
@@ -341,10 +352,12 @@ Dy gjëra për t'i mbajtur mend:
 
 - **Supabase falas pauzohet** pas rreth një jave pa përdorim. Riaktivizohet me
   një klikim nga paneli.
-- **Kush di adresën, sheh faqen e hyrjes** — por jo të dhënat. Për të hyrë
-  duhet llogari; nëse nuk do që të regjistrohet kushdo, mund ta çaktivizosh
-  regjistrimin te Supabase → **Authentication** → **Sign In / Providers** →
-  fik *Allow new users to sign up*.
+- **Kush di adresën, sheh faqen e hyrjes** — por jo të dhënat.
+- **Fike regjistrimin edhe te Supabase.** Butoni *Regjistrohu* është hequr nga
+  faqja, por kjo vetëm e fsheh — dera e Supabase-it mbetet e hapur për këdo që
+  di ta dërgojë kërkesën vetë. Mbyllet vetëm nga paneli: Supabase →
+  **Authentication** → **Sign In / Providers** → **Email** → fik
+  *Allow new users to sign up*. Pa këtë hap, kushdo mund të hapë llogari.
 
 ## Pjesa 6 — Përcjellja e kohës
 
