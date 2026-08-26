@@ -143,16 +143,11 @@ tashmë (skeda `supabase/admin-edit.sql`).
 Tabela dhe funksioni që numërojnë kohën aktive janë zbatuar
 (skeda `supabase/activity.sql`). Shih **Pjesa 6** për mënyrën e matjes.
 
-### Hapi 12: Takimet ⚠️ i mbetur
+### Hapi 12: Takimet — TË GATSHME ✅
 
-Moduli i takimeve kërkon një skedë SQL, e vetmja gjë që të mbetet:
-
-Supabase → **SQL Editor** → **New query** → ngjit gjithë përmbajtjen e
-`supabase/appointments.sql` → **Run**.
-
-Pa këtë hap aplikacioni nuk prishet: kartelat e klientëve hapen normalisht,
-fushat e reja shfaqen si "—", dhe faqja e takimeve tregon një mesazh gabimi
-në vend të listës.
+Tabela `appointments` dhe fushat e reja te klientët janë krijuar
+(skeda `supabase/appointments.sql`). Shih **Pjesa 7** për mënyrën si janë
+menduar takimet.
 
 ---
 
@@ -351,7 +346,6 @@ personave të takimit.
 | Faqja tregon kutinë e verdhë "nuk është konfiguruar" | `.env.local` mungon. Përsërit Hapin 6 dhe rinis serverin. |
 | "Email ose fjalëkalim i gabuar" | Llogaria s'është krijuar ende ose emaili s'është konfirmuar. Shih Hapin 8. |
 | S'të shfaqet shenja "Admin" | SQL-i i `supabase/admin.sql` s'është ekzekutuar, ose rreshti `update ... set role = 'admin'` ka email tjetër. Shih Hapin 9. |
-| Faqja e takimeve tregon gabim | Skeda `supabase/appointments.sql` nuk është ekzekutuar. Shih Hapin 12. |
 | Regjistrohesh po s'të vjen emaili | Përdor rrugën B të Hapit 8 (krijo përdoruesin nga paneli me *Auto Confirm*). |
 | `Nuk u ruajt dot klienti: relation "clients" does not exist` | Je lidhur me një projekt tjetër. Kontrollo `NEXT_PUBLIC_SUPABASE_URL` te `.env.local`. |
 | `Invalid API key` | Vlerat te `.env.local` u ndryshuan. Kopjoje sërish nga `.env.local.example`. |

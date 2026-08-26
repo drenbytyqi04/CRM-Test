@@ -7,8 +7,11 @@
 --   2. Tabelën `appointments` — një takim i caktuar për një klient, me të
 --      dhënat teknike, rezultatin dhe detajet e këshillimit.
 --
--- SI PËRDORET (një herë):
---   1. https://supabase.com/dashboard -> projekti "crm-test"
+-- STATUSI: kjo skedë është ZBATUAR TASHMË në projektin "crm-test".
+-- Ruhet këtu si dëshmi e strukturës; do të të duhej për një projekt tjetër.
+--
+-- SI PËRDORET (për një projekt të ri):
+--   1. https://supabase.com/dashboard -> projekti yt
 --   2. Menyja e majtë -> "SQL Editor" -> "New query"
 --   3. Kopjo GJITHË këtë skedë, ngjite atje, kliko "Run"
 --
