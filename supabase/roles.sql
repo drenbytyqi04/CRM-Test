@@ -47,6 +47,19 @@ revoke execute on function public.is_manager() from anon, public;
 grant  execute on function public.is_manager() to authenticated;
 
 -- ---------------------------------------------------------------------
+-- 1b. Emrat e kolegëve
+-- ---------------------------------------------------------------------
+-- Tabela e feedback-ut te takimi ka kolonën "Përdoruesi". Që aty të dalë
+-- emaili i atij që e shkroi shënimin — dhe jo një vizë — çdo i kyçur duhet
+-- ta lexojë listën e profileve. Lexohet vetëm `id`, `email` dhe `role`;
+-- ndryshimi i rolit mbetet i mbyllur për të gjithë (s'ka rregull update).
+drop policy if exists "profiles_select_own_or_admin" on public.profiles;
+drop policy if exists "profiles_select_all" on public.profiles;
+create policy "profiles_select_all" on public.profiles
+  for select to authenticated
+  using (true);
+
+-- ---------------------------------------------------------------------
 -- 2. Shënimet — i shkruan kushdo, në emrin e vet
 -- ---------------------------------------------------------------------
 drop policy if exists "notes_select_by_client_or_admin" on public.notes;

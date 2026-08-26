@@ -173,8 +173,11 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
 - **Rezultati:** një status i vetëm (I hapur, U mbajt, I anuluar, Nuk u arrit,
   S'deshi takim, Negativ, S'ishte në shtëpi, Adresa s'u gjet, S'u këshillua dot)
   plus kontratat e mbyllura. Baza nuk lejon më shumë kontrata se persona.
-- **Shënime:** te faqja e takimit, kutia *Shënim i ri*. Shënimin tënd e ndryshon
-  me butonin *Ndrysho*; te data shfaqet edhe "ndryshuar më".
+- **Feedback i takimit:** poshtë takimit rri një tabelë me tri kolona —
+  *Përdoruesi*, *Shënimi*, *Data* — njësoj si te TH-CRM. Kutia e shkrimit rri
+  gjithmonë e hapur mbi tabelë: shkruaj dhe shtyp **Ctrl+Enter** (ose butonin
+  *Shto shënimin*). Shënimin tënd e ndryshon me *Ndrysho* pa dalë nga tabela;
+  te kolona *Data* shfaqet edhe "ndryshuar më".
 - **Aktiv sot:** lart djathtas, koha që ke kaluar sot brenda CRM-së.
 
 ### Kush çfarë mundet
@@ -220,9 +223,9 @@ app/
   admin/aktiviteti/page.tsx Koha e secilit përdorues, ditë pas dite
   takimet/
     appointment-form.tsx    Formulari i takimit (caktim dhe ndryshim)
-    [id]/page.tsx           Një takim i vetëm + shënimet e tij
-    [id]/note-form.tsx      Formulari për të shtuar shënim
-    [id]/note-item.tsx      Një shënim, me mundësinë për ta ndryshuar
+    [id]/page.tsx           Një takim i vetëm + tabela e feedback-ut
+    [id]/note-form.tsx      Kutia e shpejtë për të shtuar shënim
+    [id]/note-row.tsx       Një rresht i tabelës, me ndryshim brenda rreshtit
 lib/
   supabase/server.ts        Lidhja me bazën për kodin në server
   supabase/proxy.ts         Mban sesionin e freskët në çdo kërkesë
@@ -270,7 +273,9 @@ Roli ndryshohet vetëm nga paneli i Supabase-it, ku hyn vetëm ti.
 **Leximi është i përbashkët, shkrimi jo.** Çdo i kyçur i lexon takimet e
 regjistruara dhe shënimet e tyre. Shtimi dhe ndryshimi mbeten të mbyllura:
 takimet i prek vetëm menaxheri, shënimin e vet e ndryshon vetëm autori (ose
-admini).
+admini). Lista e profileve lexohet nga të gjithë (`profiles_select_all`),
+sepse tabela e feedback-ut tregon se kush e shkroi secilin shënim — por vetëm
+lexohet, roli nuk ndryshohet dot nga aplikacioni.
 
 ### Publikimi në Vercel
 

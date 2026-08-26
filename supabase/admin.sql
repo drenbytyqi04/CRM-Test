@@ -95,6 +95,10 @@ create policy "profiles_select_own_or_admin" on public.profiles
   for select to authenticated
   using (id = auth.uid() or public.is_admin());
 
+-- VINI RE: `roles.sql` e zëvendëson këtë rregull me një më të hapur
+-- (`profiles_select_all`), që tabela e feedback-ut te takimi të tregojë se
+-- kush e shkroi secilin shënim. Ekzekutoje `roles.sql` pas kësaj skede.
+
 -- VINI RE: nuk ka asnjë rregull për ndryshim (update/insert/delete).
 -- Prandaj asnjë përdorues nuk mund ta bëjë veten admin. Rolet ndryshohen
 -- vetëm nga ti, nga paneli i Supabase-it.

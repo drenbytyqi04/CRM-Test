@@ -5,8 +5,10 @@ import { addNote } from "@/app/actions";
 import type { FormState } from "@/lib/types";
 
 /**
- * Formulari për të shtuar një shënim te një takim.
- * E përdorin të gjithë — edhe përdoruesi që s'i ndryshon dot takimet.
+ * Kutia e shpejtë për të shtuar një shënim te takimi.
+ *
+ * Rri gjithmonë e hapur mbi tabelë, që shkrimi të jetë një klikim i vetëm:
+ * shkruaj dhe shtyp Ctrl+Enter ose butonin.
  */
 export default function NoteForm({ appointmentId }: { appointmentId: string }) {
   const formRef = useRef<HTMLFormElement>(null);
@@ -23,38 +25,44 @@ export default function NoteForm({ appointmentId }: { appointmentId: string }) {
     <form
       ref={formRef}
       action={action}
-      className="rounded-xl border border-slate-200 bg-white p-5"
+      className="rounded-xl border border-slate-200 bg-white p-4"
     >
       <input type="hidden" name="appointmentId" value={appointmentId} />
 
-      <label className="block">
-        <span className="mb-1 block text-sm font-medium text-slate-700">
-          Shënim i ri
-        </span>
-        <textarea
-          name="body"
-          rows={3}
-          required
-          placeholder="P.sh. Biseduam në telefon, kërkon ofertë deri të premten."
-          className="w-full resize-y rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none placeholder:text-slate-400 focus:border-slate-900"
-        />
-      </label>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+        <label className="flex-1">
+          <span className="mb-1 block text-sm font-medium text-slate-700">
+            Shënim i ri
+          </span>
+          <textarea
+            name="body"
+            rows={2}
+            required
+            placeholder="P.sh. Kd sind bei Helsana me VVG, 1000 CHF në muaj. Takimi fiks në orën 10:00."
+            className="w-full resize-y rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none placeholder:text-slate-400 focus:border-slate-900"
+            onKeyDown={(e) => {
+              // Ctrl+Enter e ruan pa e lëvizur dorën nga tastiera.
+              if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+                e.currentTarget.form?.requestSubmit();
+              }
+            }}
+          />
+        </label>
 
-      <div className="mt-3 flex items-center gap-3">
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:opacity-50"
+          className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:opacity-50 sm:mb-1"
         >
-          {pending ? "Duke ruajtur..." : "Ruaj shënimin"}
+          {pending ? "Duke ruajtur..." : "Shto shënimin"}
         </button>
-
-        {state.error && (
-          <p className="text-sm text-red-600" role="alert">
-            {state.error}
-          </p>
-        )}
       </div>
+
+      {state.error && (
+        <p className="mt-2 text-sm text-red-600" role="alert">
+          {state.error}
+        </p>
+      )}
     </form>
   );
 }

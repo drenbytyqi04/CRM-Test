@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import AppointmentForm from "../appointment-form";
 import NoteForm from "./note-form";
-import NoteItem from "./note-item";
+import NoteRow from "./note-row";
 import SignOutButton from "@/app/sign-out-button";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
@@ -50,24 +50,31 @@ export default async function AppointmentPage({
   const takimi = takimiResult.data;
   if (!takimi) notFound();
 
-  const [notesResult, agjentiResult] = await Promise.all([
+  const [notesResult, profilesResult] = await Promise.all([
     supabase
       .from("notes")
       .select("id, appointment_id, user_id, body, created_at, updated_at")
       .eq("appointment_id", takimi.id)
       .order("created_at", { ascending: false })
       .returns<Note[]>(),
-    takimi.user_id !== user.id
-      ? supabase
-          .from("profiles")
-          .select("email")
-          .eq("id", takimi.user_id)
-          .maybeSingle<{ email: string | null }>()
-      : Promise.resolve({ data: null, error: null }),
+    supabase
+      .from("profiles")
+      .select("id, email")
+      .returns<{ id: string; email: string | null }[]>(),
   ]);
 
   const notes = notesResult.data ?? [];
-  const agjenti = agjentiResult.data?.email ?? null;
+
+  // Emri i shfaqur për secilin autor. Nëse rregullat e bazës nuk e lejojnë
+  // leximin e emailit të tjetrit, mbetet një vizë.
+  const emailet = new Map(
+    (profilesResult.data ?? []).map((p) => [p.id, p.email ?? "—"])
+  );
+  const autorLabel = (id: string) =>
+    id === user.id ? user.email : (emailet.get(id) ?? "—");
+
+  const agjenti =
+    takimi.user_id === user.id ? null : (emailet.get(takimi.user_id) ?? null);
 
   return (
     <main className="mx-auto w-full max-w-4xl px-5 py-10">
@@ -206,13 +213,13 @@ export default async function AppointmentPage({
 
       {/* ---------- Shënimet ---------- */}
       <section className="mt-8">
+        <h2 className="mb-3 text-base font-semibold text-slate-900">
+          Feedback i takimit
+        </h2>
+
         <div className="mb-4">
           <NoteForm appointmentId={takimi.id} />
         </div>
-
-        <h2 className="mb-3 text-sm font-medium text-slate-500">
-          {notes.length} shënime
-        </h2>
 
         {notesResult.error && (
           <p className="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-700">
@@ -220,25 +227,46 @@ export default async function AppointmentPage({
           </p>
         )}
 
-        {notes.length === 0 && !notesResult.error ? (
-          <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">
-            Ende s&apos;ka shënime për këtë takim.
-          </p>
-        ) : (
-          <ul className="space-y-3">
-            {notes.map((note) => (
-              <NoteItem
-                key={note.id}
-                note={note}
-                canEdit={user.isAdmin || note.user_id === user.id}
-                createdLabel={formatDate(note.created_at)}
-                updatedLabel={
-                  note.updated_at ? formatDate(note.updated_at) : null
-                }
-              />
-            ))}
-          </ul>
-        )}
+        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 text-left text-slate-500">
+                <th className="p-4 font-medium whitespace-nowrap">Përdoruesi</th>
+                <th className="p-4 font-medium">Shënimi</th>
+                <th className="p-4 font-medium whitespace-nowrap">Data</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200">
+              {notes.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={3}
+                    className="p-8 text-center text-sm text-slate-500"
+                  >
+                    Ende s&apos;ka shënime për këtë takim.
+                  </td>
+                </tr>
+              ) : (
+                notes.map((note) => (
+                  <NoteRow
+                    key={note.id}
+                    note={note}
+                    autori={autorLabel(note.user_id)}
+                    canEdit={user.isAdmin || note.user_id === user.id}
+                    createdLabel={formatDate(note.created_at)}
+                    updatedLabel={
+                      note.updated_at ? formatDate(note.updated_at) : null
+                    }
+                  />
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <p className="mt-2 text-xs text-slate-500">
+          {notes.length} shënime · Ctrl+Enter te kutia lart e ruan menjëherë.
+        </p>
       </section>
     </main>
   );
