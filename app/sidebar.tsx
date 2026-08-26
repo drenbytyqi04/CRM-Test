@@ -24,8 +24,10 @@ export default function Sidebar({ user }: { user: CurrentUser }) {
         </div>
 
         {/* Në telefon lidhjet rrinë në të njëjtin rresht me emrin. */}
-        <nav className="flex gap-1 sm:mt-6 sm:block sm:space-y-1">
+        <nav className="flex flex-wrap gap-1 sm:mt-6 sm:block sm:space-y-1">
+          <SidebarLink href="/dashboard" label="Dashboard" />
           <SidebarLink href="/" label="Terminet" exact />
+          <SidebarLink href="/profili" label="Profili" />
           {user.isAdmin && (
             <>
               <SidebarLink href="/admin" label="Përdoruesit" exact />

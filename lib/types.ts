@@ -271,6 +271,31 @@ export function todayInBeograd(): string {
   }).format(new Date());
 }
 
+/**
+ * Dita e Beogradit të cilës i përket ky çast, p.sh. "2026-08-26".
+ *
+ * Për grupimin e termineve sipas ditës: një termin i regjistruar në orën
+ * 00:30 të Beogradit i përket asaj dite, jo asaj të djeshmes sipas orës
+ * botërore.
+ */
+export function beogradDay(iso: string): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(
+    new Date(iso)
+  );
+}
+
+/** Lista e `sa` ditëve të fundit, nga më e vjetra te sotmja. */
+export function ditetEFundit(sa: number): string[] {
+  const sot = new Date(`${todayInBeograd()}T12:00:00Z`);
+  const lista: string[] = [];
+  for (let i = sa - 1; i >= 0; i--) {
+    const d = new Date(sot);
+    d.setUTCDate(d.getUTCDate() - i);
+    lista.push(d.toISOString().slice(0, 10));
+  }
+  return lista;
+}
+
 /** A është parë ky çast brenda `minutes` minutave të fundit? */
 export function isRecent(iso: string | undefined | null, minutes = 5): boolean {
   if (!iso) return false;
@@ -296,6 +321,12 @@ export function formatDayLabel(day: string): string {
     day: "numeric",
     month: "numeric",
   }).format(new Date(`${day}T12:00:00Z`));
+}
+
+/** Data më e shkurtër që lexohet ende: "25/8". Për boshtin e grafikëve. */
+export function formatDayShort(day: string): string {
+  const [, muaj, dita] = day.split("-");
+  return `${Number(dita)}/${Number(muaj)}`;
 }
 
 /** Vetëm data, pa orë: "28 janar 1985". Për datëlindje e ngjashme. */

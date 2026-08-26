@@ -187,6 +187,14 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
   ndryshimet* i ruan të gjitha skedat njëherësh, jo vetëm atë që sheh.
 - **Menyja anash:** shtylla e majtë mban lidhjet, emailin, rolin dhe *Dil*.
   Në telefon shndërrohet në një shirit të hollë sipër.
+- **Dashboard:** numrat e përgjithshëm — sa termine, sa u mbajtën, sa kontrata
+  dolën, sa janë të ardhshme — plus ndarja sipas statusit, të regjistruarit
+  ditë pas dite, dhe terminet e radhës. Admini sheh edhe ndarjen sipas
+  agjentit. Numrat llogariten sa herë hapet faqja, nuk ruhen askund.
+- **Profili:** koha jote brenda CRM-së (sot, 14 ditët e fundit, mesatarja),
+  sa shënime ke shkruar, dhe — për menaxherin e adminin — sa termine ke
+  caktuar dhe sa kontrata dolën prej tyre. Poshtë rri lista e asaj që roli yt
+  mund e nuk mund të bëjë.
 - **Numri i terminit:** çdo termin ka një numër të shkurtër — `#1000`, `#1001`
   e kështu me radhë — që del te lista, te kreu i faqes dhe te adresa. Numri
   jepet nga baza, nuk ndryshohet kurrë, dhe kështu mund ta thuash me gojë ose
@@ -247,6 +255,9 @@ app/
   auth/confirm/route.ts     Aty bie lidhja e konfirmimit nga emaili
   admin/page.tsx            Faqja e administratorit: të gjithë përdoruesit
   admin/aktiviteti/page.tsx Koha e secilit përdorues, ditë pas dite
+  dashboard/page.tsx        Dashboard-i: numrat dhe grafikët
+  profili/page.tsx          Profili im: koha, puna dhe lejet
+  stats.tsx                 Kutitë e numrave dhe grafikët (HTML i thjeshtë)
   sidebar.tsx               Menyja anash: lidhjet, roli dhe "Dil"
   sidebar-link.tsx          Një lidhje e menysë, që ndriçon te faqja e vet
   terminet/
