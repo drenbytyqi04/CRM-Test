@@ -14,14 +14,14 @@ const input =
 const label = "mb-1 block text-sm font-medium text-slate-700";
 
 /**
- * Formulari i takimit — njësia e vetme e sistemit.
+ * Formulari i terminit — njësia e vetme e sistemit.
  *
- * Të dhënat e personit rrinë mbi vetë takimin: nuk ka kartelë klienti veç,
- * sepse çdo takim regjistrohet si ngjarje më vete.
+ * Të dhënat e personit rrinë mbi vetë terminin: nuk ka kartelë klienti veç,
+ * sepse çdo termin regjistrohet si ngjarje më vete.
  *
  * Përdoret në dy mënyra:
- *  - pa `appointment`: cakton një takim të ri
- *  - me `appointment`: ndryshon një takim ekzistues
+ *  - pa `appointment`: cakton një termin të ri
+ *  - me `appointment`: ndryshon një termin ekzistues
  */
 export default function AppointmentForm({
   appointment,
@@ -38,7 +38,7 @@ export default function AppointmentForm({
     {}
   );
 
-  // Pas krijimit e zbrazim formularin, që të caktohet takimi tjetër.
+  // Pas krijimit e zbrazim formularin, që të caktohet termini tjetër.
   const trajtuar = useRef<FormState | null>(null);
   useEffect(() => {
     if (state.ok && !duke && trajtuar.current !== state) {
@@ -48,7 +48,7 @@ export default function AppointmentForm({
   }, [state, duke]);
 
   return (
-    // `key` ndryshon sa herë ruhet takimi: fushat rimbushen me vlerat e
+    // `key` ndryshon sa herë ruhet termini: fushat rimbushen me vlerat e
     // sapo ruajtura, ndërsa mesazhi i suksesit mbetet.
     <form
       key={appointment?.updated_at ?? "i-ri"}
@@ -227,7 +227,7 @@ export default function AppointmentForm({
           </label>
           <label className="block">
             <span className={label}>
-              Data dhe ora e takimit <span className="text-red-600">*</span>
+              Data dhe ora e terminit <span className="text-red-600">*</span>
             </span>
             <input
               name="scheduledAt"
@@ -373,7 +373,7 @@ export default function AppointmentForm({
             ? "Duke ruajtur..."
             : duke
               ? "Ruaj ndryshimet"
-              : "Cakto takimin"}
+              : "Cakto terminin"}
         </button>
 
         {state.error && (

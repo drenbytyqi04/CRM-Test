@@ -9,13 +9,13 @@ export function genderLabel(value: string | null): string {
   return GENDERS.find((g) => g.value === value)?.label ?? "—";
 }
 
-/** Statuset e një takimi. Vetëm NJË prej tyre vlen njëherësh. */
+/** Statuset e një termini. Vetëm NJË prej tyre vlen njëherësh. */
 export const APPOINTMENT_STATUSES = [
   { value: "open", label: "I hapur" },
   { value: "held", label: "U mbajt" },
   { value: "cancelled", label: "I anuluar" },
   { value: "not_reached", label: "Nuk u arrit" },
-  { value: "refused", label: "S'deshi takim" },
+  { value: "refused", label: "S'deshi termin" },
   { value: "negative", label: "Negativ" },
   { value: "not_home", label: "S'ishte në shtëpi" },
   { value: "address_not_found", label: "Adresa s'u gjet" },
@@ -28,7 +28,7 @@ export function appointmentStatusLabel(value: string): string {
   return APPOINTMENT_STATUSES.find((s) => s.value === value)?.label ?? value;
 }
 
-/** Ngjyrat e etiketës për statusin e takimit. */
+/** Ngjyrat e etiketës për statusin e terminit. */
 export const APPOINTMENT_STATUS_CLASSES: Record<string, string> = {
   open: "bg-sky-100 text-sky-800 ring-sky-200",
   held: "bg-emerald-100 text-emerald-800 ring-emerald-200",
@@ -44,7 +44,7 @@ export const APPOINTMENT_STATUS_CLASSES: Record<string, string> = {
 /** Një rresht i tabelës `appointments`. */
 export type Appointment = {
   id: string;
-  /** Kush e caktoi takimin. */
+  /** Kush e caktoi terminin. */
   user_id: string;
 
   // --- Personalia e personit që takohet ---
@@ -80,7 +80,7 @@ export type Appointment = {
   updated_at: string | null;
 };
 
-/** Kolonat e takimit që lexojmë. `*` e mban faqen të gjallë edhe nëse
+/** Kolonat e terminit që lexojmë. `*` e mban faqen të gjallë edhe nëse
  * ndonjë kolonë e re nuk është krijuar ende në bazë. */
 export const APPOINTMENT_COLUMNS = "*";
 
@@ -146,7 +146,7 @@ export function fromTiraneInput(local: string): string | null {
   return new Date(sikurUTC.getTime() - offset * 60000).toISOString();
 }
 
-/** Ora e parazgjedhur për një takim të ri: nesër në orën 10:00. */
+/** Ora e parazgjedhur për një termin të ri: nesër në orën 10:00. */
 export function defaultAppointmentSlot(): string {
   const neser = new Date(Date.now() + 24 * 60 * 60 * 1000);
   return `${new Intl.DateTimeFormat("sv-SE", { timeZone: TZ }).format(
@@ -154,7 +154,7 @@ export function defaultAppointmentSlot(): string {
   )}T10:00`;
 }
 
-/** Data dhe ora e takimit për ta lexuar njeriu, në orën e Tiranës. */
+/** Data dhe ora e terminit për ta lexuar njeriu, në orën e Tiranës. */
 export function formatTirane(iso: string): string {
   return new Intl.DateTimeFormat("sq-AL", {
     timeZone: TZ,

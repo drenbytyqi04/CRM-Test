@@ -3,18 +3,18 @@
 --
 -- Kush çfarë mundet:
 --
---   | Veprimi                     | user | manager | admin |
---   |-----------------------------|------|---------|-------|
---   | Lexon takimet e regjistruara|  po  |   po    |  po   |
---   | Shkruan shënime             |  po  |   po    |  po   |
---   | Cakton/ndryshon takime      |  JO  |   po    |  po   |
---   | Përdoruesit dhe aktiviteti  |  JO  |   JO    |  po   |
---   | Ndryshon rolet              |  JO  |   JO    |  JO*  |
+--   | Veprimi                      | user | manager | admin |
+--   |------------------------------|------|---------|-------|
+--   | Lexon terminet e regjistruara|  po  |   po    |  po   |
+--   | Shkruan shënime              |  po  |   po    |  po   |
+--   | Cakton/ndryshon termine      |  JO  |   po    |  po   |
+--   | Përdoruesit dhe aktiviteti   |  JO  |   JO    |  po   |
+--   | Ndryshon rolet               |  JO  |   JO    |  JO*  |
 --
 --   * Rolet ndryshohen vetëm nga paneli i Supabase-it, jo nga aplikacioni.
 --
--- VINI RE: leximi është i përbashkët — çdo i kyçur i sheh të gjitha takimet
--- e regjistruara. Shkrimi mbetet i mbyllur: takimet i prek vetëm menaxheri.
+-- VINI RE: leximi është i përbashkët — çdo i kyçur i sheh të gjitha terminet
+-- e regjistruara. Shkrimi mbetet i mbyllur: terminet i prek vetëm menaxheri.
 --
 -- STATUSI: kjo skedë është ZBATUAR TASHMË në projektin "crm-test".
 --
@@ -29,7 +29,7 @@ alter table public.profiles drop constraint if exists profiles_role_check;
 alter table public.profiles add constraint profiles_role_check
   check (role in ('user', 'manager', 'admin'));
 
--- Menaxheri dhe admini kanë të njëjtat të drejta mbi klientët e takimet.
+-- Menaxheri dhe admini kanë të njëjtat të drejta mbi klientët e terminet.
 create or replace function public.is_manager()
 returns boolean
 language sql
@@ -49,7 +49,7 @@ grant  execute on function public.is_manager() to authenticated;
 -- ---------------------------------------------------------------------
 -- 1b. Emrat e kolegëve
 -- ---------------------------------------------------------------------
--- Tabela e feedback-ut te takimi ka kolonën "Përdoruesi". Që aty të dalë
+-- Tabela e feedback-ut te termini ka kolonën "Përdoruesi". Që aty të dalë
 -- emaili i atij që e shkroi shënimin — dhe jo një vizë — çdo i kyçur duhet
 -- ta lexojë listën e profileve. Lexohet vetëm `id`, `email` dhe `role`;
 -- ndryshimi i rolit mbetet i mbyllur për të gjithë (s'ka rregull update).
@@ -84,7 +84,7 @@ create policy "notes_update_author_or_admin" on public.notes
   with check (user_id = auth.uid() or public.is_admin());
 
 -- ---------------------------------------------------------------------
--- 3. Takimet
+-- 3. Terminet
 -- ---------------------------------------------------------------------
 drop policy if exists "appointments_select_own_or_admin" on public.appointments;
 drop policy if exists "appointments_select_all" on public.appointments;

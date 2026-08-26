@@ -10,7 +10,7 @@ const geistSans = Geist({
 
 export const metadata: Metadata = {
   title: "CRM",
-  description: "Takime dhe shënime",
+  description: "Termine dhe shënime",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

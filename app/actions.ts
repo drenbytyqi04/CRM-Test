@@ -40,7 +40,7 @@ export async function addNote(
   const body = textOrNull(formData.get("body"));
 
   if (!appointmentId) {
-    return { error: "Mungon takimi të cilit i përket shënimi." };
+    return { error: "Mungon termini të cilit i përket shënimi." };
   }
   if (!body) {
     return { error: "Shënimi nuk mund të jetë bosh." };
@@ -55,7 +55,7 @@ export async function addNote(
     return { error: `Nuk u ruajt dot shënimi: ${error.message}` };
   }
 
-  revalidatePath(`/takimet/${appointmentId}`);
+  revalidatePath(`/terminet/${appointmentId}`);
   return { ok: true };
 }
 
@@ -110,7 +110,7 @@ export async function updateNote(
     return { error: "Shënimi nuk u ruajt: baza nuk e lejoi këtë veprim." };
   }
 
-  revalidatePath(`/takimet/${appointmentId || note.appointment_id}`);
+  revalidatePath(`/terminet/${appointmentId || note.appointment_id}`);
   return { ok: true, message: "Shënimi u ndryshua." };
 }
 
@@ -130,10 +130,10 @@ export async function recordActivity(): Promise<void> {
 }
 
 // =====================================================================
-// TAKIMET
+// TERMINET
 // =====================================================================
 
-/** Lexon fushat e përbashkëta të formularit të takimit. */
+/** Lexon fushat e përbashkëta të formularit të terminit. */
 function readAppointmentFields(formData: FormData) {
   const scheduled = fromTiraneInput(String(formData.get("scheduledAt") ?? ""));
   const persons = Number(formData.get("personsCount") ?? 1);
@@ -187,7 +187,7 @@ function validateAppointment(
   if (email && !looksLikeEmail(email)) {
     return "Emaili nuk duket i saktë (shembull: emri@shembull.com).";
   }
-  if (!scheduled) return "Data dhe ora e takimit janë të detyrueshme.";
+  if (!scheduled) return "Data dhe ora e terminit janë të detyrueshme.";
   if (!Number.isInteger(persons) || persons < 1) {
     return "Numri i personave duhet të jetë të paktën 1.";
   }
@@ -203,7 +203,7 @@ function validateAppointment(
   return null;
 }
 
-/** Cakton një takim të ri. */
+/** Cakton një termin të ri. */
 export async function createAppointment(
   _prevState: FormState,
   formData: FormData
@@ -233,14 +233,14 @@ export async function createAppointment(
   });
 
   if (error) {
-    return { error: `Nuk u ruajt dot takimi: ${error.message}` };
+    return { error: `Nuk u ruajt dot termini: ${error.message}` };
   }
 
   revalidatePath("/");
-  return { ok: true, message: "Takimi u caktua." };
+  return { ok: true, message: "Termini u caktua." };
 }
 
-/** Ndryshon një takim: të dhënat teknike, rezultatin dhe detajet. */
+/** Ndryshon një termin: të dhënat teknike, rezultatin dhe detajet. */
 export async function updateAppointment(
   _prevState: FormState,
   formData: FormData
@@ -250,7 +250,7 @@ export async function updateAppointment(
   const { scheduled, persons, contracts, status, values } =
     readAppointmentFields(formData);
 
-  if (!id) return { error: "Mungon takimi që duhet ndryshuar." };
+  if (!id) return { error: "Mungon termini që duhet ndryshuar." };
 
   const gabim = validateAppointment(
     scheduled,
@@ -265,13 +265,13 @@ export async function updateAppointment(
   const supabase = await createClient();
 
   // Kontrolli i lejeve edhe këtu, jo vetëm te rregullat e bazës.
-  const { data: takimi } = await supabase
+  const { data: termini } = await supabase
     .from("appointments")
     .select("id, user_id")
     .eq("id", id)
     .maybeSingle<{ id: string; user_id: string }>();
 
-  if (!takimi) return { error: "Ky takim nuk u gjet." };
+  if (!termini) return { error: "Ky termin nuk u gjet." };
 
   const { data, error } = await supabase
     .from("appointments")
@@ -293,7 +293,7 @@ export async function updateAppointment(
     return { error: "Ndryshimet nuk u ruajtën: baza nuk e lejoi këtë veprim." };
   }
 
-  revalidatePath(`/takimet/${id}`);
+  revalidatePath(`/terminet/${id}`);
   revalidatePath("/");
-  return { ok: true, message: "Takimi u përditësua." };
+  return { ok: true, message: "Termini u përditësua." };
 }

@@ -1,13 +1,13 @@
 -- =====================================================================
--- Skema e bazës — CRM me takime
+-- Skema e bazës — CRM me termine
 --
--- Sistemi ka NJË njësi: takimin. Të dhënat e personit rrinë mbi vetë
--- takimin, sepse çdo takim regjistrohet si ngjarje më vete. Tabela e
+-- Sistemi ka NJË njësi: terminin. Të dhënat e personit rrinë mbi vetë
+-- terminin, sepse çdo termin regjistrohet si ngjarje më vete. Tabela e
 -- klientëve nuk ekziston më.
 --
 -- Tabelat:
---   appointments  — takimi: personalia, të dhënat teknike, rezultati
---   notes         — shënime te një takim
+--   appointments  — termini: personalia, të dhënat teknike, rezultati
+--   notes         — shënime te një termin
 --   profiles      — llogaria dhe roli (user / manager / admin)
 --   activity_days — koha aktive për çdo përdorues, ditë pas dite
 --
@@ -21,7 +21,7 @@
 create table if not exists public.appointments (
   id uuid primary key default gen_random_uuid(),
 
-  -- Kush e caktoi takimin (menaxheri ose admini).
+  -- Kush e caktoi terminin (menaxheri ose admini).
   user_id uuid not null default auth.uid()
     references auth.users (id) on delete cascade,
 

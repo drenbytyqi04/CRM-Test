@@ -12,7 +12,7 @@ export type CurrentUser = {
   /** Admini: gjithçka, plus përdoruesit dhe aktiviteti. */
   isAdmin: boolean;
   /**
-   * Menaxheri ose admini: shtojnë e ndryshojnë klientë dhe takime.
+   * Menaxheri ose admini: shtojnë e ndryshojnë klientë dhe termine.
    * Përdoruesi i thjeshtë vetëm i lexon ato dhe shkruan shënime.
    */
   isManager: boolean;

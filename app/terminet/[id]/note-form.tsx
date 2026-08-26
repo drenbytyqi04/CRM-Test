@@ -5,7 +5,7 @@ import { addNote } from "@/app/actions";
 import type { FormState } from "@/lib/types";
 
 /**
- * Kutia e shpejtë për të shtuar një shënim te takimi.
+ * Kutia e shpejtë për të shtuar një shënim te termini.
  *
  * Rri gjithmonë e hapur mbi tabelë, që shkrimi të jetë një klikim i vetëm:
  * shkruaj dhe shtyp Ctrl+Enter ose butonin.
@@ -38,7 +38,7 @@ export default function NoteForm({ appointmentId }: { appointmentId: string }) {
             name="body"
             rows={2}
             required
-            placeholder="P.sh. Kd sind bei Helsana me VVG, 1000 CHF në muaj. Takimi fiks në orën 10:00."
+            placeholder="P.sh. Kd sind bei Helsana me VVG, 1000 CHF në muaj. Termini fiks në orën 10:00."
             className="w-full resize-y rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none placeholder:text-slate-400 focus:border-slate-900"
             onKeyDown={(e) => {
               // Ctrl+Enter e ruan pa e lëvizur dorën nga tastiera.

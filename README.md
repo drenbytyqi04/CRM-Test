@@ -1,7 +1,7 @@
-# CRM — takime
+# CRM — termine
 
-Një aplikacion për të regjistruar takime: të dhënat e personit, kur është
-caktuar takimi, si shkoi dhe sa kontrata u mbyllën. Çdo takim mban shënimet e
+Një aplikacion për të regjistruar termine: të dhënat e personit, kur është
+caktuar termini, si shkoi dhe sa kontrata u mbyllën. Çdo termin mban shënimet e
 veta. Hyrja bëhet me email dhe fjalëkalim, dhe tri role vendosin kush çfarë
 mundet.
 
@@ -14,17 +14,17 @@ Nëse s'ke programuar kurrë, këta janë emrat që do t'i hasësh:
 | Fjala | Çfarë do të thotë këtu |
 | --- | --- |
 | **Next.js** | Programi që ndërton faqet e internetit. Ai është "aplikacioni" yt. |
-| **Supabase** | Baza e të dhënave në internet — aty ruhen takimet dhe shënimet, edhe kur kompjuteri fiket. |
+| **Supabase** | Baza e të dhënave në internet — aty ruhen terminet dhe shënimet, edhe kur kompjuteri fiket. |
 | **Node.js / npm** | Mjetet që e ndezin projektin në kompjuterin tënd. `npm` shkarkon bibliotekat. |
 | **Terminali** | Dritarja ku shkruan komanda me tastierë. Në Windows: "PowerShell"; në Mac: "Terminal". |
 | **Server** | Kompjuteri (këtu: yti) që përgatit faqen para se ta shohë vizitori. |
 | **`.env.local`** | Një skedë me rregullimet e lidhjes me Supabase-in. |
 | **RLS** | Roja te dera e tabelës: lejon secilin përdorues të prekë vetëm rreshtat e vet. |
 
-Dy fjalë për strukturën: **takimi** është një rresht në tabelën `appointments`
+Dy fjalë për strukturën: **termini** është një rresht në tabelën `appointments`
 dhe mban brenda vetes edhe të dhënat e personit. Çdo **shënim** është një rresht
-në tabelën `notes` që "tregon" me gisht se cilit takim i përket. Nuk ka kartelë
-klienti veç — takimi është njësia e vetme.
+në tabelën `notes` që "tregon" me gisht se cilit termin i përket. Nuk ka kartelë
+klienti veç — termini është njësia e vetme.
 
 ---
 
@@ -144,10 +144,10 @@ tjerët. Rregullat janë te `supabase/roles.sql`.
 Tabela dhe funksioni që numërojnë kohën aktive janë zbatuar
 (skeda `supabase/activity.sql`). Shih **Pjesa 6** për mënyrën e matjes.
 
-### Hapi 12: Takimet — TË GATSHME ✅
+### Hapi 12: Terminet — TË GATSHME ✅
 
-Takimi është njësia e vetme e sistemit; tabela e klientëve u hoq dhe të dhënat
-e personit kaluan mbi vetë takimin. Shih **Pjesa 7**.
+Termini është njësia e vetme e sistemit; tabela e klientëve u hoq dhe të dhënat
+e personit kaluan mbi vetë terminin. Shih **Pjesa 7**.
 
 ### Hapi 13: Tri rolet — TË GATSHME ✅
 
@@ -164,16 +164,16 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
 
 ## Pjesa 3 — Si përdoret
 
-- **Cakto takim:** paneli *Cakto takim të ri* në faqen kryesore. Plotëso emrin
-  (i detyrueshëm), personalinë, të dhënat teknike dhe datën e takimit.
-- **Filtro:** butonat e statuseve lart. Përmbledhja tregon sa takime, sa u
+- **Cakto termin:** paneli *Cakto termin të ri* në faqen kryesore. Plotëso emrin
+  (i detyrueshëm), personalinë, të dhënat teknike dhe datën e terminit.
+- **Filtro:** butonat e statuseve lart. Përmbledhja tregon sa termine, sa u
   mbajtën dhe sa kontrata u mbyllën.
-- **Hap një takim:** kliko mbi emrin. Aty ndryshon çdo fushë dhe shënon
+- **Hap një termin:** kliko mbi emrin. Aty ndryshon çdo fushë dhe shënon
   rezultatin.
 - **Rezultati:** një status i vetëm (I hapur, U mbajt, I anuluar, Nuk u arrit,
-  S'deshi takim, Negativ, S'ishte në shtëpi, Adresa s'u gjet, S'u këshillua dot)
+  S'deshi termin, Negativ, S'ishte në shtëpi, Adresa s'u gjet, S'u këshillua dot)
   plus kontratat e mbyllura. Baza nuk lejon më shumë kontrata se persona.
-- **Feedback i takimit:** poshtë takimit rri një tabelë me tri kolona —
+- **Feedback i terminit:** poshtë terminit rri një tabelë me tri kolona —
   *Përdoruesi*, *Shënimi*, *Data* — njësoj si te TH-CRM. Kutia e shkrimit rri
   gjithmonë e hapur mbi tabelë: shkruaj dhe shtyp **Ctrl+Enter** (ose butonin
   *Shto shënimin*). Shënimin tënd e ndryshon me *Ndrysho* pa dalë nga tabela;
@@ -184,18 +184,18 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
 
 | Veprimi | Përdorues | Menaxher | Admin |
 | --- | :---: | :---: | :---: |
-| Lexon takimet e regjistruara | ✅ | ✅ | ✅ |
+| Lexon terminet e regjistruara | ✅ | ✅ | ✅ |
 | Shkruan shënime | ✅ | ✅ | ✅ |
-| Cakton dhe ndryshon takime | ❌ | ✅ | ✅ |
+| Cakton dhe ndryshon termine | ❌ | ✅ | ✅ |
 | Faqja *Përdoruesit* dhe *Aktiviteti* | ❌ | ❌ | ✅ |
 
-Përdoruesi i thjeshtë e hap çdo takim dhe e lexon të plotë — personalinë, të
+Përdoruesi i thjeshtë e hap çdo termin dhe e lexon të plotë — personalinë, të
 dhënat teknike, rezultatin dhe detajet — por si tekst, pa formularë. Puna e tij
 regjistrohet përmes shënimeve.
 
 Administratori ka edhe:
 
-- **Përdoruesit** — të gjitha llogaritë, rolet, koha aktive sot dhe sa takime e
+- **Përdoruesit** — të gjitha llogaritë, rolet, koha aktive sot dhe sa termine e
   shënime ka secili.
 - **Aktiviteti** — koha e secilit për 7 ditët e fundit, me pikë jeshile për
   "aktiv tani".
@@ -207,8 +207,8 @@ Administratori ka edhe:
 
 ```
 app/
-  page.tsx                  Faqja kryesore: lista e takimeve + paneli i caktimit
-  actions.ts                Funksionet që ruajnë takimet dhe shënimet
+  page.tsx                  Faqja kryesore: lista e termineve + paneli i caktimit
+  actions.ts                Funksionet që ruajnë terminet dhe shënimet
   sign-out-button.tsx       Butoni "Dil"
   activity-tracker.tsx      Sinjali "jam aktiv" çdo 2 minuta
   setup-notice.tsx          Udhëzimet nëse .env.local mungon
@@ -221,9 +221,9 @@ app/
   auth/confirm/route.ts     Aty bie lidhja e konfirmimit nga emaili
   admin/page.tsx            Faqja e administratorit: të gjithë përdoruesit
   admin/aktiviteti/page.tsx Koha e secilit përdorues, ditë pas dite
-  takimet/
-    appointment-form.tsx    Formulari i takimit (caktim dhe ndryshim)
-    [id]/page.tsx           Një takim i vetëm + tabela e feedback-ut
+  terminet/
+    appointment-form.tsx    Formulari i terminit (caktim dhe ndryshim)
+    [id]/page.tsx           Një termin i vetëm + tabela e feedback-ut
     [id]/note-form.tsx      Kutia e shpejtë për të shtuar shënim
     [id]/note-row.tsx       Një rresht i tabelës, me ndryshim brenda rreshtit
 lib/
@@ -270,9 +270,9 @@ Të dhënat mbrohen në tri shtresa, njëra mbi tjetrën:
 ndryshimi — pra askush nuk e bën dot veten admin apo menaxher nga aplikacioni.
 Roli ndryshohet vetëm nga paneli i Supabase-it, ku hyn vetëm ti.
 
-**Leximi është i përbashkët, shkrimi jo.** Çdo i kyçur i lexon takimet e
+**Leximi është i përbashkët, shkrimi jo.** Çdo i kyçur i lexon terminet e
 regjistruara dhe shënimet e tyre. Shtimi dhe ndryshimi mbeten të mbyllura:
-takimet i prek vetëm menaxheri, shënimin e vet e ndryshon vetëm autori (ose
+terminet i prek vetëm menaxheri, shënimin e vet e ndryshon vetëm autori (ose
 admini). Lista e profileve lexohet nga të gjithë (`profiles_select_all`),
 sepse tabela e feedback-ut tregon se kush e shkroi secilin shënim — por vetëm
 lexohet, roli nuk ndryshohet dot nga aplikacioni.
@@ -314,7 +314,7 @@ dite. Ja si matet, saktësisht:
   Asnjë përdorues nuk mund t'i fryjë numrat e vet, as duke i dërguar sinjale pa
   pushim: nëse s'ka kaluar kohë, nuk shtohet asgjë.
 
-**Çfarë NUK mat:** punë të bërë me telefon, në takim, në letër, ose në ndonjë
+**Çfarë NUK mat:** punë të bërë me telefon, në termin, në letër, ose në ndonjë
 program tjetër. Prandaj kjo tabelë tregon kohën në CRM — jo produktivitetin.
 Përdore si tregues, jo si dëshmi.
 
@@ -324,15 +324,15 @@ krijon probleme ligjore (rregullat e mbrojtjes së të dhënave kërkojnë që
 personi të jetë i informuar) dhe prish besimin. Njoftoji punonjësit para se ta
 përdorësh këtë faqe.
 
-## Pjesa 7 — Si janë menduar takimet
+## Pjesa 7 — Si janë menduar terminet
 
-Sistemi ka **një njësi të vetme: takimin**. Të dhënat e personit — emri, numri i
-klientit, datëlindja, adresa, telefoni — rrinë mbi vetë takimin, jo në një
+Sistemi ka **një njësi të vetme: terminin**. Të dhënat e personit — emri, numri i
+klientit, datëlindja, adresa, telefoni — rrinë mbi vetë terminin, jo në një
 kartelë të veçantë.
 
-Kjo është me qëllim: çdo takim është një ngjarje më vete, me gjendjen e personit
+Kjo është me qëllim: çdo termin është një ngjarje më vete, me gjendjen e personit
 ashtu siç ishte atë ditë. Nëse i njëjti person takohet sërish pas gjashtë
-muajsh, caktohet një takim i ri me të dhënat e reja, dhe historiku i të parit
+muajsh, caktohet një termin i ri me të dhënat e reja, dhe historiku i të parit
 mbetet i paprekur.
 
 **Statusi është një i vetëm, jo disa kuti.** Me kuti të pavarura mund të
@@ -341,7 +341,7 @@ të ishte i besueshëm. Dy shenjat e pavarura që mbeten — *kontratë shumëvj
 dhe *trajtim* — mund të shoqërojnë çdo status.
 
 **Kontratat nuk fryhen dot:** baza refuzon një numër më të madh se numri i
-personave të takimit.
+personave të terminit.
 
 ## Pjesa 8 — Kur diçka nuk shkon
 

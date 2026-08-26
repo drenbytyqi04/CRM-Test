@@ -1,5 +1,5 @@
 import Link from "next/link";
-import AppointmentForm from "./takimet/appointment-form";
+import AppointmentForm from "./terminet/appointment-form";
 import SetupNotice from "./setup-notice";
 import SignOutButton from "./sign-out-button";
 import { createClient, hasSupabaseConfig } from "@/lib/supabase/server";
@@ -26,7 +26,7 @@ export default async function Page({ searchParams }: PageProps<"/">) {
     return (
       <main className="mx-auto w-full max-w-5xl px-5 py-10">
         <h1 className="mb-6 text-2xl font-semibold tracking-tight text-slate-900">
-          Takimet
+          Terminet
         </h1>
         <SetupNotice />
       </main>
@@ -38,7 +38,7 @@ export default async function Page({ searchParams }: PageProps<"/">) {
 
   const { status, view } = await searchParams;
   const filtri = typeof status === "string" ? status : "";
-  // Takimet e regjistruara i sheh çdo i kyçur. Menaxheri mund t'i ngushtojë
+  // Terminet e regjistruara i sheh çdo i kyçur. Menaxheri mund t'i ngushtojë
   // te "Të mijat".
   const showAll = view !== "mine";
   const sot = todayInTirane();
@@ -53,17 +53,17 @@ export default async function Page({ searchParams }: PageProps<"/">) {
     query = query.eq("status", filtri);
   }
 
-  const takimetResult = await query.returns<Appointment[]>();
-  const takimet = takimetResult.data ?? [];
+  const terminetResult = await query.returns<Appointment[]>();
+  const terminet = terminetResult.data ?? [];
 
   const [notesResult, agjentetResult, aktivitetiIm] = await Promise.all([
-    takimet.length > 0
+    terminet.length > 0
       ? supabase
           .from("notes")
           .select("appointment_id")
           .in(
             "appointment_id",
-            takimet.map((t) => t.id)
+            terminet.map((t) => t.id)
           )
           .returns<{ appointment_id: string }[]>()
       : Promise.resolve({ data: [], error: null }),
@@ -88,8 +88,8 @@ export default async function Page({ searchParams }: PageProps<"/">) {
     (agjentetResult.data ?? []).map((p) => [p.id, p.email ?? "—"])
   );
 
-  const kontrata = takimet.reduce((s, t) => s + t.contracts_closed, 0);
-  const uMbajten = takimet.filter((t) => t.status === "held").length;
+  const kontrata = terminet.reduce((s, t) => s + t.contracts_closed, 0);
+  const uMbajten = terminet.filter((t) => t.status === "held").length;
 
   /** Ndërton adresën e filtrit, duke ruajtur pamjen "Të mijat". */
   const filterHref = (value: string) => {
@@ -105,10 +105,10 @@ export default async function Page({ searchParams }: PageProps<"/">) {
       <header className="mb-8 flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-            Takimet
+            Terminet
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            {takimet.length} takime · {uMbajten} të mbajtura · {kontrata}{" "}
+            {terminet.length} termine · {uMbajten} të mbajtura · {kontrata}{" "}
             kontrata
           </p>
         </div>
@@ -171,7 +171,7 @@ export default async function Page({ searchParams }: PageProps<"/">) {
 
           <details className="mb-6 rounded-xl border border-slate-200 bg-white">
             <summary className="cursor-pointer px-5 py-4 text-sm font-medium text-slate-700 select-none">
-              Cakto takim të ri
+              Cakto termin të ri
             </summary>
             <div className="border-t border-slate-200 p-5">
               <AppointmentForm scheduledDefault={defaultAppointmentSlot()} />
@@ -206,22 +206,22 @@ export default async function Page({ searchParams }: PageProps<"/">) {
         ))}
       </nav>
 
-      {takimetResult.error && (
+      {terminetResult.error && (
         <p className="rounded-lg bg-red-50 p-4 text-sm text-red-700">
-          Nuk u lexuan dot takimet: {takimetResult.error.message}
+          Nuk u lexuan dot terminet: {terminetResult.error.message}
         </p>
       )}
 
-      {takimet.length === 0 && !takimetResult.error ? (
+      {terminet.length === 0 && !terminetResult.error ? (
         <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">
-          Nuk ka takime këtu.
+          Nuk ka termine këtu.
         </p>
       ) : (
         <ul className="divide-y divide-slate-200 overflow-hidden rounded-xl border border-slate-200 bg-white">
-          {takimet.map((t) => (
+          {terminet.map((t) => (
             <li key={t.id}>
               <Link
-                href={`/takimet/${t.id}`}
+                href={`/terminet/${t.id}`}
                 className="flex items-center justify-between gap-4 p-4 transition hover:bg-slate-50"
               >
                 <div className="min-w-0">

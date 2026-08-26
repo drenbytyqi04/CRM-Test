@@ -24,7 +24,7 @@ export default async function AdminPage() {
   // Dita e sotme sipas orës së Tiranës, si te funksioni në bazë.
   const sot = todayInTirane();
 
-  const [profilesResult, takimetResult, notesResult, activityResult] =
+  const [profilesResult, terminetResult, notesResult, activityResult] =
     await Promise.all([
     supabase
       .from("profiles")
@@ -53,7 +53,7 @@ export default async function AdminPage() {
     return map;
   };
 
-  const takimeCounts = countBy(takimetResult.data);
+  const termineCounts = countBy(terminetResult.data);
   const noteCounts = countBy(notesResult.data);
 
   // Aktiviteti i sotëm: sa kohë dhe kur u pa së fundi.
@@ -73,7 +73,7 @@ export default async function AdminPage() {
             href="/"
             className="text-sm text-slate-500 transition hover:text-slate-900"
           >
-            ← Takimet
+            ← Terminet
           </Link>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">
             Përdoruesit
@@ -109,7 +109,7 @@ export default async function AdminPage() {
               <th className="p-4 font-medium">Emaili</th>
               <th className="p-4 font-medium">Roli</th>
               <th className="p-4 font-medium">Aktiv sot</th>
-              <th className="p-4 font-medium">Takime</th>
+              <th className="p-4 font-medium">Termine</th>
               <th className="p-4 font-medium">Shënime</th>
               <th className="p-4 font-medium">Regjistruar</th>
             </tr>
@@ -141,7 +141,7 @@ export default async function AdminPage() {
                   {formatDuration(sotSekonda.get(profile.id) ?? 0)}
                 </td>
                 <td className="p-4 text-slate-600">
-                  {takimeCounts.get(profile.id) ?? 0}
+                  {termineCounts.get(profile.id) ?? 0}
                 </td>
                 <td className="p-4 text-slate-600">
                   {noteCounts.get(profile.id) ?? 0}

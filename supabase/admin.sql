@@ -96,7 +96,7 @@ create policy "profiles_select_own_or_admin" on public.profiles
   using (id = auth.uid() or public.is_admin());
 
 -- VINI RE: `roles.sql` e zëvendëson këtë rregull me një më të hapur
--- (`profiles_select_all`), që tabela e feedback-ut te takimi të tregojë se
+-- (`profiles_select_all`), që tabela e feedback-ut te termini të tregojë se
 -- kush e shkroi secilin shënim. Ekzekutoje `roles.sql` pas kësaj skede.
 
 -- VINI RE: nuk ka asnjë rregull për ndryshim (update/insert/delete).

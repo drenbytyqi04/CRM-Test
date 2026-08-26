@@ -33,28 +33,28 @@ function Fusha({ etiketa, vlera }: { etiketa: string; vlera: string | null }) {
 
 export default async function AppointmentPage({
   params,
-}: PageProps<"/takimet/[id]">) {
+}: PageProps<"/terminet/[id]">) {
   const { id } = await params;
   const user = await requireUser();
   const supabase = await createClient();
 
-  // Takimin e hap çdo i kyçur; e ndryshon vetëm menaxheri.
-  const takimiResult = await supabase
+  // Terminin e hap çdo i kyçur; e ndryshon vetëm menaxheri.
+  const terminiResult = await supabase
     .from("appointments")
     .select(APPOINTMENT_COLUMNS)
     .eq("id", id)
     .maybeSingle<Appointment>();
 
-  if (takimiResult.error) throw new Error(takimiResult.error.message);
+  if (terminiResult.error) throw new Error(terminiResult.error.message);
 
-  const takimi = takimiResult.data;
-  if (!takimi) notFound();
+  const termini = terminiResult.data;
+  if (!termini) notFound();
 
   const [notesResult, profilesResult] = await Promise.all([
     supabase
       .from("notes")
       .select("id, appointment_id, user_id, body, created_at, updated_at")
-      .eq("appointment_id", takimi.id)
+      .eq("appointment_id", termini.id)
       .order("created_at", { ascending: false })
       .returns<Note[]>(),
     supabase
@@ -74,7 +74,7 @@ export default async function AppointmentPage({
     id === user.id ? user.email : (emailet.get(id) ?? "—");
 
   const agjenti =
-    takimi.user_id === user.id ? null : (emailet.get(takimi.user_id) ?? null);
+    termini.user_id === user.id ? null : (emailet.get(termini.user_id) ?? null);
 
   return (
     <main className="mx-auto w-full max-w-4xl px-5 py-10">
@@ -84,19 +84,19 @@ export default async function AppointmentPage({
             href="/"
             className="text-sm text-slate-500 transition hover:text-slate-900"
           >
-            ← Të gjitha takimet
+            ← Të gjitha terminet
           </Link>
           <div className="mt-2 flex flex-wrap items-center gap-3">
             <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-              {takimi.name}
+              {termini.name}
             </h1>
             <span
               className={`rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${
-                APPOINTMENT_STATUS_CLASSES[takimi.status] ??
+                APPOINTMENT_STATUS_CLASSES[termini.status] ??
                 APPOINTMENT_STATUS_CLASSES.cancelled
               }`}
             >
-              {appointmentStatusLabel(takimi.status)}
+              {appointmentStatusLabel(termini.status)}
             </span>
             {agjenti && (
               <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600 ring-1 ring-slate-200 ring-inset">
@@ -105,7 +105,7 @@ export default async function AppointmentPage({
             )}
           </div>
           <p className="mt-1 text-sm text-slate-500">
-            {formatTirane(takimi.scheduled_at)}
+            {formatTirane(termini.scheduled_at)}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-3">
@@ -118,34 +118,34 @@ export default async function AppointmentPage({
 
       {user.isManager ? (
         <AppointmentForm
-          appointment={takimi}
-          scheduledDefault={toTiraneInput(takimi.scheduled_at)}
+          appointment={termini}
+          scheduledDefault={toTiraneInput(termini.scheduled_at)}
         />
       ) : (
-        /* Përdoruesi i thjeshtë e lexon takimin, por nuk e ndryshon. */
+        /* Përdoruesi i thjeshtë e lexon terminin, por nuk e ndryshon. */
         <div className="space-y-6">
           <section className="rounded-xl border border-slate-200 bg-white p-5">
             <h2 className="mb-4 text-base font-semibold text-slate-900">
               Personalia
             </h2>
             <dl className="grid gap-4 text-sm sm:grid-cols-3">
-              <Fusha etiketa="Numri i klientit" vlera={takimi.customer_number} />
-              <Fusha etiketa="Gjinia" vlera={genderLabel(takimi.gender)} />
-              <Fusha etiketa="Kombësia" vlera={takimi.nationality} />
+              <Fusha etiketa="Numri i klientit" vlera={termini.customer_number} />
+              <Fusha etiketa="Gjinia" vlera={genderLabel(termini.gender)} />
+              <Fusha etiketa="Kombësia" vlera={termini.nationality} />
               <Fusha
                 etiketa="Datëlindja"
                 vlera={
-                  takimi.birth_date ? formatDateOnly(takimi.birth_date) : null
+                  termini.birth_date ? formatDateOnly(termini.birth_date) : null
                 }
               />
-              <Fusha etiketa="Telefoni" vlera={takimi.phone} />
-              <Fusha etiketa="Celulari" vlera={takimi.mobile} />
-              <Fusha etiketa="Emaili" vlera={takimi.email} />
-              <Fusha etiketa="Rruga" vlera={takimi.street} />
+              <Fusha etiketa="Telefoni" vlera={termini.phone} />
+              <Fusha etiketa="Celulari" vlera={termini.mobile} />
+              <Fusha etiketa="Emaili" vlera={termini.email} />
+              <Fusha etiketa="Rruga" vlera={termini.street} />
               <Fusha
                 etiketa="Vendi"
                 vlera={
-                  [takimi.postal_code, takimi.city, takimi.canton]
+                  [termini.postal_code, termini.city, termini.canton]
                     .filter(Boolean)
                     .join(", ") || null
                 }
@@ -158,18 +158,18 @@ export default async function AppointmentPage({
               Të dhëna teknike
             </h2>
             <dl className="grid gap-4 text-sm sm:grid-cols-3">
-              <Fusha etiketa="Call center" vlera={takimi.call_center} />
-              <Fusha etiketa="Sigurimi aktual" vlera={takimi.current_insurance} />
-              <Fusha etiketa="Gjuha" vlera={takimi.language} />
+              <Fusha etiketa="Call center" vlera={termini.call_center} />
+              <Fusha etiketa="Sigurimi aktual" vlera={termini.current_insurance} />
+              <Fusha etiketa="Gjuha" vlera={termini.language} />
               <Fusha
                 etiketa="Data e telefonatës"
-                vlera={takimi.call_date ? formatDateOnly(takimi.call_date) : null}
+                vlera={termini.call_date ? formatDateOnly(termini.call_date) : null}
               />
               <Fusha
                 etiketa="Numri i personave"
-                vlera={String(takimi.persons_count)}
+                vlera={String(termini.persons_count)}
               />
-              <Fusha etiketa="Shtuar më" vlera={formatDate(takimi.created_at)} />
+              <Fusha etiketa="Shtuar më" vlera={formatDate(termini.created_at)} />
             </dl>
           </section>
 
@@ -180,15 +180,15 @@ export default async function AppointmentPage({
             <dl className="grid gap-4 text-sm sm:grid-cols-3">
               <Fusha
                 etiketa="Statusi"
-                vlera={appointmentStatusLabel(takimi.status)}
+                vlera={appointmentStatusLabel(termini.status)}
               />
               <Fusha
                 etiketa="Kontrata të mbyllura"
-                vlera={String(takimi.contracts_closed)}
+                vlera={String(termini.contracts_closed)}
               />
               <Fusha
                 etiketa="Kontratë shumëvjeçare"
-                vlera={takimi.multi_year_contract ? "Po" : "Jo"}
+                vlera={termini.multi_year_contract ? "Po" : "Jo"}
               />
             </dl>
           </section>
@@ -198,13 +198,13 @@ export default async function AppointmentPage({
               Detaje të këshillimit
             </h2>
             <dl className="grid gap-4 text-sm sm:grid-cols-2">
-              <Fusha etiketa="Detaje familjare" vlera={takimi.family_details} />
-              <Fusha etiketa="Trajtim aktual" vlera={takimi.current_treatment} />
-              <Fusha etiketa="Lloji i trajtimit" vlera={takimi.treatment_type} />
-              <Fusha etiketa="Medikamente" vlera={takimi.medications} />
+              <Fusha etiketa="Detaje familjare" vlera={termini.family_details} />
+              <Fusha etiketa="Trajtim aktual" vlera={termini.current_treatment} />
+              <Fusha etiketa="Lloji i trajtimit" vlera={termini.treatment_type} />
+              <Fusha etiketa="Medikamente" vlera={termini.medications} />
             </dl>
             <p className="mt-4 text-xs text-slate-500">
-              Takimet i cakton dhe i ndryshon vetëm menaxheri. Ti mund të
+              Terminet i cakton dhe i ndryshon vetëm menaxheri. Ti mund të
               shkruash shënime më poshtë.
             </p>
           </section>
@@ -214,11 +214,11 @@ export default async function AppointmentPage({
       {/* ---------- Shënimet ---------- */}
       <section className="mt-8">
         <h2 className="mb-3 text-base font-semibold text-slate-900">
-          Feedback i takimit
+          Feedback i terminit
         </h2>
 
         <div className="mb-4">
-          <NoteForm appointmentId={takimi.id} />
+          <NoteForm appointmentId={termini.id} />
         </div>
 
         {notesResult.error && (
@@ -243,7 +243,7 @@ export default async function AppointmentPage({
                     colSpan={3}
                     className="p-8 text-center text-sm text-slate-500"
                   >
-                    Ende s&apos;ka shënime për këtë takim.
+                    Ende s&apos;ka shënime për këtë termin.
                   </td>
                 </tr>
               ) : (
