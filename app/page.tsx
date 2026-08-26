@@ -4,7 +4,13 @@ import SetupNotice from "./setup-notice";
 import SignOutButton from "./sign-out-button";
 import { createClient, hasSupabaseConfig } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
-import { STATUS_CLASSES, statusLabel, type Client } from "@/lib/types";
+import {
+  STATUS_CLASSES,
+  formatDuration,
+  statusLabel,
+  todayInTirane,
+  type Client,
+} from "@/lib/types";
 
 // I thotë Next.js-it ta ndërtojë faqen sa herë hapet, që lista të jetë e freskët.
 export const dynamic = "force-dynamic";
@@ -49,7 +55,9 @@ export default async function Page({ searchParams }: PageProps<"/">) {
 
   // Shënimet i numërojmë sipas klientëve që sapo morëm — jo sipas autorit,
   // sepse te një klient mund të ketë shkruar edhe administratori.
-  const [notesResult, ownersResult] = await Promise.all([
+  const sot = todayInTirane();
+
+  const [notesResult, ownersResult, aktivitetiIm] = await Promise.all([
     clients.length > 0
       ? supabase
           .from("notes")
@@ -66,6 +74,13 @@ export default async function Page({ searchParams }: PageProps<"/">) {
           .select("id, email")
           .returns<{ id: string; email: string | null }[]>()
       : Promise.resolve({ data: [], error: null }),
+    // Koha ime e sotme — çdo përdorues e sheh numrin e vet.
+    supabase
+      .from("activity_days")
+      .select("active_seconds")
+      .eq("user_id", user.id)
+      .eq("day", sot)
+      .maybeSingle<{ active_seconds: number }>(),
   ]);
 
   // Numërojmë sa shënime ka secili klient.
@@ -103,6 +118,12 @@ export default async function Page({ searchParams }: PageProps<"/">) {
               Përdoruesit
             </Link>
           )}
+          <span
+            className="hidden text-sm text-slate-500 sm:inline"
+            title="Koha e kaluar sot brenda CRM-së"
+          >
+            Aktiv sot: {formatDuration(aktivitetiIm.data?.active_seconds ?? 0)}
+          </span>
           <span className="hidden items-center gap-2 text-sm text-slate-500 sm:flex">
             {user.email}
             {user.isAdmin && (

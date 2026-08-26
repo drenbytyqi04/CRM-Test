@@ -138,6 +138,13 @@ Rregullat që i japin administratorit të drejtën të shkruajë shënime, t'i
 ndryshojë ato dhe të redaktojë të dhënat te klientët e të tjerëve janë zbatuar
 tashmë (skeda `supabase/admin-edit.sql`).
 
+### Hapi 11: Përcjellja e kohës — E GATSHME ✅
+
+Tabela dhe funksioni që numërojnë kohën aktive janë zbatuar
+(skeda `supabase/activity.sql`). Shih **Pjesa 6** për mënyrën e matjes.
+
+---
+
 ## Pjesa 3 — Si përdoret
 
 - **Shto klient:** plotëso emrin (i detyrueshëm), telefonin, emailin dhe
@@ -147,7 +154,8 @@ tashmë (skeda `supabase/admin-edit.sql`).
   *Ruaj shënimin*. Shënimet renditen nga më i riu te më i vjetri.
 - **Statuset:** *I ri* (lead), *Aktiv*, *Joaktiv*.
 - **Dil:** butoni lart djathtas. Të dhënat e tua i sheh vetëm llogaria jote.
-
+- **Aktiv sot:** lart djathtas shfaqet koha që ke kaluar sot brenda CRM-së.
+  Këtë numër e sheh secili për vete, dhe administratori për të gjithë.
 - **Ndrysho të dhënat:** te faqja e klientit, paneli që hapet me një klikim.
   Aty ndryshon emrin, telefonin, emailin dhe statusin.
 - **Ndrysho një shënim:** butoni *Ndrysho* poshtë secilit shënim që ke shkruar
@@ -157,8 +165,11 @@ Nëse je **administrator**, ke edhe:
 
 - **Të gjitha / Të mijat** — çelës lart, për të parë të dhënat e krejt
   përdoruesve ose vetëm të tuat. Te lista shfaqet edhe pronari i secilit klient.
-- **Përdoruesit** — faqe me të gjitha llogaritë, rolin e secilit dhe sa klientë
-  e shënime ka. Rolet ndryshohen vetëm nga paneli i Supabase-it.
+- **Përdoruesit** — faqe me të gjitha llogaritë, rolin e secilit, kohën aktive
+  sot dhe sa klientë e shënime ka. Rolet ndryshohen vetëm nga paneli i
+  Supabase-it.
+- **Aktiviteti** — tabelë me kohën e secilit përdorues për 7 ditët e fundit,
+  ditë pas dite, me totalin. Pika jeshile do të thotë "aktiv tani".
 - **Akses i plotë mbi çdo klient** — hap klientin e kujtdo, shkruaj shënime aty,
   ndrysho shënimet e shkruara nga të tjerët dhe redakto të dhënat e klientit,
   edhe kur e ka krijuar dikush tjetër. Te koka e faqes shfaqet se kujt i përket.
@@ -185,6 +196,8 @@ app/
     actions.ts              Hyrja, regjistrimi dhe dalja
   auth/confirm/route.ts     Aty bie lidhja e konfirmimit nga emaili
   admin/page.tsx            Faqja e administratorit: të gjithë përdoruesit
+  admin/aktiviteti/page.tsx Koha e secilit përdorues, ditë pas dite
+  activity-tracker.tsx      Sinjali "jam aktiv" çdo 2 minuta
   clients/[id]/
     page.tsx                Faqja e një klienti + shënimet e tij
     note-form.tsx           Formulari për të shtuar shënim
@@ -200,6 +213,7 @@ supabase/
   schema.sql                SQL-i i tabelave dhe i rregullave RLS
   admin.sql                 SQL-i i roleve dhe i administratorit
   admin-edit.sql            SQL-i i redaktimit dhe i shënimeve të adminit
+  activity.sql              SQL-i i përcjelljes së kohës
 ```
 
 Tri koncepte që i ndeshni në kod:
@@ -257,7 +271,30 @@ Dy gjëra për t'i mbajtur mend:
   regjistrimin te Supabase → **Authentication** → **Sign In / Providers** →
   fik *Allow new users to sign up*.
 
-## Pjesa 6 — Kur diçka nuk shkon
+## Pjesa 6 — Përcjellja e kohës
+
+Administratori sheh sa kohë ka kaluar secili përdorues brenda CRM-së, ditë pas
+dite. Ja si matet, saktësisht:
+
+- Sa kohë faqja është **e hapur dhe e dukshme**, shfletuesi dërgon një sinjal
+  çdo 2 minuta. Nëse përdoruesi kalon në një skedë tjetër, sinjalet ndalen.
+- Serveri shton kohën që nga sinjali i fundit, por **jo më shumë se 5 minuta
+  përnjëherë**. Kështu një pushim i gjatë nuk numërohet si punë.
+- Numrat i shkruan vetëm baza e të dhënave (funksioni `record_activity`).
+  Asnjë përdorues nuk mund t'i fryjë numrat e vet, as duke i dërguar sinjale pa
+  pushim: nëse s'ka kaluar kohë, nuk shtohet asgjë.
+
+**Çfarë NUK mat:** punë të bërë me telefon, në takim, në letër, ose në ndonjë
+program tjetër. Prandaj kjo tabelë tregon kohën në CRM — jo produktivitetin.
+Përdore si tregues, jo si dëshmi.
+
+**Transparenca:** secili përdorues e sheh numrin e vet lart në faqe, po aq sa e
+sheh administratori. Kjo është me qëllim: përcjellja e fshehtë e punonjësve
+krijon probleme ligjore (rregullat e mbrojtjes së të dhënave kërkojnë që
+personi të jetë i informuar) dhe prish besimin. Njoftoji punonjësit para se ta
+përdorësh këtë faqe.
+
+## Pjesa 7 — Kur diçka nuk shkon
 
 | Problemi | Zgjidhja |
 | --- | --- |

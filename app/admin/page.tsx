@@ -2,7 +2,14 @@ import Link from "next/link";
 import SignOutButton from "@/app/sign-out-button";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
-import { formatDate, type Profile } from "@/lib/types";
+import {
+  formatDate,
+  formatDuration,
+  isRecent,
+  todayInTirane,
+  type ActivityDay,
+  type Profile,
+} from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +19,11 @@ export default async function AdminPage() {
   const admin = await requireAdmin();
   const supabase = await createClient();
 
-  const [profilesResult, clientsResult, notesResult] = await Promise.all([
+  // Dita e sotme sipas orës së Tiranës, si te funksioni në bazë.
+  const sot = todayInTirane();
+
+  const [profilesResult, clientsResult, notesResult, activityResult] =
+    await Promise.all([
     supabase
       .from("profiles")
       .select("id, email, role, created_at")
@@ -20,6 +31,11 @@ export default async function AdminPage() {
       .returns<Profile[]>(),
     supabase.from("clients").select("user_id").returns<{ user_id: string }[]>(),
     supabase.from("notes").select("user_id").returns<{ user_id: string }[]>(),
+    supabase
+      .from("activity_days")
+      .select("user_id, day, active_seconds, last_seen_at")
+      .eq("day", sot)
+      .returns<ActivityDay[]>(),
   ]);
 
   const profiles = profilesResult.data ?? [];
@@ -34,6 +50,15 @@ export default async function AdminPage() {
 
   const clientCounts = countBy(clientsResult.data);
   const noteCounts = countBy(notesResult.data);
+
+  // Aktiviteti i sotëm: sa kohë dhe kur u pa së fundi.
+  const sotSekonda = new Map<string, number>();
+  const paSeFundi = new Map<string, string>();
+  for (const rresht of activityResult.data ?? []) {
+    sotSekonda.set(rresht.user_id, rresht.active_seconds);
+    paSeFundi.set(rresht.user_id, rresht.last_seen_at);
+  }
+  const eshteAktiv = (userId: string) => isRecent(paSeFundi.get(userId));
 
   return (
     <main className="mx-auto w-full max-w-4xl px-5 py-10">
@@ -53,6 +78,12 @@ export default async function AdminPage() {
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-3">
+          <Link
+            href="/admin/aktiviteti"
+            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 transition hover:bg-white"
+          >
+            Aktiviteti
+          </Link>
           <span className="hidden text-sm text-slate-500 sm:inline">
             {admin.email}
           </span>
@@ -72,6 +103,7 @@ export default async function AdminPage() {
             <tr className="border-b border-slate-200 text-left text-slate-500">
               <th className="p-4 font-medium">Emaili</th>
               <th className="p-4 font-medium">Roli</th>
+              <th className="p-4 font-medium">Aktiv sot</th>
               <th className="p-4 font-medium">Klientë</th>
               <th className="p-4 font-medium">Shënime</th>
               <th className="p-4 font-medium">Regjistruar</th>
@@ -80,7 +112,17 @@ export default async function AdminPage() {
           <tbody className="divide-y divide-slate-200">
             {profiles.map((profile) => (
               <tr key={profile.id}>
-                <td className="p-4 text-slate-900">{profile.email ?? "—"}</td>
+                <td className="p-4 whitespace-nowrap">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`inline-block h-2 w-2 rounded-full ${
+                        eshteAktiv(profile.id) ? "bg-emerald-500" : "bg-slate-300"
+                      }`}
+                      title={eshteAktiv(profile.id) ? "Aktiv tani" : "Jo aktiv"}
+                    />
+                    <span className="text-slate-900">{profile.email ?? "—"}</span>
+                  </div>
+                </td>
                 <td className="p-4">
                   <span
                     className={`rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${
@@ -91,6 +133,9 @@ export default async function AdminPage() {
                   >
                     {profile.role === "admin" ? "Admin" : "Përdorues"}
                   </span>
+                </td>
+                <td className="p-4 whitespace-nowrap text-slate-600">
+                  {formatDuration(sotSekonda.get(profile.id) ?? 0)}
                 </td>
                 <td className="p-4 text-slate-600">
                   {clientCounts.get(profile.id) ?? 0}

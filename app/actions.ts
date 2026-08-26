@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { requireUser } from "@/lib/auth";
+import { getCurrentUser, requireUser } from "@/lib/auth";
 import { STATUSES, type FormState } from "@/lib/types";
 
 /**
@@ -230,4 +230,19 @@ export async function updateNote(
 
   revalidatePath(`/clients/${clientId || note.client_id}`);
   return { ok: true, message: "Shënimi u ndryshua." };
+}
+
+/**
+ * Shënon se përdoruesi është aktiv tani.
+ *
+ * Thirret çdo 2 minuta nga shfletuesi, sa kohë faqja është e hapur. Vetë
+ * llogaritjen e bën baza e të dhënave (funksioni `record_activity`), që
+ * askush të mos i shkruajë dot numrat e vet.
+ */
+export async function recordActivity(): Promise<void> {
+  const user = await getCurrentUser();
+  if (!user) return;
+
+  const supabase = await createClient();
+  await supabase.rpc("record_activity");
 }
