@@ -177,9 +177,14 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
 - **Hap një termin:** kliko mbi emrin. Aty ndryshon çdo fushë dhe shënon
   rezultatin.
 - **Numri i terminit:** çdo termin ka një numër të shkurtër — `#1000`, `#1001`
-  e kështu me radhë — që del te lista, te kreu i faqes dhe te adresa:
-  `/terminet/1001`. Numri jepet nga baza, nuk ndryshohet kurrë, dhe kështu
-  mund ta thuash me gojë ose ta shkruash në një mesazh.
+  e kështu me radhë — që del te lista, te kreu i faqes dhe te adresa. Numri
+  jepet nga baza, nuk ndryshohet kurrë, dhe kështu mund ta thuash me gojë ose
+  ta shkruash në një mesazh.
+- **Adresa sipas rolit:** i njëjti termin hapet nën prefiksin e atij që është
+  i kyçur — `/admin/terminet/1001`, `/menager/terminet/1001` ose
+  `/user/terminet/1001`. Prefiksi është vetëm emërtim: ai NUK jep asnjë të
+  drejtë. Kush hap prefiksin e një roli tjetër kthehet te i veti, dhe lejet
+  dalin gjithmonë nga roli te tabela `profiles`.
 - **Rezultati:** një status i vetëm (I hapur, U mbajt, I anuluar, Nuk u arrit,
   S'deshi termin, Negativ, S'ishte në shtëpi, Adresa s'u gjet, S'u këshillua dot)
   plus kontratat e mbyllura. Baza nuk lejon më shumë kontrata se persona.
@@ -232,10 +237,14 @@ app/
   admin/page.tsx            Faqja e administratorit: të gjithë përdoruesit
   admin/aktiviteti/page.tsx Koha e secilit përdorues, ditë pas dite
   terminet/
+    appointment-page.tsx    Faqja e një termini (e përbashkët për tri rolet)
     appointment-form.tsx    Formulari i terminit (caktim dhe ndryshim)
-    [nr]/page.tsx           Një termin i vetëm + tabela e feedback-ut
-    [nr]/note-form.tsx      Kutia e shpejtë për të shtuar shënim
-    [nr]/note-row.tsx       Një rresht i tabelës, me ndryshim brenda rreshtit
+    note-form.tsx           Kutia e shpejtë për të shtuar shënim
+    note-row.tsx            Një rresht i tabelës, me ndryshim brenda rreshtit
+    [nr]/page.tsx           Adresa e vjetër pa prefiks -> te ajo e rolit
+  admin/terminet/[nr]/page.tsx     Termini siç e sheh admini
+  menager/terminet/[nr]/page.tsx   Termini siç e sheh menaxheri
+  user/terminet/[nr]/page.tsx      Termini siç e sheh përdoruesi
 lib/
   supabase/server.ts        Lidhja me bazën për kodin në server
   supabase/proxy.ts         Mban sesionin e freskët në çdo kërkesë

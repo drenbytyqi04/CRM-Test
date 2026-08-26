@@ -92,14 +92,40 @@ export type Appointment = {
 export const APPOINTMENT_COLUMNS = "*";
 
 /**
- * Adresa e faqes së një termini.
+ * Pjesa e parë e adresës, sipas rolit të atij që është i kyçur:
  *
- * Normalisht numri i shkurtër (`/terminet/1001`). Nëse `supabase/nr.sql`
- * nuk është ekzekutuar ende, kolona `nr` mungon dhe kthehet adresa e vjetër
- * me `id` — kështu asnjë lidhje nuk prishet gjatë kalimit.
+ *   admin    -> /admin/terminet/1001
+ *   manager  -> /menager/terminet/1001
+ *   user     -> /user/terminet/1001
+ *
+ * Prefiksi është vetëm emërtim: ai NUK jep asnjë të drejtë. Lejet dalin
+ * gjithmonë nga roli në tabelën `profiles`, dhe faqja e kthen përdoruesin
+ * te prefiksi i rolit të vet nëse provon një tjetër.
  */
-export function appointmentPath(t: { id: string; nr?: number | null }): string {
-  return `/terminet/${t.nr ?? t.id}`;
+export const ROLE_PREFIXES = {
+  user: "user",
+  manager: "menager",
+  admin: "admin",
+} as const;
+
+export type RolePrefix = (typeof ROLE_PREFIXES)[keyof typeof ROLE_PREFIXES];
+
+export function rolePrefix(role: string): RolePrefix {
+  return ROLE_PREFIXES[role as keyof typeof ROLE_PREFIXES] ?? "user";
+}
+
+/**
+ * Adresa e faqes së një termini për atë që është i kyçur.
+ *
+ * Numri i shkurtër (`/admin/terminet/1001`). Nëse `supabase/nr.sql` nuk
+ * është ekzekutuar ende, kolona `nr` mungon dhe përdoret `id`-ja e gjatë —
+ * kështu asnjë lidhje nuk prishet gjatë kalimit.
+ */
+export function appointmentPath(
+  t: { id: string; nr?: number | null },
+  role: string
+): string {
+  return `/${rolePrefix(role)}/terminet/${t.nr ?? t.id}`;
 }
 
 const TZ = "Europe/Tirane";

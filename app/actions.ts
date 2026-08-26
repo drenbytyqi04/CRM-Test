@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, requireManager, requireUser } from "@/lib/auth";
 import {
   APPOINTMENT_STATUSES,
+  ROLE_PREFIXES,
   fromTiraneInput,
   type FormState,
 } from "@/lib/types";
@@ -29,6 +30,19 @@ function looksLikeEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
+
+/**
+ * I thotë Next.js-it se faqet e termineve kanë ndryshuar.
+ *
+ * I njëjti termin shfaqet nën tri adresa — një për çdo rol — prandaj
+ * freskohen të tria, bashkë me listën te faqja kryesore.
+ */
+function freskoTerminet(): void {
+  for (const prefiks of Object.values(ROLE_PREFIXES)) {
+    revalidatePath(`/${prefiks}/terminet/[nr]`, "page");
+  }
+  revalidatePath("/");
+}
 
 export async function addNote(
   _prevState: FormState,
@@ -55,9 +69,7 @@ export async function addNote(
     return { error: `Nuk u ruajt dot shënimi: ${error.message}` };
   }
 
-  // Adresa e faqes mban numrin e shkurtër, jo `id`-në që kemi këtu —
-  // prandaj freskohet e gjithë ruta e terminit.
-  revalidatePath("/terminet/[nr]", "page");
+  freskoTerminet();
   return { ok: true };
 }
 
@@ -111,7 +123,7 @@ export async function updateNote(
     return { error: "Shënimi nuk u ruajt: baza nuk e lejoi këtë veprim." };
   }
 
-  revalidatePath("/terminet/[nr]", "page");
+  freskoTerminet();
   return { ok: true, message: "Shënimi u ndryshua." };
 }
 
@@ -237,7 +249,7 @@ export async function createAppointment(
     return { error: `Nuk u ruajt dot termini: ${error.message}` };
   }
 
-  revalidatePath("/");
+  freskoTerminet();
   return { ok: true, message: "Termini u caktua." };
 }
 
@@ -294,7 +306,6 @@ export async function updateAppointment(
     return { error: "Ndryshimet nuk u ruajtën: baza nuk e lejoi këtë veprim." };
   }
 
-  revalidatePath("/terminet/[nr]", "page");
-  revalidatePath("/");
+  freskoTerminet();
   return { ok: true, message: "Termini u përditësua." };
 }

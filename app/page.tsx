@@ -222,7 +222,7 @@ export default async function Page({ searchParams }: PageProps<"/">) {
           {terminet.map((t) => (
             <li key={t.id}>
               <Link
-                href={appointmentPath(t)}
+                href={appointmentPath(t, user.role)}
                 className="flex items-center justify-between gap-4 p-4 transition hover:bg-slate-50"
               >
                 <div className="min-w-0">
