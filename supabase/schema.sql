@@ -1,119 +1,94 @@
 -- =====================================================================
--- Skema e bazës së të dhënave për CRM-in.
+-- Skema e bazës — CRM me takime
 --
--- STATUSI: kjo skemë është ZBATUAR TASHMË në projektin "crm-test"
--- (https://zfdavzndfhsjckvifxur.supabase.co). Tabelat janë gati.
--- Skeda ruhet këtu si dëshmi e strukturës dhe të duhet vetëm nëse një ditë
--- krijon një projekt tjetër Supabase.
+-- Sistemi ka NJË njësi: takimin. Të dhënat e personit rrinë mbi vetë
+-- takimin, sepse çdo takim regjistrohet si ngjarje më vete. Tabela e
+-- klientëve nuk ekziston më.
 --
--- Si përdoret (për një projekt të ri):
---   1. Hyr në https://supabase.com/dashboard dhe zgjidh projektin tënd.
---   2. Në menynë e majtë kliko "SQL Editor" -> "New query".
---   3. Kopjo GJITHË këtë skedë, ngjite atje dhe kliko "Run".
+-- Tabelat:
+--   appointments  — takimi: personalia, të dhënat teknike, rezultati
+--   notes         — shënime te një takim
+--   profiles      — llogaria dhe roli (user / manager / admin)
+--   activity_days — koha aktive për çdo përdorues, ditë pas dite
 --
--- Mund ta ekzekutosh disa herë pa problem: përdor "if not exists".
+-- Skedat fqinje mbajnë pjesët e veçanta:
+--   roles.sql     — rolet dhe lejet
+--   activity.sql  — përcjellja e kohës
 --
--- SHËNIM: rolet (admin) dhe rregullat përkatëse janë në skedën fqinje
--- `supabase/admin.sql`. Ajo i zëvendëson dy rregullat e leximit të mëposhtme
--- me variante që e lejojnë administratorin të shohë gjithçka.
+-- STATUSI: e gjithë skema është ZBATUAR në projektin "crm-test".
 -- =====================================================================
 
--- ---------------------------------------------------------------------
--- Tabela 1: klientët
--- ---------------------------------------------------------------------
-create table if not exists public.clients (
-  -- id = numri unik i klientit, gjenerohet vetë.
+create table if not exists public.appointments (
   id uuid primary key default gen_random_uuid(),
 
-  -- user_id = kujt përdoruesi i përket ky klient.
-  -- `auth.uid()` = përdoruesi i kyçur; mbushet vetvetiu.
-  -- `on delete cascade` = nëse fshihet llogaria, fshihen edhe të dhënat e saj.
+  -- Kush e caktoi takimin (menaxheri ose admini).
   user_id uuid not null default auth.uid()
     references auth.users (id) on delete cascade,
 
-  -- emri është i detyrueshëm ("not null" = nuk lejohet bosh).
+  -- --- Personalia e personit që takohet ---
   name text not null,
-
-  -- telefoni dhe emaili janë opsionalë.
+  customer_number text,
+  gender text,
+  nationality text,
+  birth_date date,
+  street text,
+  postal_code text,
+  city text,
+  canton text,
   phone text,
+  mobile text,
   email text,
 
-  -- statusi lejon vetëm një nga tri vlerat e mëposhtme.
-  status text not null default 'lead'
-    check (status in ('lead', 'active', 'inactive')),
+  -- --- Të dhëna teknike ---
+  call_center text,
+  current_insurance text,
+  call_date date,
+  scheduled_at timestamptz not null,
+  language text,
+  persons_count integer not null default 1 check (persons_count > 0),
 
-  created_at timestamptz not null default now()
+  -- --- Rezultati ---
+  -- NJË status i vetëm, jo disa kuti të pavarura: kështu raportet nuk dalin
+  -- kurrë kontradiktore (p.sh. "u mbajt" dhe "i anuluar" njëkohësisht).
+  status text not null default 'open' check (status in (
+    'open', 'held', 'cancelled', 'not_reached', 'refused',
+    'negative', 'not_home', 'address_not_found', 'advisor_failed'
+  )),
+  multi_year_contract boolean not null default false,
+  treatment boolean not null default false,
+
+  -- Nuk lejohen më shumë kontrata se persona.
+  contracts_closed integer not null default 0
+    check (contracts_closed >= 0 and contracts_closed <= persons_count),
+
+  -- --- Detaje të këshillimit (të dhëna të ndjeshme) ---
+  family_details text,
+  current_treatment text,
+  treatment_type text,
+  medications text,
+
+  created_at timestamptz not null default now(),
+  updated_at timestamptz
 );
 
--- ---------------------------------------------------------------------
--- Tabela 2: shënimet
--- ---------------------------------------------------------------------
+create index if not exists appointments_user_scheduled_idx
+  on public.appointments (user_id, scheduled_at desc);
+
 create table if not exists public.notes (
   id uuid primary key default gen_random_uuid(),
-
+  appointment_id uuid not null
+    references public.appointments (id) on delete cascade,
   user_id uuid not null default auth.uid()
     references auth.users (id) on delete cascade,
-
-  -- client_id tregon se kujt klienti i përket ky shënim.
-  -- nëse fshihet klienti, fshihen edhe shënimet e tij.
-  client_id uuid not null references public.clients (id) on delete cascade,
-
   body text not null,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  updated_at timestamptz
 );
 
--- Indekset e bëjnë kërkimin të shpejtë kur tabelat rriten.
-create index if not exists clients_user_id_created_at_idx
-  on public.clients (user_id, created_at desc);
+create index if not exists notes_appointment_idx
+  on public.notes (appointment_id, created_at desc);
 
-create index if not exists notes_client_id_created_at_idx
-  on public.notes (client_id, created_at desc);
+alter table public.appointments enable row level security;
+alter table public.notes        enable row level security;
 
-create index if not exists notes_user_id_idx
-  on public.notes (user_id);
-
--- ---------------------------------------------------------------------
--- Siguria (RLS = Row Level Security)
--- ---------------------------------------------------------------------
--- RLS është si një roje te dera e tabelës: kontrollon çdo rresht veç e veç.
--- Rregullat e mëposhtme thonë: një përdorues i kyçur sheh dhe shton VETËM
--- rreshtat ku `user_id` është i tiji. Askush nuk i sheh të dhënat e tjetrit,
--- edhe sikur të provojë ta thërrasë bazën drejtpërdrejt.
-alter table public.clients enable row level security;
-alter table public.notes   enable row level security;
-
-drop policy if exists "clients_select_own" on public.clients;
-create policy "clients_select_own" on public.clients
-  for select to authenticated
-  using (user_id = auth.uid());
-
-drop policy if exists "clients_insert_own" on public.clients;
-create policy "clients_insert_own" on public.clients
-  for insert to authenticated
-  with check (user_id = auth.uid());
-
-drop policy if exists "notes_select_own" on public.notes;
-create policy "notes_select_own" on public.notes
-  for select to authenticated
-  using (user_id = auth.uid());
-
-drop policy if exists "notes_insert_own" on public.notes;
-create policy "notes_insert_own" on public.notes
-  for insert to authenticated
-  with check (
-    user_id = auth.uid()
-    and exists (
-      select 1 from public.clients c
-      where c.id = client_id and c.user_id = auth.uid()
-    )
-  );
-
--- Shënim: ka vetëm rregulla për lexim (select) dhe shtim (insert), sepse
--- aplikacioni bën vetëm këto. Kur të shtosh ndryshim ose fshirje, shto edhe:
---
---   create policy "clients_update_own" on public.clients
---     for update to authenticated
---     using (user_id = auth.uid()) with check (user_id = auth.uid());
---
---   create policy "clients_delete_own" on public.clients
---     for delete to authenticated using (user_id = auth.uid());
+-- Rregullat e leximit dhe të shkrimit janë te `roles.sql`.

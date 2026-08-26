@@ -5,7 +5,6 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, requireManager, requireUser } from "@/lib/auth";
 import {
   APPOINTMENT_STATUSES,
-  STATUSES,
   fromTiraneInput,
   type FormState,
 } from "@/lib/types";
@@ -30,167 +29,34 @@ function looksLikeEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
-/** Shton një klient të ri. Vetëm menaxheri dhe admini. */
-export async function addClient(
-  _prevState: FormState,
-  formData: FormData
-): Promise<FormState> {
-  const user = await requireManager();
 
-  const name = textOrNull(formData.get("name"));
-  const phone = textOrNull(formData.get("phone"));
-  const email = textOrNull(formData.get("email"));
-  const status = String(formData.get("status") ?? "lead");
-
-  if (!name) {
-    return { error: "Emri është i detyrueshëm." };
-  }
-  if (email && !looksLikeEmail(email)) {
-    return { error: "Emaili nuk duket i saktë (shembull: emri@shembull.com)." };
-  }
-  if (!STATUSES.some((s) => s.value === status)) {
-    return { error: "Statusi i zgjedhur nuk njihet." };
-  }
-
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("clients")
-    .insert({ name, phone, email, status, user_id: user.id });
-
-  if (error) {
-    return { error: `Nuk u ruajt dot klienti: ${error.message}` };
-  }
-
-  revalidatePath("/");
-  return { ok: true };
-}
-
-/**
- * A ekziston ky klient dhe a e sheh dot përdoruesi?
- *
- * Të gjithë të kyçurit i lexojnë klientët, prandaj këtu mjafton ekzistenca.
- * Kush lejohet t'i NDRYSHOJË, kontrollohet veçmas me `requireManager()`.
- */
-async function findClient(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  clientId: string
-) {
-  const { data: client } = await supabase
-    .from("clients")
-    .select("id, user_id")
-    .eq("id", clientId)
-    .maybeSingle<{ id: string; user_id: string }>();
-
-  return client ?? null;
-}
-
-/** Shton një shënim te një klient i caktuar. */
 export async function addNote(
   _prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
   const user = await requireUser();
 
-  const clientId = String(formData.get("clientId") ?? "");
+  const appointmentId = String(formData.get("appointmentId") ?? "");
   const body = textOrNull(formData.get("body"));
 
-  if (!clientId) {
-    return { error: "Mungon klienti të cilit i përket shënimi." };
+  if (!appointmentId) {
+    return { error: "Mungon takimi të cilit i përket shënimi." };
   }
   if (!body) {
     return { error: "Shënimi nuk mund të jetë bosh." };
   }
 
   const supabase = await createClient();
-
-  if (!(await findClient(supabase, clientId))) {
-    return { error: "Ky klient nuk u gjet." };
-  }
-
   const { error } = await supabase
     .from("notes")
-    .insert({ client_id: clientId, body, user_id: user.id });
+    .insert({ appointment_id: appointmentId, body, user_id: user.id });
 
   if (error) {
     return { error: `Nuk u ruajt dot shënimi: ${error.message}` };
   }
 
-  revalidatePath(`/clients/${clientId}`);
-  revalidatePath("/");
+  revalidatePath(`/takimet/${appointmentId}`);
   return { ok: true };
-}
-
-/**
- * Ndryshon të dhënat e një klienti.
- *
- * Administratori e bën këtë për çdo klient, edhe për ata që i ka krijuar
- * dikush tjetër. Përdoruesi i zakonshëm vetëm për klientët e vet.
- */
-export async function updateClient(
-  _prevState: FormState,
-  formData: FormData
-): Promise<FormState> {
-  await requireManager();
-
-  const clientId = String(formData.get("clientId") ?? "");
-  const name = textOrNull(formData.get("name"));
-  const phone = textOrNull(formData.get("phone"));
-  const email = textOrNull(formData.get("email"));
-  const status = String(formData.get("status") ?? "lead");
-
-  if (!clientId) {
-    return { error: "Mungon klienti që duhet ndryshuar." };
-  }
-  if (!name) {
-    return { error: "Emri është i detyrueshëm." };
-  }
-  if (email && !looksLikeEmail(email)) {
-    return { error: "Emaili nuk duket i saktë (shembull: emri@shembull.com)." };
-  }
-  if (!STATUSES.some((s) => s.value === status)) {
-    return { error: "Statusi i zgjedhur nuk njihet." };
-  }
-
-  const supabase = await createClient();
-
-  if (!(await findClient(supabase, clientId))) {
-    return { error: "Ky klient nuk u gjet." };
-  }
-
-  // `.select()` në fund na kthen rreshtat që u prekën vërtet. Pa të, një
-  // ndryshim i bllokuar nga rregullat e bazës do të kalonte pa gabim dhe do
-  // të dukej sikur u ruajt.
-  const { data, error } = await supabase
-    .from("clients")
-    .update({
-      name,
-      phone,
-      email,
-      status,
-      // Personalia — fusha opsionale, plotësohen sipas nevojës.
-      customer_number: textOrNull(formData.get("customerNumber")),
-      gender: textOrNull(formData.get("gender")),
-      nationality: textOrNull(formData.get("nationality")),
-      birth_date: textOrNull(formData.get("birthDate")),
-      street: textOrNull(formData.get("street")),
-      postal_code: textOrNull(formData.get("postalCode")),
-      canton: textOrNull(formData.get("canton")),
-      city: textOrNull(formData.get("city")),
-      mobile: textOrNull(formData.get("mobile")),
-    })
-    .eq("id", clientId)
-    .select("id");
-
-  if (error) {
-    return { error: `Nuk u ruajtën dot ndryshimet: ${error.message}` };
-  }
-  if (!data || data.length === 0) {
-    return { error: "Ndryshimet nuk u ruajtën: baza nuk e lejoi këtë veprim." };
-  }
-
-  revalidatePath(`/clients/${clientId}`);
-  revalidatePath("/");
-  return { ok: true, message: "Ndryshimet u ruajtën." };
 }
 
 /**
@@ -205,7 +71,7 @@ export async function updateNote(
   const user = await requireUser();
 
   const noteId = String(formData.get("noteId") ?? "");
-  const clientId = String(formData.get("clientId") ?? "");
+  const appointmentId = String(formData.get("appointmentId") ?? "");
   const body = textOrNull(formData.get("body"));
 
   if (!noteId) {
@@ -220,9 +86,9 @@ export async function updateNote(
   // Kontrolli i lejeve edhe këtu, jo vetëm te rregullat e bazës.
   const { data: note } = await supabase
     .from("notes")
-    .select("id, user_id, client_id")
+    .select("id, user_id, appointment_id")
     .eq("id", noteId)
-    .maybeSingle<{ id: string; user_id: string; client_id: string }>();
+    .maybeSingle<{ id: string; user_id: string; appointment_id: string }>();
 
   if (!note) {
     return { error: "Ky shënim nuk u gjet." };
@@ -244,7 +110,7 @@ export async function updateNote(
     return { error: "Shënimi nuk u ruajt: baza nuk e lejoi këtë veprim." };
   }
 
-  revalidatePath(`/clients/${clientId || note.client_id}`);
+  revalidatePath(`/takimet/${appointmentId || note.appointment_id}`);
   return { ok: true, message: "Shënimi u ndryshua." };
 }
 
@@ -280,6 +146,20 @@ function readAppointmentFields(formData: FormData) {
     contracts,
     status,
     values: {
+      // Personalia e personit që takohet
+      name: textOrNull(formData.get("name")),
+      customer_number: textOrNull(formData.get("customerNumber")),
+      gender: textOrNull(formData.get("gender")),
+      nationality: textOrNull(formData.get("nationality")),
+      birth_date: textOrNull(formData.get("birthDate")),
+      street: textOrNull(formData.get("street")),
+      postal_code: textOrNull(formData.get("postalCode")),
+      city: textOrNull(formData.get("city")),
+      canton: textOrNull(formData.get("canton")),
+      phone: textOrNull(formData.get("phone")),
+      mobile: textOrNull(formData.get("mobile")),
+      email: textOrNull(formData.get("email")),
+      // Të dhëna teknike
       call_center: textOrNull(formData.get("callCenter")),
       current_insurance: textOrNull(formData.get("currentInsurance")),
       call_date: textOrNull(formData.get("callDate")),
@@ -299,8 +179,14 @@ function validateAppointment(
   scheduled: string | null,
   persons: number,
   contracts: number,
-  status: string
+  status: string,
+  name: string | null,
+  email: string | null
 ): string | null {
+  if (!name) return "Emri është i detyrueshëm.";
+  if (email && !looksLikeEmail(email)) {
+    return "Emaili nuk duket i saktë (shembull: emri@shembull.com).";
+  }
   if (!scheduled) return "Data dhe ora e takimit janë të detyrueshme.";
   if (!Number.isInteger(persons) || persons < 1) {
     return "Numri i personave duhet të jetë të paktën 1.";
@@ -317,29 +203,28 @@ function validateAppointment(
   return null;
 }
 
-/** Cakton një takim të ri për një klient. */
+/** Cakton një takim të ri. */
 export async function createAppointment(
   _prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
   const user = await requireManager();
-  const clientId = String(formData.get("clientId") ?? "");
   const { scheduled, persons, contracts, status, values } =
     readAppointmentFields(formData);
 
-  if (!clientId) return { error: "Mungon klienti i takimit." };
-
-  const gabim = validateAppointment(scheduled, persons, contracts, status);
+  const gabim = validateAppointment(
+    scheduled,
+    persons,
+    contracts,
+    status,
+    values.name,
+    values.email
+  );
   if (gabim) return { error: gabim };
 
   const supabase = await createClient();
-  if (!(await findClient(supabase, clientId))) {
-    return { error: "Ky klient nuk u gjet." };
-  }
-
   const { error } = await supabase.from("appointments").insert({
     ...values,
-    client_id: clientId,
     user_id: user.id,
     scheduled_at: scheduled,
     persons_count: persons,
@@ -351,8 +236,7 @@ export async function createAppointment(
     return { error: `Nuk u ruajt dot takimi: ${error.message}` };
   }
 
-  revalidatePath(`/clients/${clientId}`);
-  revalidatePath("/takimet");
+  revalidatePath("/");
   return { ok: true, message: "Takimi u caktua." };
 }
 
@@ -368,7 +252,14 @@ export async function updateAppointment(
 
   if (!id) return { error: "Mungon takimi që duhet ndryshuar." };
 
-  const gabim = validateAppointment(scheduled, persons, contracts, status);
+  const gabim = validateAppointment(
+    scheduled,
+    persons,
+    contracts,
+    status,
+    values.name,
+    values.email
+  );
   if (gabim) return { error: gabim };
 
   const supabase = await createClient();
@@ -376,9 +267,9 @@ export async function updateAppointment(
   // Kontrolli i lejeve edhe këtu, jo vetëm te rregullat e bazës.
   const { data: takimi } = await supabase
     .from("appointments")
-    .select("id, user_id, client_id")
+    .select("id, user_id")
     .eq("id", id)
-    .maybeSingle<{ id: string; user_id: string; client_id: string }>();
+    .maybeSingle<{ id: string; user_id: string }>();
 
   if (!takimi) return { error: "Ky takim nuk u gjet." };
 
@@ -403,7 +294,6 @@ export async function updateAppointment(
   }
 
   revalidatePath(`/takimet/${id}`);
-  revalidatePath(`/clients/${takimi.client_id}`);
-  revalidatePath("/takimet");
+  revalidatePath("/");
   return { ok: true, message: "Takimi u përditësua." };
 }

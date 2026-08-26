@@ -1,8 +1,9 @@
-# CRM — klientë dhe shënime
+# CRM — takime
 
-Një aplikacion i thjeshtë ku shton klientë (emër, telefon, email, status) dhe
-mban shënime për secilin prej tyre. Hyrja bëhet me email dhe fjalëkalim, dhe
-secili përdorues sheh vetëm klientët e vet.
+Një aplikacion për të regjistruar takime: të dhënat e personit, kur është
+caktuar takimi, si shkoi dhe sa kontrata u mbyllën. Çdo takim mban shënimet e
+veta. Hyrja bëhet me email dhe fjalëkalim, dhe tri role vendosin kush çfarë
+mundet.
 
 ---
 
@@ -13,16 +14,17 @@ Nëse s'ke programuar kurrë, këta janë emrat që do t'i hasësh:
 | Fjala | Çfarë do të thotë këtu |
 | --- | --- |
 | **Next.js** | Programi që ndërton faqet e internetit. Ai është "aplikacioni" yt. |
-| **Supabase** | Baza e të dhënave në internet — aty ruhen klientët dhe shënimet, edhe kur kompjuteri fiket. |
+| **Supabase** | Baza e të dhënave në internet — aty ruhen takimet dhe shënimet, edhe kur kompjuteri fiket. |
 | **Node.js / npm** | Mjetet që e ndezin projektin në kompjuterin tënd. `npm` shkarkon bibliotekat. |
 | **Terminali** | Dritarja ku shkruan komanda me tastierë. Në Windows: "PowerShell"; në Mac: "Terminal". |
 | **Server** | Kompjuteri (këtu: yti) që përgatit faqen para se ta shohë vizitori. |
 | **`.env.local`** | Një skedë me rregullimet e lidhjes me Supabase-in. |
 | **RLS** | Roja te dera e tabelës: lejon secilin përdorues të prekë vetëm rreshtat e vet. |
 
-Dy fjalë për strukturën: **klienti** është një rresht në tabelën `clients`, dhe
-çdo **shënim** është një rresht në tabelën `notes` që "tregon" me gisht se cilit
-klient i përket.
+Dy fjalë për strukturën: **takimi** është një rresht në tabelën `appointments`
+dhe mban brenda vetes edhe të dhënat e personit. Çdo **shënim** është një rresht
+në tabelën `notes` që "tregon" me gisht se cilit takim i përket. Nuk ka kartelë
+klienti veç — takimi është njësia e vetme.
 
 ---
 
@@ -73,8 +75,8 @@ Mund ta shohësh te <https://supabase.com/dashboard>.
 
 ### Hapi 5: Tabelat — TË GATSHME ✅
 
-Tabelat `clients` dhe `notes` janë krijuar dhe të provuara. Për t'i parë: në
-Supabase kliko **Table Editor** në menynë e majtë.
+Tabelat `appointments` dhe `notes` janë krijuar dhe të provuara. Për t'i parë:
+në Supabase kliko **Table Editor** në menynë e majtë.
 
 Skeda `supabase/schema.sql` mbetet si dëshmi e asaj që u ekzekutua. Do të të
 duhej vetëm nëse një ditë krijon një projekt tjetër: e ngjit atje te **SQL
@@ -134,9 +136,8 @@ SQL: Table Editor → `profiles` → kliko qelizën `role`.
 
 ### Hapi 10: Akses i plotë për administratorin — I GATSHËM ✅
 
-Rregullat që i japin administratorit të drejtën të shkruajë shënime, t'i
-ndryshojë ato dhe të redaktojë të dhënat te klientët e të tjerëve janë zbatuar
-tashmë (skeda `supabase/admin-edit.sql`).
+Administratori shkruan dhe ndryshon çdo shënim, edhe ato të shkruara nga të
+tjerët. Rregullat janë te `supabase/roles.sql`.
 
 ### Hapi 11: Përcjellja e kohës — E GATSHME ✅
 
@@ -145,9 +146,8 @@ Tabela dhe funksioni që numërojnë kohën aktive janë zbatuar
 
 ### Hapi 12: Takimet — TË GATSHME ✅
 
-Tabela `appointments` dhe fushat e reja te klientët janë krijuar
-(skeda `supabase/appointments.sql`). Shih **Pjesa 7** për mënyrën si janë
-menduar takimet.
+Takimi është njësia e vetme e sistemit; tabela e klientëve u hoq dhe të dhënat
+e personit kaluan mbi vetë takimin. Shih **Pjesa 7**.
 
 ### Hapi 13: Tri rolet — TË GATSHME ✅
 
@@ -164,64 +164,39 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
 
 ## Pjesa 3 — Si përdoret
 
-- **Shto klient:** plotëso emrin (i detyrueshëm), telefonin, emailin dhe
-  statusin, pastaj kliko *Shto klientin*. Klienti shfaqet menjëherë në listë.
-- **Shiko një klient:** kliko mbi emrin e tij në listë.
-- **Shto shënim:** në faqen e klientit shkruaj në kutinë "Shënim i ri" dhe kliko
-  *Ruaj shënimin*. Shënimet renditen nga më i riu te më i vjetri.
-- **Statuset:** *I ri* (lead), *Aktiv*, *Joaktiv*.
-- **Dil:** butoni lart djathtas. Të dhënat e tua i sheh vetëm llogaria jote.
-- **Aktiv sot:** lart djathtas shfaqet koha që ke kaluar sot brenda CRM-së.
-  Këtë numër e sheh secili për vete, dhe administratori për të gjithë.
-- **Ndrysho të dhënat:** te faqja e klientit, paneli që hapet me një klikim.
-  Aty ndryshon emrin, telefonin, emailin dhe statusin.
-- **Ndrysho një shënim:** butoni *Ndrysho* poshtë secilit shënim që ke shkruar
-  ti. Pas ndryshimit, te data shfaqet edhe "ndryshuar më".
-
-### Takimet
-
-- **Cakto takim:** te kartela e klientit, paneli *Cakto takim të ri*. Shëno call
-  center-in, sigurimin aktual, gjuhën, datën e telefonatës, datën e takimit dhe
-  numrin e personave.
-- **Lista e takimeve:** butoni *Takimet* lart. Filtro sipas statusit dhe shih
-  përmbledhjen: sa takime, sa u mbajtën, sa kontrata u mbyllën.
-- **Rezultati:** te faqja e takimit zgjidh **një status të vetëm** (I hapur,
-  U mbajt, I anuluar, Nuk u arrit, S'deshi takim, Negativ, S'ishte në shtëpi,
-  Adresa s'u gjet, S'u këshillua dot) dhe shëno kontratat e mbyllura. Baza nuk
-  lejon më shumë kontrata se persona.
-- **Personalia:** numri i klientit, gjinia, kombësia, datëlindja, adresa e plotë
-  dhe celulari plotësohen te kartela e klientit dhe shfaqen te çdo takim i tij.
+- **Cakto takim:** paneli *Cakto takim të ri* në faqen kryesore. Plotëso emrin
+  (i detyrueshëm), personalinë, të dhënat teknike dhe datën e takimit.
+- **Filtro:** butonat e statuseve lart. Përmbledhja tregon sa takime, sa u
+  mbajtën dhe sa kontrata u mbyllën.
+- **Hap një takim:** kliko mbi emrin. Aty ndryshon çdo fushë dhe shënon
+  rezultatin.
+- **Rezultati:** një status i vetëm (I hapur, U mbajt, I anuluar, Nuk u arrit,
+  S'deshi takim, Negativ, S'ishte në shtëpi, Adresa s'u gjet, S'u këshillua dot)
+  plus kontratat e mbyllura. Baza nuk lejon më shumë kontrata se persona.
+- **Shënime:** te faqja e takimit, kutia *Shënim i ri*. Shënimin tënd e ndryshon
+  me butonin *Ndrysho*; te data shfaqet edhe "ndryshuar më".
+- **Aktiv sot:** lart djathtas, koha që ke kaluar sot brenda CRM-së.
 
 ### Kush çfarë mundet
 
 | Veprimi | Përdorues | Menaxher | Admin |
 | --- | :---: | :---: | :---: |
-| Lexon klientët dhe takimet | ✅ | ✅ | ✅ |
+| Lexon takimet e regjistruara | ✅ | ✅ | ✅ |
 | Shkruan shënime | ✅ | ✅ | ✅ |
-| Shton dhe ndryshon klientë | ❌ | ✅ | ✅ |
 | Cakton dhe ndryshon takime | ❌ | ✅ | ✅ |
 | Faqja *Përdoruesit* dhe *Aktiviteti* | ❌ | ❌ | ✅ |
 
-Përdoruesi i thjeshtë e hap çdo takim dhe çdo kartelë klienti, por i sheh si
-tekst — pa formularë. Puna e tij regjistrohet përmes shënimeve.
+Përdoruesi i thjeshtë e hap çdo takim dhe e lexon të plotë — personalinë, të
+dhënat teknike, rezultatin dhe detajet — por si tekst, pa formularë. Puna e tij
+regjistrohet përmes shënimeve.
 
-Nëse je **administrator**, ke edhe:
+Administratori ka edhe:
 
-- **Të gjitha / Të mijat** — çelës lart (edhe menaxheri e ka), për të parë të
-  dhënat e krejt përdoruesve ose vetëm të tuat.
-- **Përdoruesit** — faqe me të gjitha llogaritë, rolin e secilit, kohën aktive
-  sot dhe sa klientë e shënime ka. Rolet ndryshohen vetëm nga paneli i
-  Supabase-it.
-- **Aktiviteti** — tabelë me kohën e secilit përdorues për 7 ditët e fundit,
-  ditë pas dite, me totalin. Pika jeshile do të thotë "aktiv tani".
-- **Të gjitha takimet** — te faqja e takimeve, çelësi *Të gjitha / Të mijat*,
-  me emailin e agjentit që e ka caktuar secilin.
-- **Akses i plotë mbi çdo klient** — hap klientin e kujtdo, shkruaj shënime aty,
-  ndrysho shënimet e shkruara nga të tjerët dhe redakto të dhënat e klientit,
-  edhe kur e ka krijuar dikush tjetër. Te koka e faqes shfaqet se kujt i përket.
-
-Shënimet që shkruan administratori te klienti i dikujt tjetër i sheh edhe
-pronari i atij klienti — pra bashkëpunimi mbetet i dukshëm për të dyja anët.
+- **Përdoruesit** — të gjitha llogaritë, rolet, koha aktive sot dhe sa takime e
+  shënime ka secili.
+- **Aktiviteti** — koha e secilit për 7 ditët e fundit, me pikë jeshile për
+  "aktiv tani".
+- **Ndryshimin e çdo shënimi**, edhe atyre të shkruara nga të tjerët.
 
 ---
 
@@ -229,10 +204,10 @@ pronari i atij klienti — pra bashkëpunimi mbetet i dukshëm për të dyja an�
 
 ```
 app/
-  page.tsx                  Faqja kryesore: lista e klientëve + formulari i shtimit
-  client-form.tsx           Formulari për të shtuar klient
-  actions.ts                Funksionet që ruajnë klientin dhe shënimin
+  page.tsx                  Faqja kryesore: lista e takimeve + paneli i caktimit
+  actions.ts                Funksionet që ruajnë takimet dhe shënimet
   sign-out-button.tsx       Butoni "Dil"
+  activity-tracker.tsx      Sinjali "jam aktiv" çdo 2 minuta
   setup-notice.tsx          Udhëzimet nëse .env.local mungon
   layout.tsx                Korniza e përbashkët e faqeve
   globals.css               Stilet
@@ -243,29 +218,22 @@ app/
   auth/confirm/route.ts     Aty bie lidhja e konfirmimit nga emaili
   admin/page.tsx            Faqja e administratorit: të gjithë përdoruesit
   admin/aktiviteti/page.tsx Koha e secilit përdorues, ditë pas dite
-  activity-tracker.tsx      Sinjali "jam aktiv" çdo 2 minuta
   takimet/
-    page.tsx                Lista e takimeve, me filtra sipas statusit
-    appointment-form.tsx    Formulari i takimit (krijim dhe ndryshim)
-    [id]/page.tsx           Një takim: personalia, të dhënat teknike, rezultati
-  clients/[id]/
-    page.tsx                Faqja e një klienti + shënimet e tij
-    note-form.tsx           Formulari për të shtuar shënim
-    edit-form.tsx           Paneli "Ndrysho të dhënat"
-    note-item.tsx           Një shënim, me mundësinë për ta ndryshuar
+    appointment-form.tsx    Formulari i takimit (caktim dhe ndryshim)
+    [id]/page.tsx           Një takim i vetëm + shënimet e tij
+    [id]/note-form.tsx      Formulari për të shtuar shënim
+    [id]/note-item.tsx      Një shënim, me mundësinë për ta ndryshuar
 lib/
   supabase/server.ts        Lidhja me bazën për kodin në server
   supabase/proxy.ts         Mban sesionin e freskët në çdo kërkesë
-  auth.ts                   "Kush është i kyçur?" dhe "a është admin?"
+  auth.ts                   "Kush është i kyçur?" dhe "çfarë roli ka?"
   types.ts                  Tipat, statuset dhe ndihmësit e vegjël
 proxy.ts                    Ndalon të pakyçurit para se të hapin faqet
 supabase/
-  schema.sql                SQL-i i tabelave dhe i rregullave RLS
-  admin.sql                 SQL-i i roleve dhe i administratorit
-  admin-edit.sql            SQL-i i redaktimit dhe i shënimeve të adminit
-  activity.sql              SQL-i i përcjelljes së kohës
-  appointments.sql          SQL-i i takimeve dhe i personalive
-  roles.sql                 SQL-i i tri roleve dhe i lejeve
+  schema.sql                Tabelat `appointments` dhe `notes`
+  admin.sql                 Profilet, roli admin dhe trigger-i
+  roles.sql                 Tri rolet dhe lejet
+  activity.sql              Përcjellja e kohës
 ```
 
 Tri koncepte që i ndeshni në kod:
@@ -299,11 +267,10 @@ Të dhënat mbrohen në tri shtresa, njëra mbi tjetrën:
 ndryshimi — pra askush nuk e bën dot veten admin apo menaxher nga aplikacioni.
 Roli ndryshohet vetëm nga paneli i Supabase-it, ku hyn vetëm ti.
 
-**Leximi është i përbashkët, shkrimi jo.** Që një përdorues t'i shohë takimet e
-regjistruara, ai duhet të shohë edhe klientët pas tyre; prandaj të gjithë të
-kyçurit i lexojnë klientët, takimet dhe shënimet. Shtimi dhe ndryshimi mbeten
-të mbyllura: klientët e takimet i prek vetëm menaxheri, shënimin e vet e ndryshon
-vetëm autori (ose admini).
+**Leximi është i përbashkët, shkrimi jo.** Çdo i kyçur i lexon takimet e
+regjistruara dhe shënimet e tyre. Shtimi dhe ndryshimi mbeten të mbyllura:
+takimet i prek vetëm menaxheri, shënimin e vet e ndryshon vetëm autori (ose
+admini).
 
 ### Publikimi në Vercel
 
@@ -354,18 +321,19 @@ përdorësh këtë faqe.
 
 ## Pjesa 7 — Si janë menduar takimet
 
-Modeli është: **klienti** është kartela e përhershme, **takimi** është një ngjarje
-e vetme për atë klient. Një klient mund të ketë shumë takime; çdo takim i përket
-një klienti.
+Sistemi ka **një njësi të vetme: takimin**. Të dhënat e personit — emri, numri i
+klientit, datëlindja, adresa, telefoni — rrinë mbi vetë takimin, jo në një
+kartelë të veçantë.
 
-Nëse të vjen një telefonatë e ftohtë, krijo së pari klientin (mjafton emri),
-pastaj cakto takimin. Kështu të dhënat e personit nuk përsëriten te çdo takim
-dhe historiku i tij mbetet i plotë.
+Kjo është me qëllim: çdo takim është një ngjarje më vete, me gjendjen e personit
+ashtu siç ishte atë ditë. Nëse i njëjti person takohet sërish pas gjashtë
+muajsh, caktohet një takim i ri me të dhënat e reja, dhe historiku i të parit
+mbetet i paprekur.
 
-**Statusi është një i vetëm, jo disa kuti.** Kjo është me qëllim: me kuti të
-pavarura mund të shënohej njëkohësisht "u mbajt" dhe "i anuluar", dhe atëherë
-asnjë raport nuk do të ishte i besueshëm. Dy shenjat e pavarura që mbeten —
-*kontratë shumëvjeçare* dhe *trajtim* — mund të shoqërojnë çdo status.
+**Statusi është një i vetëm, jo disa kuti.** Me kuti të pavarura mund të
+shënohej njëkohësisht "u mbajt" dhe "i anuluar", dhe atëherë asnjë raport nuk do
+të ishte i besueshëm. Dy shenjat e pavarura që mbeten — *kontratë shumëvjeçare*
+dhe *trajtim* — mund të shoqërojnë çdo status.
 
 **Kontratat nuk fryhen dot:** baza refuzon një numër më të madh se numri i
 personave të takimit.
@@ -378,7 +346,7 @@ personave të takimit.
 | "Email ose fjalëkalim i gabuar" | Llogaria s'është krijuar ende ose emaili s'është konfirmuar. Shih Hapin 8. |
 | S'të shfaqet shenja "Admin" | SQL-i i `supabase/admin.sql` s'është ekzekutuar, ose rreshti `update ... set role = 'admin'` ka email tjetër. Shih Hapin 9. |
 | Regjistrohesh po s'të vjen emaili | Përdor rrugën B të Hapit 8 (krijo përdoruesin nga paneli me *Auto Confirm*). |
-| `Nuk u ruajt dot klienti: relation "clients" does not exist` | Je lidhur me një projekt tjetër. Kontrollo `NEXT_PUBLIC_SUPABASE_URL` te `.env.local`. |
+| `relation "appointments" does not exist` | Je lidhur me një projekt tjetër. Kontrollo `NEXT_PUBLIC_SUPABASE_URL` te `.env.local`. |
 | `Invalid API key` | Vlerat te `.env.local` u ndryshuan. Kopjoje sërish nga `.env.local.example`. |
 | `command not found: npm` | Node.js nuk është instaluar. Përsërit Hapin 1. |
 | Porta 3000 është e zënë | Nise me `npm run dev -- -p 3001`. |

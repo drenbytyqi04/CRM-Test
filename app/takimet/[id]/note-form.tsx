@@ -4,8 +4,11 @@ import { useActionState, useEffect, useRef } from "react";
 import { addNote } from "@/app/actions";
 import type { FormState } from "@/lib/types";
 
-/** Formulari për të shtuar një shënim te një klient i caktuar. */
-export default function NoteForm({ clientId }: { clientId: string }) {
+/**
+ * Formulari për të shtuar një shënim te një takim.
+ * E përdorin të gjithë — edhe përdoruesi që s'i ndryshon dot takimet.
+ */
+export default function NoteForm({ appointmentId }: { appointmentId: string }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [state, action, pending] = useActionState<FormState, FormData>(
     addNote,
@@ -20,10 +23,9 @@ export default function NoteForm({ clientId }: { clientId: string }) {
     <form
       ref={formRef}
       action={action}
-      className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+      className="rounded-xl border border-slate-200 bg-white p-5"
     >
-      {/* Fushë e fshehur: i dërgon serverit se për cilin klient është shënimi. */}
-      <input type="hidden" name="clientId" value={clientId} />
+      <input type="hidden" name="appointmentId" value={appointmentId} />
 
       <label className="block">
         <span className="mb-1 block text-sm font-medium text-slate-700">

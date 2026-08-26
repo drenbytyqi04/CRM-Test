@@ -5,18 +5,16 @@
 --
 --   | Veprimi                     | user | manager | admin |
 --   |-----------------------------|------|---------|-------|
---   | Lexon klientët dhe takimet  |  po  |   po    |  po   |
+--   | Lexon takimet e regjistruara|  po  |   po    |  po   |
 --   | Shkruan shënime             |  po  |   po    |  po   |
---   | Shton/ndryshon klientë      |  JO  |   po    |  po   |
 --   | Cakton/ndryshon takime      |  JO  |   po    |  po   |
 --   | Përdoruesit dhe aktiviteti  |  JO  |   JO    |  po   |
 --   | Ndryshon rolet              |  JO  |   JO    |  JO*  |
 --
 --   * Rolet ndryshohen vetëm nga paneli i Supabase-it, jo nga aplikacioni.
 --
--- VINI RE: leximi është i përbashkët. Meqë çdo user duhet t'i shohë takimet
--- e regjistruara, ai duhet të shohë edhe klientët pas tyre — prandaj ndarja
--- e leximit mes agjentëve nuk ekziston më. Shkrimi mbetet i mbyllur.
+-- VINI RE: leximi është i përbashkët — çdo i kyçur i sheh të gjitha takimet
+-- e regjistruara. Shkrimi mbetet i mbyllur: takimet i prek vetëm menaxheri.
 --
 -- STATUSI: kjo skedë është ZBATUAR TASHMË në projektin "crm-test".
 --
@@ -49,29 +47,7 @@ revoke execute on function public.is_manager() from anon, public;
 grant  execute on function public.is_manager() to authenticated;
 
 -- ---------------------------------------------------------------------
--- 2. Klientët
--- ---------------------------------------------------------------------
-drop policy if exists "clients_select_own_or_admin" on public.clients;
-drop policy if exists "clients_select_all" on public.clients;
-create policy "clients_select_all" on public.clients
-  for select to authenticated
-  using (true);
-
-drop policy if exists "clients_insert_own" on public.clients;
-drop policy if exists "clients_insert_manager" on public.clients;
-create policy "clients_insert_manager" on public.clients
-  for insert to authenticated
-  with check (user_id = auth.uid() and public.is_manager());
-
-drop policy if exists "clients_update_own_or_admin" on public.clients;
-drop policy if exists "clients_update_manager" on public.clients;
-create policy "clients_update_manager" on public.clients
-  for update to authenticated
-  using (public.is_manager())
-  with check (public.is_manager());
-
--- ---------------------------------------------------------------------
--- 3. Shënimet — i shkruan kushdo, në emrin e vet
+-- 2. Shënimet — i shkruan kushdo, në emrin e vet
 -- ---------------------------------------------------------------------
 drop policy if exists "notes_select_by_client_or_admin" on public.notes;
 drop policy if exists "notes_select_all" on public.notes;
@@ -79,13 +55,12 @@ create policy "notes_select_all" on public.notes
   for select to authenticated
   using (true);
 
-drop policy if exists "notes_insert_by_client_or_admin" on public.notes;
-drop policy if exists "notes_insert_any_client" on public.notes;
-create policy "notes_insert_any_client" on public.notes
+drop policy if exists "notes_insert_any_appointment" on public.notes;
+create policy "notes_insert_any_appointment" on public.notes
   for insert to authenticated
   with check (
     user_id = auth.uid()
-    and exists (select 1 from public.clients c where c.id = client_id)
+    and exists (select 1 from public.appointments a where a.id = appointment_id)
   );
 
 -- Ndryshimi i shënimit mbetet i autorit, ose i adminit.
@@ -96,7 +71,7 @@ create policy "notes_update_author_or_admin" on public.notes
   with check (user_id = auth.uid() or public.is_admin());
 
 -- ---------------------------------------------------------------------
--- 4. Takimet
+-- 3. Takimet
 -- ---------------------------------------------------------------------
 drop policy if exists "appointments_select_own_or_admin" on public.appointments;
 drop policy if exists "appointments_select_all" on public.appointments;
@@ -104,7 +79,6 @@ create policy "appointments_select_all" on public.appointments
   for select to authenticated
   using (true);
 
-drop policy if exists "appointments_insert_own_or_admin" on public.appointments;
 drop policy if exists "appointments_insert_manager" on public.appointments;
 create policy "appointments_insert_manager" on public.appointments
   for insert to authenticated

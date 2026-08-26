@@ -1,53 +1,3 @@
-/** Statuset e mundshme të një klienti. Duhet të përputhen me `supabase/schema.sql`. */
-export const STATUSES = [
-  { value: "lead", label: "I ri" },
-  { value: "active", label: "Aktiv" },
-  { value: "inactive", label: "Joaktiv" },
-] as const;
-
-export type Status = (typeof STATUSES)[number]["value"];
-
-export function statusLabel(value: string): string {
-  return STATUSES.find((s) => s.value === value)?.label ?? value;
-}
-
-/** Ngjyrat e etiketës për secilin status. */
-export const STATUS_CLASSES: Record<string, string> = {
-  lead: "bg-amber-100 text-amber-800 ring-amber-200",
-  active: "bg-emerald-100 text-emerald-800 ring-emerald-200",
-  inactive: "bg-slate-100 text-slate-600 ring-slate-200",
-};
-
-/** Një rresht i tabelës `clients`. */
-export type Client = {
-  id: string;
-  /** Kujt përdoruesi i përket ky klient. */
-  user_id: string;
-  name: string;
-  phone: string | null;
-  email: string | null;
-  status: Status;
-  created_at: string;
-  // --- Personalia (plotësohen te "Ndrysho të dhënat") ---
-  customer_number: string | null;
-  gender: string | null;
-  nationality: string | null;
-  birth_date: string | null;
-  street: string | null;
-  postal_code: string | null;
-  canton: string | null;
-  city: string | null;
-  mobile: string | null;
-};
-
-/**
- * Kolonat e klientit që lexojmë.
- *
- * Përdorim `*` me qëllim: nëse skeda `supabase/appointments.sql` nuk është
- * ekzekutuar ende, kolonat e reja thjesht mungojnë dhe faqja i tregon si "—",
- * në vend që e gjithë lista të mos hapej fare.
- */
-export const CLIENT_COLUMNS = "*";
 
 /** Gjinia. */
 export const GENDERS = [
@@ -94,8 +44,24 @@ export const APPOINTMENT_STATUS_CLASSES: Record<string, string> = {
 /** Një rresht i tabelës `appointments`. */
 export type Appointment = {
   id: string;
+  /** Kush e caktoi takimin. */
   user_id: string;
-  client_id: string;
+
+  // --- Personalia e personit që takohet ---
+  name: string;
+  customer_number: string | null;
+  gender: string | null;
+  nationality: string | null;
+  birth_date: string | null;
+  street: string | null;
+  postal_code: string | null;
+  city: string | null;
+  canton: string | null;
+  phone: string | null;
+  mobile: string | null;
+  email: string | null;
+
+  // --- Të dhëna teknike ---
   call_center: string | null;
   current_insurance: string | null;
   call_date: string | null;
@@ -114,7 +80,8 @@ export type Appointment = {
   updated_at: string | null;
 };
 
-/** Kolonat e takimit që lexojmë (shih shënimin te `CLIENT_COLUMNS`). */
+/** Kolonat e takimit që lexojmë. `*` e mban faqen të gjallë edhe nëse
+ * ndonjë kolonë e re nuk është krijuar ende në bazë. */
 export const APPOINTMENT_COLUMNS = "*";
 
 const TZ = "Europe/Tirane";
@@ -202,7 +169,7 @@ export function formatTirane(iso: string): string {
 /** Një rresht i tabelës `notes`. */
 export type Note = {
   id: string;
-  client_id: string;
+  appointment_id: string;
   /** Kush e shkroi shënimin. */
   user_id: string;
   body: string;

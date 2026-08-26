@@ -24,14 +24,17 @@ export default async function AdminPage() {
   // Dita e sotme sipas orës së Tiranës, si te funksioni në bazë.
   const sot = todayInTirane();
 
-  const [profilesResult, clientsResult, notesResult, activityResult] =
+  const [profilesResult, takimetResult, notesResult, activityResult] =
     await Promise.all([
     supabase
       .from("profiles")
       .select("id, email, role, created_at")
       .order("created_at", { ascending: true })
       .returns<Profile[]>(),
-    supabase.from("clients").select("user_id").returns<{ user_id: string }[]>(),
+    supabase
+      .from("appointments")
+      .select("user_id")
+      .returns<{ user_id: string }[]>(),
     supabase.from("notes").select("user_id").returns<{ user_id: string }[]>(),
     supabase
       .from("activity_days")
@@ -50,7 +53,7 @@ export default async function AdminPage() {
     return map;
   };
 
-  const clientCounts = countBy(clientsResult.data);
+  const takimeCounts = countBy(takimetResult.data);
   const noteCounts = countBy(notesResult.data);
 
   // Aktiviteti i sotëm: sa kohë dhe kur u pa së fundi.
@@ -70,7 +73,7 @@ export default async function AdminPage() {
             href="/"
             className="text-sm text-slate-500 transition hover:text-slate-900"
           >
-            ← Klientët
+            ← Takimet
           </Link>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">
             Përdoruesit
@@ -106,7 +109,7 @@ export default async function AdminPage() {
               <th className="p-4 font-medium">Emaili</th>
               <th className="p-4 font-medium">Roli</th>
               <th className="p-4 font-medium">Aktiv sot</th>
-              <th className="p-4 font-medium">Klientë</th>
+              <th className="p-4 font-medium">Takime</th>
               <th className="p-4 font-medium">Shënime</th>
               <th className="p-4 font-medium">Regjistruar</th>
             </tr>
@@ -138,7 +141,7 @@ export default async function AdminPage() {
                   {formatDuration(sotSekonda.get(profile.id) ?? 0)}
                 </td>
                 <td className="p-4 text-slate-600">
-                  {clientCounts.get(profile.id) ?? 0}
+                  {takimeCounts.get(profile.id) ?? 0}
                 </td>
                 <td className="p-4 text-slate-600">
                   {noteCounts.get(profile.id) ?? 0}

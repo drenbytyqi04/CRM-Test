@@ -5,14 +5,10 @@ import { updateNote } from "@/app/actions";
 import { type FormState, type Note } from "@/lib/types";
 
 /**
- * Një shënim i vetëm në listë.
+ * Një shënim i vetëm. Butoni "Ndrysho" shfaqet te autori dhe te administratori.
  *
- * Nëse përdoruesi ka të drejtë ta ndryshojë (është autori, ose është
- * administrator), shfaqet edhe butoni "Ndrysho".
- *
- * Datat vijnë të gatshme si tekst nga serveri. Po t'i formatonim këtu, do të
- * dilnin ndryshe në server (orë botërore) dhe në shfletues (orë lokale), dhe
- * React do të ankohej se faqja nuk përputhet — duke e lënë faqen pa jetë.
+ * Datat vijnë të gatshme si tekst nga serveri, që faqja të mos ndryshojë
+ * mes serverit (orë botërore) dhe shfletuesit (orë lokale).
  */
 export default function NoteItem({
   note,
@@ -31,8 +27,6 @@ export default function NoteItem({
     {}
   );
 
-  // Pas ruajtjes së suksesshme e mbyllim formularin. Krahasimi me përgjigjen
-  // e trajtuar më parë bën që kjo të ndodhë vetëm një herë për çdo ruajtje.
   const [handled, setHandled] = useState<FormState | null>(null);
   if (state.ok && state !== handled) {
     setHandled(state);
@@ -44,7 +38,7 @@ export default function NoteItem({
       {editing ? (
         <form action={action}>
           <input type="hidden" name="noteId" value={note.id} />
-          <input type="hidden" name="clientId" value={note.client_id} />
+          <input type="hidden" name="appointmentId" value={note.appointment_id} />
           <textarea
             name="body"
             data-testid="note-edit"

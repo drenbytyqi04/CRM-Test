@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef } from "react";
 import { createAppointment, updateAppointment } from "@/app/actions";
 import {
   APPOINTMENT_STATUSES,
+  GENDERS,
   type Appointment,
   type FormState,
 } from "@/lib/types";
@@ -13,21 +14,19 @@ const input =
 const label = "mb-1 block text-sm font-medium text-slate-700";
 
 /**
- * Formulari i takimit.
+ * Formulari i takimit — njësia e vetme e sistemit.
+ *
+ * Të dhënat e personit rrinë mbi vetë takimin: nuk ka kartelë klienti veç,
+ * sepse çdo takim regjistrohet si ngjarje më vete.
  *
  * Përdoret në dy mënyra:
- *  - pa `appointment`: krijon një takim të ri për klientin e dhënë
+ *  - pa `appointment`: cakton një takim të ri
  *  - me `appointment`: ndryshon një takim ekzistues
- *
- * `scheduledDefault` vjen i gatshëm nga serveri, i llogaritur me orën e
- * Tiranës — që teksti të jetë i njëjtë në server dhe në shfletues.
  */
 export default function AppointmentForm({
-  clientId,
   appointment,
   scheduledDefault,
 }: {
-  clientId: string;
   appointment?: Appointment;
   scheduledDefault: string;
 }) {
@@ -49,19 +48,140 @@ export default function AppointmentForm({
   }, [state, duke]);
 
   return (
-    // `key` ndryshon sa herë ruhet takimi: kështu fushat rimbushen me vlerat e
-    // sapo ruajtura (p.sh. statusi), ndërsa mesazhi i suksesit mbetet.
+    // `key` ndryshon sa herë ruhet takimi: fushat rimbushen me vlerat e
+    // sapo ruajtura, ndërsa mesazhi i suksesit mbetet.
     <form
       key={appointment?.updated_at ?? "i-ri"}
       ref={formRef}
       action={action}
       className="space-y-6"
     >
-      {duke ? (
+      {duke && (
         <input type="hidden" name="appointmentId" value={appointment!.id} />
-      ) : (
-        <input type="hidden" name="clientId" value={clientId} />
       )}
+
+      {/* ---------- Personalia ---------- */}
+      <section className="rounded-xl border border-slate-200 bg-white p-5">
+        <h2 className="mb-4 text-base font-semibold text-slate-900">
+          Personalia
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <label className="block sm:col-span-2">
+            <span className={label}>
+              Emri <span className="text-red-600">*</span>
+            </span>
+            <input
+              name="name"
+              required
+              defaultValue={appointment?.name ?? ""}
+              placeholder="Arben Krasniqi"
+              className={input}
+            />
+          </label>
+          <label className="block">
+            <span className={label}>Numri i klientit</span>
+            <input
+              name="customerNumber"
+              defaultValue={appointment?.customer_number ?? ""}
+              className={input}
+            />
+          </label>
+
+          <label className="block">
+            <span className={label}>Gjinia</span>
+            <select
+              name="gender"
+              defaultValue={appointment?.gender ?? ""}
+              className={`${input} bg-white`}
+            >
+              <option value="">—</option>
+              {GENDERS.map((g) => (
+                <option key={g.value} value={g.value}>
+                  {g.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block">
+            <span className={label}>Kombësia</span>
+            <input
+              name="nationality"
+              defaultValue={appointment?.nationality ?? ""}
+              className={input}
+            />
+          </label>
+          <label className="block">
+            <span className={label}>Datëlindja</span>
+            <input
+              name="birthDate"
+              type="date"
+              defaultValue={appointment?.birth_date ?? ""}
+              className={input}
+            />
+          </label>
+
+          <label className="block">
+            <span className={label}>Telefoni</span>
+            <input
+              name="phone"
+              type="tel"
+              defaultValue={appointment?.phone ?? ""}
+              className={input}
+            />
+          </label>
+          <label className="block">
+            <span className={label}>Celulari</span>
+            <input
+              name="mobile"
+              type="tel"
+              defaultValue={appointment?.mobile ?? ""}
+              className={input}
+            />
+          </label>
+          <label className="block">
+            <span className={label}>Emaili</span>
+            <input
+              name="email"
+              type="email"
+              defaultValue={appointment?.email ?? ""}
+              className={input}
+            />
+          </label>
+
+          <label className="block">
+            <span className={label}>Rruga</span>
+            <input
+              name="street"
+              defaultValue={appointment?.street ?? ""}
+              className={input}
+            />
+          </label>
+          <label className="block">
+            <span className={label}>Kodi postar</span>
+            <input
+              name="postalCode"
+              defaultValue={appointment?.postal_code ?? ""}
+              className={input}
+            />
+          </label>
+          <label className="block">
+            <span className={label}>Qyteti</span>
+            <input
+              name="city"
+              defaultValue={appointment?.city ?? ""}
+              className={input}
+            />
+          </label>
+          <label className="block">
+            <span className={label}>Kantoni</span>
+            <input
+              name="canton"
+              defaultValue={appointment?.canton ?? ""}
+              className={input}
+            />
+          </label>
+        </div>
+      </section>
 
       {/* ---------- Të dhëna teknike ---------- */}
       <section className="rounded-xl border border-slate-200 bg-white p-5">
@@ -197,7 +317,7 @@ export default function AppointmentForm({
         </h2>
         <p className="mb-4 text-xs text-slate-500">
           Të dhënat shëndetësore janë të ndjeshme. Plotësoji vetëm nëse i duhen
-          këshillimit dhe klienti është i informuar.
+          këshillimit dhe personi është i informuar.
         </p>
 
         <div className="space-y-4">

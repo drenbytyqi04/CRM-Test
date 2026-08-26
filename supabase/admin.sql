@@ -21,7 +21,7 @@
 -- ---------------------------------------------------------------------
 -- 1. Tabela e roleve
 -- ---------------------------------------------------------------------
--- Një rresht për çdo llogari. Roli është ose 'user' ose 'admin'.
+-- Një rresht për çdo llogari. Roli zgjerohet në 'manager' te `roles.sql`.
 create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   email text,
@@ -100,26 +100,10 @@ create policy "profiles_select_own_or_admin" on public.profiles
 -- vetëm nga ti, nga paneli i Supabase-it.
 
 -- ---------------------------------------------------------------------
--- 5. Rregullat e leximit: "të miat — ose të gjitha, nëse jam admin"
+-- 5. Rregullat e leximit dhe të shkrimit
 -- ---------------------------------------------------------------------
-drop policy if exists "clients_select_own" on public.clients;
-drop policy if exists "clients_select_own_or_admin" on public.clients;
-create policy "clients_select_own_or_admin" on public.clients
-  for select to authenticated
-  using (user_id = auth.uid() or public.is_admin());
-
-drop policy if exists "notes_select_own" on public.notes;
-drop policy if exists "notes_select_own_or_admin" on public.notes;
-create policy "notes_select_own_or_admin" on public.notes
-  for select to authenticated
-  using (user_id = auth.uid() or public.is_admin());
-
--- Shtimi mbetet si ishte: secili shton vetëm në emër të vetvetes,
--- edhe administratori.
---
--- VINI RE: dy rregullat e shënimeve më poshtë zëvendësohen nga skeda
--- `supabase/admin-edit.sql`, e cila i lidh ato me klientin në vend të autorit
--- dhe i jep administratorit të drejtën të shkruajë e të redaktojë kudo.
+-- Këto janë te `supabase/roles.sql`, sepse varen nga të tri rolet
+-- (user / manager / admin). Ekzekutoje atë skedë pas kësaj.
 
 -- =====================================================================
 -- 6. BËJE VETEN ADMIN
