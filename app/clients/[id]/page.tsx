@@ -6,10 +6,20 @@ import NoteItem from "./note-item";
 import SetupNotice from "@/app/setup-notice";
 import { createClient, hasSupabaseConfig } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
+import AppointmentForm from "@/app/takimet/appointment-form";
 import {
+  APPOINTMENT_COLUMNS,
+  APPOINTMENT_STATUS_CLASSES,
+  CLIENT_COLUMNS,
   STATUS_CLASSES,
+  appointmentStatusLabel,
+  defaultAppointmentSlot,
   formatDate,
+  formatDateOnly,
+  formatTirane,
+  genderLabel,
   statusLabel,
+  type Appointment,
   type Client,
   type Note,
 } from "@/lib/types";
@@ -34,7 +44,7 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
   // Së pari klienti. Administratori e hap çdo klient; të tjerët vetëm të vetët.
   let clientQuery = supabase
     .from("clients")
-    .select("id, user_id, name, phone, email, status, created_at")
+    .select(CLIENT_COLUMNS)
     .eq("id", id);
 
   if (!user.isAdmin) {
@@ -55,7 +65,7 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
   // Pastaj shënimet. Këtu nuk filtrojmë sipas autorit: te një klient i imi
   // dua t'i shoh të gjitha shënimet, edhe ato që i ka shkruar administratori.
   // Deri këtu kemi vërtetuar tashmë se kemi të drejtë mbi këtë klient.
-  const [notesResult, ownerResult] = await Promise.all([
+  const [notesResult, ownerResult, takimetResult] = await Promise.all([
     supabase
       .from("notes")
       .select("id, client_id, user_id, body, created_at, updated_at")
@@ -70,9 +80,16 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
           .eq("id", client.user_id)
           .maybeSingle<{ email: string | null }>()
       : Promise.resolve({ data: null, error: null }),
+    supabase
+      .from("appointments")
+      .select(APPOINTMENT_COLUMNS)
+      .eq("client_id", client.id)
+      .order("scheduled_at", { ascending: false })
+      .returns<Appointment[]>(),
   ]);
 
   const notes = notesResult.data ?? [];
+  const takimet = takimetResult.data ?? [];
   const ownerEmail = ownerResult.data?.email ?? null;
 
   return (
@@ -117,9 +134,95 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
         </div>
       </dl>
 
+      <dl className="mb-8 grid gap-4 rounded-xl border border-slate-200 bg-white p-5 text-sm sm:grid-cols-3">
+        <div>
+          <dt className="text-slate-500">Numri i klientit</dt>
+          <dd className="mt-1 text-slate-900">{client.customer_number || "—"}</dd>
+        </div>
+        <div>
+          <dt className="text-slate-500">Gjinia</dt>
+          <dd className="mt-1 text-slate-900">{genderLabel(client.gender)}</dd>
+        </div>
+        <div>
+          <dt className="text-slate-500">Kombësia</dt>
+          <dd className="mt-1 text-slate-900">{client.nationality || "—"}</dd>
+        </div>
+        <div>
+          <dt className="text-slate-500">Datëlindja</dt>
+          <dd className="mt-1 text-slate-900">
+            {client.birth_date ? formatDateOnly(client.birth_date) : "—"}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-slate-500">Celulari</dt>
+          <dd className="mt-1 text-slate-900">{client.mobile || "—"}</dd>
+        </div>
+        <div>
+          <dt className="text-slate-500">Adresa</dt>
+          <dd className="mt-1 text-slate-900">
+            {[client.street, client.postal_code, client.city, client.canton]
+              .filter(Boolean)
+              .join(", ") || "—"}
+          </dd>
+        </div>
+      </dl>
+
       <div className="mb-8">
         <EditForm client={client} />
       </div>
+
+      {/* ---------- Takimet ---------- */}
+      <section className="mb-8">
+        <h2 className="mb-3 text-sm font-medium text-slate-500">
+          {takimet.length} takime
+        </h2>
+
+        {takimet.length > 0 && (
+          <ul className="mb-4 divide-y divide-slate-200 overflow-hidden rounded-xl border border-slate-200 bg-white">
+            {takimet.map((t) => (
+              <li key={t.id}>
+                <Link
+                  href={`/takimet/${t.id}`}
+                  className="flex items-center justify-between gap-4 p-4 transition hover:bg-slate-50"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-slate-900">
+                      {formatTirane(t.scheduled_at)}
+                    </p>
+                    <p className="truncate text-sm text-slate-500">
+                      {t.persons_count} persona
+                      {t.current_insurance ? ` · ${t.current_insurance}` : ""}
+                      {t.contracts_closed > 0
+                        ? ` · ${t.contracts_closed} kontrata`
+                        : ""}
+                    </p>
+                  </div>
+                  <span
+                    className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${
+                      APPOINTMENT_STATUS_CLASSES[t.status] ??
+                      APPOINTMENT_STATUS_CLASSES.cancelled
+                    }`}
+                  >
+                    {appointmentStatusLabel(t.status)}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <details className="rounded-xl border border-slate-200 bg-white">
+          <summary className="cursor-pointer px-5 py-4 text-sm font-medium text-slate-700 select-none">
+            Cakto takim të ri
+          </summary>
+          <div className="border-t border-slate-200 p-5">
+            <AppointmentForm
+              clientId={client.id}
+              scheduledDefault={defaultAppointmentSlot()}
+            />
+          </div>
+        </details>
+      </section>
 
       <NoteForm clientId={client.id} />
 

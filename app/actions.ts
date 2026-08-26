@@ -3,7 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, requireUser } from "@/lib/auth";
-import { STATUSES, type FormState } from "@/lib/types";
+import {
+  APPOINTMENT_STATUSES,
+  STATUSES,
+  fromTiraneInput,
+  type FormState,
+} from "@/lib/types";
 
 /**
  * "use server" lart në skedë do të thotë: këto funksione ekzekutohen VETËM
@@ -161,7 +166,22 @@ export async function updateClient(
   // të dukej sikur u ruajt.
   const { data, error } = await supabase
     .from("clients")
-    .update({ name, phone, email, status })
+    .update({
+      name,
+      phone,
+      email,
+      status,
+      // Personalia — fusha opsionale, plotësohen sipas nevojës.
+      customer_number: textOrNull(formData.get("customerNumber")),
+      gender: textOrNull(formData.get("gender")),
+      nationality: textOrNull(formData.get("nationality")),
+      birth_date: textOrNull(formData.get("birthDate")),
+      street: textOrNull(formData.get("street")),
+      postal_code: textOrNull(formData.get("postalCode")),
+      canton: textOrNull(formData.get("canton")),
+      city: textOrNull(formData.get("city")),
+      mobile: textOrNull(formData.get("mobile")),
+    })
     .eq("id", clientId)
     .select("id");
 
@@ -245,4 +265,152 @@ export async function recordActivity(): Promise<void> {
 
   const supabase = await createClient();
   await supabase.rpc("record_activity");
+}
+
+// =====================================================================
+// TAKIMET
+// =====================================================================
+
+/** Lexon fushat e përbashkëta të formularit të takimit. */
+function readAppointmentFields(formData: FormData) {
+  const scheduled = fromTiraneInput(String(formData.get("scheduledAt") ?? ""));
+  const persons = Number(formData.get("personsCount") ?? 1);
+  const contracts = Number(formData.get("contractsClosed") ?? 0);
+  const status = String(formData.get("status") ?? "open");
+
+  return {
+    scheduled,
+    persons,
+    contracts,
+    status,
+    values: {
+      call_center: textOrNull(formData.get("callCenter")),
+      current_insurance: textOrNull(formData.get("currentInsurance")),
+      call_date: textOrNull(formData.get("callDate")),
+      language: textOrNull(formData.get("language")),
+      family_details: textOrNull(formData.get("familyDetails")),
+      current_treatment: textOrNull(formData.get("currentTreatment")),
+      treatment_type: textOrNull(formData.get("treatmentType")),
+      medications: textOrNull(formData.get("medications")),
+      multi_year_contract: formData.get("multiYearContract") === "on",
+      treatment: formData.get("treatment") === "on",
+    },
+  };
+}
+
+/** Kontrollet e përbashkëta. Kthen tekstin e gabimit, ose `null`. */
+function validateAppointment(
+  scheduled: string | null,
+  persons: number,
+  contracts: number,
+  status: string
+): string | null {
+  if (!scheduled) return "Data dhe ora e takimit janë të detyrueshme.";
+  if (!Number.isInteger(persons) || persons < 1) {
+    return "Numri i personave duhet të jetë të paktën 1.";
+  }
+  if (!Number.isInteger(contracts) || contracts < 0) {
+    return "Numri i kontratave nuk është i saktë.";
+  }
+  if (contracts > persons) {
+    return `Nuk mund të ketë ${contracts} kontrata për ${persons} persona.`;
+  }
+  if (!APPOINTMENT_STATUSES.some((s) => s.value === status)) {
+    return "Statusi i zgjedhur nuk njihet.";
+  }
+  return null;
+}
+
+/** Cakton një takim të ri për një klient. */
+export async function createAppointment(
+  _prevState: FormState,
+  formData: FormData
+): Promise<FormState> {
+  const user = await requireUser();
+  const clientId = String(formData.get("clientId") ?? "");
+  const { scheduled, persons, contracts, status, values } =
+    readAppointmentFields(formData);
+
+  if (!clientId) return { error: "Mungon klienti i takimit." };
+
+  const gabim = validateAppointment(scheduled, persons, contracts, status);
+  if (gabim) return { error: gabim };
+
+  const supabase = await createClient();
+  if (!(await findEditableClient(supabase, clientId, user))) {
+    return { error: "Ky klient nuk u gjet ose nuk ke të drejtë mbi të." };
+  }
+
+  const { error } = await supabase.from("appointments").insert({
+    ...values,
+    client_id: clientId,
+    user_id: user.id,
+    scheduled_at: scheduled,
+    persons_count: persons,
+    contracts_closed: contracts,
+    status,
+  });
+
+  if (error) {
+    return { error: `Nuk u ruajt dot takimi: ${error.message}` };
+  }
+
+  revalidatePath(`/clients/${clientId}`);
+  revalidatePath("/takimet");
+  return { ok: true, message: "Takimi u caktua." };
+}
+
+/** Ndryshon një takim: të dhënat teknike, rezultatin dhe detajet. */
+export async function updateAppointment(
+  _prevState: FormState,
+  formData: FormData
+): Promise<FormState> {
+  const user = await requireUser();
+  const id = String(formData.get("appointmentId") ?? "");
+  const { scheduled, persons, contracts, status, values } =
+    readAppointmentFields(formData);
+
+  if (!id) return { error: "Mungon takimi që duhet ndryshuar." };
+
+  const gabim = validateAppointment(scheduled, persons, contracts, status);
+  if (gabim) return { error: gabim };
+
+  const supabase = await createClient();
+
+  // Kontrolli i lejeve edhe këtu, jo vetëm te rregullat e bazës.
+  const { data: takimi } = await supabase
+    .from("appointments")
+    .select("id, user_id, client_id")
+    .eq("id", id)
+    .maybeSingle<{ id: string; user_id: string; client_id: string }>();
+
+  if (!takimi) return { error: "Ky takim nuk u gjet." };
+  if (!user.isAdmin && takimi.user_id !== user.id) {
+    return { error: "Këtë takim e ka caktuar dikush tjetër." };
+  }
+
+  const { data, error } = await supabase
+    .from("appointments")
+    .update({
+      ...values,
+      scheduled_at: scheduled,
+      persons_count: persons,
+      contracts_closed: contracts,
+      status,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .select("id");
+
+  if (error) {
+    return { error: `Nuk u ruajtën dot ndryshimet: ${error.message}` };
+  }
+  if (!data || data.length === 0) {
+    return { error: "Ndryshimet nuk u ruajtën: baza nuk e lejoi këtë veprim." };
+  }
+
+  revalidatePath(`/takimet/${id}`);
+  revalidatePath(`/clients/${takimi.client_id}`);
+  revalidatePath("/takimet");
+  return { ok: true, message: "Takimi u përditësua." };
 }

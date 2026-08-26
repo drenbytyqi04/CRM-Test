@@ -143,6 +143,17 @@ tashmë (skeda `supabase/admin-edit.sql`).
 Tabela dhe funksioni që numërojnë kohën aktive janë zbatuar
 (skeda `supabase/activity.sql`). Shih **Pjesa 6** për mënyrën e matjes.
 
+### Hapi 12: Takimet ⚠️ i mbetur
+
+Moduli i takimeve kërkon një skedë SQL, e vetmja gjë që të mbetet:
+
+Supabase → **SQL Editor** → **New query** → ngjit gjithë përmbajtjen e
+`supabase/appointments.sql` → **Run**.
+
+Pa këtë hap aplikacioni nuk prishet: kartelat e klientëve hapen normalisht,
+fushat e reja shfaqen si "—", dhe faqja e takimeve tregon një mesazh gabimi
+në vend të listës.
+
 ---
 
 ## Pjesa 3 — Si përdoret
@@ -161,6 +172,20 @@ Tabela dhe funksioni që numërojnë kohën aktive janë zbatuar
 - **Ndrysho një shënim:** butoni *Ndrysho* poshtë secilit shënim që ke shkruar
   ti. Pas ndryshimit, te data shfaqet edhe "ndryshuar më".
 
+### Takimet
+
+- **Cakto takim:** te kartela e klientit, paneli *Cakto takim të ri*. Shëno call
+  center-in, sigurimin aktual, gjuhën, datën e telefonatës, datën e takimit dhe
+  numrin e personave.
+- **Lista e takimeve:** butoni *Takimet* lart. Filtro sipas statusit dhe shih
+  përmbledhjen: sa takime, sa u mbajtën, sa kontrata u mbyllën.
+- **Rezultati:** te faqja e takimit zgjidh **një status të vetëm** (I hapur,
+  U mbajt, I anuluar, Nuk u arrit, S'deshi takim, Negativ, S'ishte në shtëpi,
+  Adresa s'u gjet, S'u këshillua dot) dhe shëno kontratat e mbyllura. Baza nuk
+  lejon më shumë kontrata se persona.
+- **Personalia:** numri i klientit, gjinia, kombësia, datëlindja, adresa e plotë
+  dhe celulari plotësohen te kartela e klientit dhe shfaqen te çdo takim i tij.
+
 Nëse je **administrator**, ke edhe:
 
 - **Të gjitha / Të mijat** — çelës lart, për të parë të dhënat e krejt
@@ -170,6 +195,8 @@ Nëse je **administrator**, ke edhe:
   Supabase-it.
 - **Aktiviteti** — tabelë me kohën e secilit përdorues për 7 ditët e fundit,
   ditë pas dite, me totalin. Pika jeshile do të thotë "aktiv tani".
+- **Të gjitha takimet** — te faqja e takimeve, çelësi *Të gjitha / Të mijat*,
+  me emailin e agjentit që e ka caktuar secilin.
 - **Akses i plotë mbi çdo klient** — hap klientin e kujtdo, shkruaj shënime aty,
   ndrysho shënimet e shkruara nga të tjerët dhe redakto të dhënat e klientit,
   edhe kur e ka krijuar dikush tjetër. Te koka e faqes shfaqet se kujt i përket.
@@ -198,6 +225,10 @@ app/
   admin/page.tsx            Faqja e administratorit: të gjithë përdoruesit
   admin/aktiviteti/page.tsx Koha e secilit përdorues, ditë pas dite
   activity-tracker.tsx      Sinjali "jam aktiv" çdo 2 minuta
+  takimet/
+    page.tsx                Lista e takimeve, me filtra sipas statusit
+    appointment-form.tsx    Formulari i takimit (krijim dhe ndryshim)
+    [id]/page.tsx           Një takim: personalia, të dhënat teknike, rezultati
   clients/[id]/
     page.tsx                Faqja e një klienti + shënimet e tij
     note-form.tsx           Formulari për të shtuar shënim
@@ -214,6 +245,7 @@ supabase/
   admin.sql                 SQL-i i roleve dhe i administratorit
   admin-edit.sql            SQL-i i redaktimit dhe i shënimeve të adminit
   activity.sql              SQL-i i përcjelljes së kohës
+  appointments.sql          SQL-i i takimeve dhe i personalive
 ```
 
 Tri koncepte që i ndeshni në kod:
@@ -294,13 +326,32 @@ krijon probleme ligjore (rregullat e mbrojtjes së të dhënave kërkojnë që
 personi të jetë i informuar) dhe prish besimin. Njoftoji punonjësit para se ta
 përdorësh këtë faqe.
 
-## Pjesa 7 — Kur diçka nuk shkon
+## Pjesa 7 — Si janë menduar takimet
+
+Modeli është: **klienti** është kartela e përhershme, **takimi** është një ngjarje
+e vetme për atë klient. Një klient mund të ketë shumë takime; çdo takim i përket
+një klienti.
+
+Nëse të vjen një telefonatë e ftohtë, krijo së pari klientin (mjafton emri),
+pastaj cakto takimin. Kështu të dhënat e personit nuk përsëriten te çdo takim
+dhe historiku i tij mbetet i plotë.
+
+**Statusi është një i vetëm, jo disa kuti.** Kjo është me qëllim: me kuti të
+pavarura mund të shënohej njëkohësisht "u mbajt" dhe "i anuluar", dhe atëherë
+asnjë raport nuk do të ishte i besueshëm. Dy shenjat e pavarura që mbeten —
+*kontratë shumëvjeçare* dhe *trajtim* — mund të shoqërojnë çdo status.
+
+**Kontratat nuk fryhen dot:** baza refuzon një numër më të madh se numri i
+personave të takimit.
+
+## Pjesa 8 — Kur diçka nuk shkon
 
 | Problemi | Zgjidhja |
 | --- | --- |
 | Faqja tregon kutinë e verdhë "nuk është konfiguruar" | `.env.local` mungon. Përsërit Hapin 6 dhe rinis serverin. |
 | "Email ose fjalëkalim i gabuar" | Llogaria s'është krijuar ende ose emaili s'është konfirmuar. Shih Hapin 8. |
 | S'të shfaqet shenja "Admin" | SQL-i i `supabase/admin.sql` s'është ekzekutuar, ose rreshti `update ... set role = 'admin'` ka email tjetër. Shih Hapin 9. |
+| Faqja e takimeve tregon gabim | Skeda `supabase/appointments.sql` nuk është ekzekutuar. Shih Hapin 12. |
 | Regjistrohesh po s'të vjen emaili | Përdor rrugën B të Hapit 8 (krijo përdoruesin nga paneli me *Auto Confirm*). |
 | `Nuk u ruajt dot klienti: relation "clients" does not exist` | Je lidhur me një projekt tjetër. Kontrollo `NEXT_PUBLIC_SUPABASE_URL` te `.env.local`. |
 | `Invalid API key` | Vlerat te `.env.local` u ndryshuan. Kopjoje sërish nga `.env.local.example`. |

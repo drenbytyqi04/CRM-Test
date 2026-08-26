@@ -28,7 +28,176 @@ export type Client = {
   email: string | null;
   status: Status;
   created_at: string;
+  // --- Personalia (plotësohen te "Ndrysho të dhënat") ---
+  customer_number: string | null;
+  gender: string | null;
+  nationality: string | null;
+  birth_date: string | null;
+  street: string | null;
+  postal_code: string | null;
+  canton: string | null;
+  city: string | null;
+  mobile: string | null;
 };
+
+/**
+ * Kolonat e klientit që lexojmë.
+ *
+ * Përdorim `*` me qëllim: nëse skeda `supabase/appointments.sql` nuk është
+ * ekzekutuar ende, kolonat e reja thjesht mungojnë dhe faqja i tregon si "—",
+ * në vend që e gjithë lista të mos hapej fare.
+ */
+export const CLIENT_COLUMNS = "*";
+
+/** Gjinia. */
+export const GENDERS = [
+  { value: "f", label: "Femër" },
+  { value: "m", label: "Mashkull" },
+] as const;
+
+export function genderLabel(value: string | null): string {
+  return GENDERS.find((g) => g.value === value)?.label ?? "—";
+}
+
+/** Statuset e një takimi. Vetëm NJË prej tyre vlen njëherësh. */
+export const APPOINTMENT_STATUSES = [
+  { value: "open", label: "I hapur" },
+  { value: "held", label: "U mbajt" },
+  { value: "cancelled", label: "I anuluar" },
+  { value: "not_reached", label: "Nuk u arrit" },
+  { value: "refused", label: "S'deshi takim" },
+  { value: "negative", label: "Negativ" },
+  { value: "not_home", label: "S'ishte në shtëpi" },
+  { value: "address_not_found", label: "Adresa s'u gjet" },
+  { value: "advisor_failed", label: "S'u këshillua dot" },
+] as const;
+
+export type AppointmentStatus = (typeof APPOINTMENT_STATUSES)[number]["value"];
+
+export function appointmentStatusLabel(value: string): string {
+  return APPOINTMENT_STATUSES.find((s) => s.value === value)?.label ?? value;
+}
+
+/** Ngjyrat e etiketës për statusin e takimit. */
+export const APPOINTMENT_STATUS_CLASSES: Record<string, string> = {
+  open: "bg-sky-100 text-sky-800 ring-sky-200",
+  held: "bg-emerald-100 text-emerald-800 ring-emerald-200",
+  cancelled: "bg-slate-100 text-slate-600 ring-slate-200",
+  not_reached: "bg-amber-100 text-amber-800 ring-amber-200",
+  refused: "bg-rose-100 text-rose-800 ring-rose-200",
+  negative: "bg-rose-100 text-rose-800 ring-rose-200",
+  not_home: "bg-amber-100 text-amber-800 ring-amber-200",
+  address_not_found: "bg-amber-100 text-amber-800 ring-amber-200",
+  advisor_failed: "bg-slate-100 text-slate-600 ring-slate-200",
+};
+
+/** Një rresht i tabelës `appointments`. */
+export type Appointment = {
+  id: string;
+  user_id: string;
+  client_id: string;
+  call_center: string | null;
+  current_insurance: string | null;
+  call_date: string | null;
+  scheduled_at: string;
+  language: string | null;
+  persons_count: number;
+  status: AppointmentStatus;
+  multi_year_contract: boolean;
+  treatment: boolean;
+  contracts_closed: number;
+  family_details: string | null;
+  current_treatment: string | null;
+  treatment_type: string | null;
+  medications: string | null;
+  created_at: string;
+  updated_at: string | null;
+};
+
+/** Kolonat e takimit që lexojmë (shih shënimin te `CLIENT_COLUMNS`). */
+export const APPOINTMENT_COLUMNS = "*";
+
+const TZ = "Europe/Tirane";
+
+/**
+ * Sa minuta larg orës botërore është Tirana në atë çast (60 ose 120).
+ * E llogarisim, sepse ora e verës e ndryshon dy herë në vit.
+ */
+function tiraneOffsetMinutes(date: Date): number {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: TZ,
+      hour12: false,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    })
+      .formatToParts(date)
+      .map((p) => [p.type, p.value])
+  );
+  const sikurTeIshteUTC = Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day),
+    Number(parts.hour) % 24,
+    Number(parts.minute),
+    Number(parts.second)
+  );
+  return (sikurTeIshteUTC - date.getTime()) / 60000;
+}
+
+/**
+ * Nga data e ruajtur në formën që pret fusha `datetime-local`, në orën e
+ * Tiranës: "2026-01-30T10:00".
+ *
+ * E llogarisim gjithmonë me orën e Tiranës (jo me orën e kompjuterit), që
+ * serveri dhe shfletuesi të nxjerrin saktësisht të njëjtin tekst.
+ */
+export function toTiraneInput(iso: string): string {
+  return new Intl.DateTimeFormat("sv-SE", {
+    timeZone: TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  })
+    .format(new Date(iso))
+    .replace(" ", "T");
+}
+
+/** E kundërta: "2026-01-30T10:00" (orë Tirane) -> data e plotë për ruajtje. */
+export function fromTiraneInput(local: string): string | null {
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(local)) return null;
+  const sikurUTC = new Date(`${local.slice(0, 16)}:00Z`);
+  if (Number.isNaN(sikurUTC.getTime())) return null;
+  const offset = tiraneOffsetMinutes(sikurUTC);
+  return new Date(sikurUTC.getTime() - offset * 60000).toISOString();
+}
+
+/** Ora e parazgjedhur për një takim të ri: nesër në orën 10:00. */
+export function defaultAppointmentSlot(): string {
+  const neser = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  return `${new Intl.DateTimeFormat("sv-SE", { timeZone: TZ }).format(
+    neser
+  )}T10:00`;
+}
+
+/** Data dhe ora e takimit për ta lexuar njeriu, në orën e Tiranës. */
+export function formatTirane(iso: string): string {
+  return new Intl.DateTimeFormat("sq-AL", {
+    timeZone: TZ,
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(iso));
+}
 
 /** Një rresht i tabelës `notes`. */
 export type Note = {
@@ -97,6 +266,15 @@ export function formatDayLabel(day: string): string {
     weekday: "short",
     day: "numeric",
     month: "numeric",
+  });
+}
+
+/** Vetëm data, pa orë: "28 janar 1985". Për datëlindje e ngjashme. */
+export function formatDateOnly(day: string): string {
+  return new Date(`${day.slice(0, 10)}T12:00:00Z`).toLocaleDateString("sq-AL", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
   });
 }
 

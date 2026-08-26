@@ -5,6 +5,7 @@ import SignOutButton from "./sign-out-button";
 import { createClient, hasSupabaseConfig } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
 import {
+  CLIENT_COLUMNS,
   STATUS_CLASSES,
   formatDuration,
   statusLabel,
@@ -42,7 +43,7 @@ export default async function Page({ searchParams }: PageProps<"/">) {
   // (përveç administratorit, kur ai po i shikon të gjitha).
   let clientsQuery = supabase
     .from("clients")
-    .select("id, user_id, name, phone, email, status, created_at")
+    .select(CLIENT_COLUMNS)
     .order("created_at", { ascending: false });
 
   if (!showAll) {
@@ -110,6 +111,12 @@ export default async function Page({ searchParams }: PageProps<"/">) {
         </div>
 
         <div className="flex shrink-0 items-center gap-3">
+          <Link
+            href="/takimet"
+            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 transition hover:bg-white"
+          >
+            Takimet
+          </Link>
           {user.isAdmin && (
             <Link
               href="/admin"

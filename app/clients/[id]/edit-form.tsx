@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { updateClient } from "@/app/actions";
-import { STATUSES, type Client, type FormState } from "@/lib/types";
+import { GENDERS, STATUSES, type Client, type FormState } from "@/lib/types";
 
 const inputClass =
   "w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none placeholder:text-slate-400 focus:border-slate-900";
@@ -80,6 +80,120 @@ export default function EditForm({ client }: { client: Client }) {
                 </option>
               ))}
             </select>
+          </label>
+        </div>
+
+        {/* ---------- Personalia ---------- */}
+        <h3 className="mt-6 mb-3 text-sm font-semibold text-slate-900">
+          Personalia
+        </h3>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium text-slate-700">
+              Numri i klientit
+            </span>
+            <input
+              name="customerNumber"
+              defaultValue={client.customer_number ?? ""}
+              className={inputClass}
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium text-slate-700">
+              Gjinia
+            </span>
+            <select
+              name="gender"
+              defaultValue={client.gender ?? ""}
+              className={`${inputClass} bg-white`}
+            >
+              <option value="">—</option>
+              {GENDERS.map((g) => (
+                <option key={g.value} value={g.value}>
+                  {g.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium text-slate-700">
+              Kombësia
+            </span>
+            <input
+              name="nationality"
+              defaultValue={client.nationality ?? ""}
+              className={inputClass}
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium text-slate-700">
+              Datëlindja
+            </span>
+            <input
+              name="birthDate"
+              type="date"
+              defaultValue={client.birth_date ?? ""}
+              className={inputClass}
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium text-slate-700">
+              Celulari
+            </span>
+            <input
+              name="mobile"
+              type="tel"
+              defaultValue={client.mobile ?? ""}
+              className={inputClass}
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium text-slate-700">
+              Rruga
+            </span>
+            <input
+              name="street"
+              defaultValue={client.street ?? ""}
+              className={inputClass}
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium text-slate-700">
+              Kodi postar
+            </span>
+            <input
+              name="postalCode"
+              defaultValue={client.postal_code ?? ""}
+              className={inputClass}
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium text-slate-700">
+              Qyteti
+            </span>
+            <input
+              name="city"
+              defaultValue={client.city ?? ""}
+              className={inputClass}
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium text-slate-700">
+              Kantoni
+            </span>
+            <input
+              name="canton"
+              defaultValue={client.canton ?? ""}
+              className={inputClass}
+            />
           </label>
         </div>
 
