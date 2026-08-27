@@ -187,7 +187,10 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
   shprehimisht në kod: serverat e Vercel-it punojnë me orën botërore (UTC),
   prandaj pa këtë ora do të dilte 1–2 orë prapa. Te faqja e terminit shkruhet
   edhe se kur u regjistrua: *Regjistruar më ... · ora e Beogradit*.
-- **Filtro:** butonat e statuseve lart. Përmbledhja tregon sa termine, sa u
+- **Lista:** një tabelë e ngjeshur — *Nr · Emri · Data e terminit · Sigurimi ·
+  Pers. · Kontr. · Shën. · Statusi* — ku çdo termin zë një rresht të vetëm.
+  Në ekran të vogël kolonat dytësore fshihen vetvetiu.
+- **Filtro:** menyja *Statusi* lart. Përmbledhja tregon sa termine, sa u
   mbajtën dhe sa kontrata u mbyllën.
 - **Hap një termin:** kliko mbi emrin. Faqja ndahet në pesë skeda —
   *Personalia*, *Të dhëna teknike*, *Rezultati*, *Detaje*, *Feedback* — dhe
@@ -268,6 +271,7 @@ app/
   dashboard/page.tsx        Dashboard-i: numrat dhe grafikët
   profili/page.tsx          Profili im: koha, puna dhe lejet
   stats.tsx                 Kutitë e numrave dhe grafikët (HTML i thjeshtë)
+  status-filter.tsx         Menyja e filtrit sipas statusit
   sidebar.tsx               Menyja anash: lidhjet, roli dhe "Dil"
   sidebar-link.tsx          Një lidhje e menysë, që ndriçon te faqja e vet
   terminet/

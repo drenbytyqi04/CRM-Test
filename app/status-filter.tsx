@@ -1,0 +1,47 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { APPOINTMENT_STATUSES } from "@/lib/types";
+
+/**
+ * Filtri i statusit si një menu e vetme.
+ *
+ * Më parë ishin nëntë butona që mbështilleshin në dy rreshta. Menyja i mban
+ * të njëjtat mundësi, por zë një rresht të vetëm.
+ *
+ * Pamja "Të mijat" ruhet: ndryshimi i statusit nuk të kthen te të gjitha.
+ */
+export default function StatusFilter({
+  vlera,
+  vetemTeMijat,
+}: {
+  vlera: string;
+  vetemTeMijat: boolean;
+}) {
+  const router = useRouter();
+
+  return (
+    <label className="flex items-center gap-2 text-sm">
+      <span className="text-slate-500">Statusi</span>
+      <select
+        data-testid="status-filter"
+        value={vlera}
+        onChange={(e) => {
+          const params = [
+            e.target.value ? `status=${e.target.value}` : "",
+            vetemTeMijat ? "view=mine" : "",
+          ].filter(Boolean);
+          router.push(params.length > 0 ? `/?${params.join("&")}` : "/");
+        }}
+        className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-slate-900 outline-none focus:border-slate-900"
+      >
+        <option value="">Të gjitha</option>
+        {APPOINTMENT_STATUSES.map((s) => (
+          <option key={s.value} value={s.value}>
+            {s.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}

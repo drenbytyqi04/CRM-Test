@@ -1,6 +1,7 @@
 import Link from "next/link";
 import AppointmentForm from "./terminet/appointment-form";
 import SetupNotice from "./setup-notice";
+import StatusFilter from "./status-filter";
 import { createClient, hasSupabaseConfig } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
 import {
@@ -91,15 +92,6 @@ export default async function Page({ searchParams }: PageProps<"/">) {
   const kontrata = terminet.reduce((s, t) => s + t.contracts_closed, 0);
   const uMbajten = terminet.filter((t) => t.status === "held").length;
 
-  /** Ndërton adresën e filtrit, duke ruajtur pamjen "Të mijat". */
-  const filterHref = (value: string) => {
-    const params = [
-      value ? `status=${value}` : "",
-      showAll ? "" : "view=mine",
-    ].filter(Boolean);
-    return params.length > 0 ? `/?${params.join("&")}` : "/";
-  };
-
   return (
     <main className="mx-auto w-full max-w-5xl px-5 py-10">
       <header className="mb-8 flex items-start justify-between gap-4">
@@ -158,31 +150,9 @@ export default async function Page({ searchParams }: PageProps<"/">) {
         </>
       )}
 
-      <nav className="mb-6 flex flex-wrap gap-2 text-sm">
-        <Link
-          href={filterHref("")}
-          className={`rounded-lg px-3 py-1.5 transition ${
-            filtri === ""
-              ? "bg-slate-200 text-slate-900"
-              : "border border-slate-300 text-slate-600 hover:bg-white"
-          }`}
-        >
-          Të gjitha statuset
-        </Link>
-        {APPOINTMENT_STATUSES.map((s) => (
-          <Link
-            key={s.value}
-            href={filterHref(s.value)}
-            className={`rounded-lg px-3 py-1.5 transition ${
-              filtri === s.value
-                ? "bg-slate-200 text-slate-900"
-                : "border border-slate-300 text-slate-600 hover:bg-white"
-            }`}
-          >
-            {s.label}
-          </Link>
-        ))}
-      </nav>
+      <div className="mb-4">
+        <StatusFilter vlera={filtri} vetemTeMijat={!showAll} />
+      </div>
 
       {terminetResult.error && (
         <p className="rounded-lg bg-red-50 p-4 text-sm text-red-700">
@@ -195,55 +165,79 @@ export default async function Page({ searchParams }: PageProps<"/">) {
           Nuk ka termine këtu.
         </p>
       ) : (
-        <ul className="divide-y divide-slate-200 overflow-hidden rounded-xl border border-slate-200 bg-white">
-          {terminet.map((t) => (
-            <li key={t.id}>
-              <Link
-                href={appointmentPath(t, user.role)}
-                className="flex items-center justify-between gap-4 p-4 transition hover:bg-slate-50"
-              >
-                <div className="min-w-0">
-                  <p className="truncate font-medium text-slate-900">
-                    {t.nr != null && (
-                      <span className="mr-2 font-normal text-slate-400">
-                        #{t.nr}
+        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 text-left text-slate-500">
+                <th className="p-3 pl-4 font-medium whitespace-nowrap">Nr</th>
+                <th className="p-3 font-medium">Emri</th>
+                <th className="p-3 font-medium whitespace-nowrap">Data e terminit</th>
+                <th className="hidden p-3 font-medium lg:table-cell">Sigurimi</th>
+                <th className="hidden p-3 text-right font-medium sm:table-cell">Pers.</th>
+                <th className="hidden p-3 text-right font-medium sm:table-cell">Kontr.</th>
+                <th className="hidden p-3 text-right font-medium md:table-cell">Shën.</th>
+                <th className="p-3 pr-4 font-medium whitespace-nowrap">Statusi</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {terminet.map((t) => (
+                <tr key={t.id} className="transition hover:bg-slate-50">
+                  <td className="p-3 pl-4 whitespace-nowrap text-slate-400 tabular-nums">
+                    {t.nr != null ? `#${t.nr}` : "—"}
+                  </td>
+                  <td className="p-3">
+                    {/* Lidhja rri te emri: një rresht i tërë i klikueshëm
+                        nuk lejohet brenda një tabele pa e prishur kuptimin. */}
+                    <Link
+                      href={appointmentPath(t, user.role)}
+                      className="font-medium text-slate-900 underline-offset-2 hover:underline"
+                    >
+                      {t.name}
+                    </Link>
+                    {t.user_id !== user.id && (
+                      <span className="block truncate text-xs text-slate-400">
+                        {agjentet.get(t.user_id) ?? "—"}
                       </span>
                     )}
-                    {t.name}
-                  </p>
-                  <p className="truncate text-sm text-slate-500">
+                  </td>
+                  <td className="p-3 whitespace-nowrap text-slate-600">
                     {formatBeograd(t.scheduled_at)}
-                    {t.current_insurance ? ` · ${t.current_insurance}` : ""}
-                    {` · ${t.persons_count} persona`}
-                  </p>
-                  {t.user_id !== user.id && (
-                    <p className="mt-1 truncate text-xs text-slate-400">
-                      Caktuar nga: {agjentet.get(t.user_id) ?? "—"}
-                    </p>
-                  )}
-                </div>
-                <div className="flex shrink-0 items-center gap-3">
-                  <span className="text-xs text-slate-400">
-                    {noteCounts.get(t.id) ?? 0} shënime
-                  </span>
-                  {t.contracts_closed > 0 && (
-                    <span className="text-xs text-slate-500">
-                      {t.contracts_closed} kontrata
+                  </td>
+                  <td className="hidden p-3 text-slate-600 lg:table-cell">
+                    {t.current_insurance || "—"}
+                  </td>
+                  <td className="hidden p-3 text-right text-slate-600 tabular-nums sm:table-cell">
+                    {t.persons_count}
+                  </td>
+                  <td className="hidden p-3 text-right tabular-nums sm:table-cell">
+                    <span
+                      className={
+                        t.contracts_closed > 0
+                          ? "font-medium text-slate-900"
+                          : "text-slate-300"
+                      }
+                    >
+                      {t.contracts_closed}
                     </span>
-                  )}
-                  <span
-                    className={`rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${
-                      APPOINTMENT_STATUS_CLASSES[t.status] ??
-                      APPOINTMENT_STATUS_CLASSES.cancelled
-                    }`}
-                  >
-                    {appointmentStatusLabel(t.status)}
-                  </span>
-                </div>
-              </Link>
-            </li>
-          ))}
-        </ul>
+                  </td>
+                  <td className="hidden p-3 text-right text-slate-400 tabular-nums md:table-cell">
+                    {noteCounts.get(t.id) ?? 0}
+                  </td>
+                  <td className="p-3 pr-4 whitespace-nowrap">
+                    <span
+                      className={`rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${
+                        APPOINTMENT_STATUS_CLASSES[t.status] ??
+                        APPOINTMENT_STATUS_CLASSES.cancelled
+                      }`}
+                    >
+                      {appointmentStatusLabel(t.status)}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </main>
   );
