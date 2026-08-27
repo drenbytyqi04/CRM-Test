@@ -76,6 +76,7 @@ grant usage, select on sequence public.appointment_nr_seq to authenticated;
 create or replace function public.keep_appointment_nr()
 returns trigger
 language plpgsql
+set search_path = public
 as $$
 begin
   new.nr := old.nr;
