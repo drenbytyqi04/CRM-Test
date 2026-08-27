@@ -4,6 +4,7 @@ import AppointmentForm from "./appointment-form";
 import NoteForm from "./note-form";
 import NoteRow from "./note-row";
 import { Tabs, TabPanel } from "./tabs";
+import DeleteButton from "./delete-button";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
 import {
@@ -310,6 +311,15 @@ export default async function AppointmentPage({
       </section>
       </TabPanel>
       </Tabs>
+
+      {/* Fshirja rri jashtë skedave dhe në fund: veprim i rrallë, i pakthyeshëm. */}
+      {user.isManager && (
+        <DeleteButton
+          appointmentId={termini.id}
+          emri={termini.name}
+          numriIShenimeve={notes.length}
+        />
+      )}
     </main>
   );
 }

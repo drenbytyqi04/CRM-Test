@@ -1,11 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, requireManager, requireUser } from "@/lib/auth";
 import {
   APPOINTMENT_STATUSES,
-  ROLE_PREFIXES,
   fromBeogradInput,
   type FormState,
 } from "@/lib/types";
@@ -32,16 +32,15 @@ function looksLikeEmail(value: string): boolean {
 
 
 /**
- * I thotë Next.js-it se faqet e termineve kanë ndryshuar.
+ * I thotë Next.js-it se të dhënat e termineve kanë ndryshuar.
  *
- * I njëjti termin shfaqet nën tri adresa — një për çdo rol — prandaj
- * freskohen të tria, bashkë me listën te faqja kryesore.
+ * `"layout"` te rrënja pastron çdo faqe nën kornizën kryesore: listën dhe
+ * të tria adresat e terminit (një për çdo rol). Freskimi vetëm i faqeve të
+ * veçanta nuk mjaftonte — pas fshirjes, shfletuesi e nxirrte listën nga
+ * memoria e vet dhe termini i fshirë dukej sikur ishte ende aty.
  */
 function freskoTerminet(): void {
-  for (const prefiks of Object.values(ROLE_PREFIXES)) {
-    revalidatePath(`/${prefiks}/terminet/[nr]`, "page");
-  }
-  revalidatePath("/");
+  revalidatePath("/", "layout");
 }
 
 export async function addNote(
@@ -308,4 +307,46 @@ export async function updateAppointment(
 
   freskoTerminet();
   return { ok: true, message: "Termini u përditësua." };
+}
+
+/**
+ * Fshin një termin. E bën menaxheri ose admini.
+ *
+ * KUJDES: shënimet e atij termini fshihen bashkë me të — kështu e kërkon
+ * lidhja `on delete cascade` te baza. Prandaj butoni te faqja e thotë
+ * hapur se sa shënime humbin, dhe kërkon një konfirmim të dytë.
+ *
+ * Nuk kthehet mbrapsht.
+ */
+export async function deleteAppointment(
+  _prevState: FormState,
+  formData: FormData
+): Promise<FormState> {
+  await requireManager();
+
+  const id = String(formData.get("appointmentId") ?? "");
+  if (!id) return { error: "Mungon termini që duhet fshirë." };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("appointments")
+    .delete()
+    .eq("id", id)
+    .select("id");
+
+  if (error) {
+    return { error: `Termini nuk u fshi: ${error.message}` };
+  }
+  // Pa `select` + kontroll, një fshirje që rregullat e bazës nuk e lejojnë
+  // do të dukej sikur u krye.
+  if (!data || data.length === 0) {
+    return {
+      error:
+        "Termini nuk u fshi: baza nuk e lejoi këtë veprim. " +
+        "Ka gjasë të mos jetë ekzekutuar ende `supabase/fshirja.sql`.",
+    };
+  }
+
+  freskoTerminet();
+  redirect("/");
 }

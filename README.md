@@ -216,6 +216,9 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
   `/user/terminet/1001`. Prefiksi është vetëm emërtim: ai NUK jep asnjë të
   drejtë. Kush hap prefiksin e një roli tjetër kthehet te i veti, dhe lejet
   dalin gjithmonë nga roli te tabela `profiles`.
+- **Fshirja e terminit:** poshtë faqes, vetëm për menaxherin dhe adminin.
+  Kërkon dy klikime: i pari hap pyetjen dhe tregon sa shënime fshihen bashkë
+  me terminin, i dyti e kryen. Nuk kthehet mbrapsht.
 - **Rezultati:** një status i vetëm (I hapur, U mbajt, I anuluar, Nuk u arrit,
   S'deshi termin, Negativ, S'ishte në shtëpi, Adresa s'u gjet, S'u këshillua dot)
   plus kontratat e mbyllura. Baza nuk lejon më shumë kontrata se persona.
@@ -233,6 +236,7 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
 | Lexon terminet e regjistruara | ✅ | ✅ | ✅ |
 | Shkruan shënime | ✅ | ✅ | ✅ |
 | Cakton dhe ndryshon termine | ❌ | ✅ | ✅ |
+| Fshin termine | ❌ | ✅ | ✅ |
 | Faqja *Përdoruesit* dhe *Aktiviteti* | ❌ | ❌ | ✅ |
 
 Përdoruesi i thjeshtë e hap çdo termin dhe e lexon të plotë — personalinë, të
@@ -278,6 +282,7 @@ app/
   terminet/
     appointment-page.tsx    Faqja e një termini (e përbashkët për tri rolet)
     tabs.tsx                Skedat e faqes së terminit
+    delete-button.tsx       Fshirja e terminit, me konfirmim në dy hapa
     appointment-form.tsx    Formulari i terminit (caktim dhe ndryshim)
     note-form.tsx           Kutia e shpejtë për të shtuar shënim
     note-row.tsx            Një rresht i tabelës, me ndryshim brenda rreshtit
@@ -297,6 +302,7 @@ supabase/
   admin.sql                 Profilet, roli admin dhe trigger-i
   roles.sql                 Tri rolet dhe lejet
   nr.sql                    Numri i shkurtër i terminit (#1000)
+  fshirja.sql               Lejon fshirjen e termineve (menaxher + admin)
   mbetur.sql                Të dyja migrimet e fundit, në një skedë
   activity.sql              Përcjellja e kohës
 ```

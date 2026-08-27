@@ -8,6 +8,7 @@
 --   | Lexon terminet e regjistruara|  po  |   po    |  po   |
 --   | Shkruan shënime              |  po  |   po    |  po   |
 --   | Cakton/ndryshon termine      |  JO  |   po    |  po   |
+--   | Fshin termine                |  JO  |   po    |  po   |
 --   | Përdoruesit dhe aktiviteti   |  JO  |   JO    |  po   |
 --   | Ndryshon rolet               |  JO  |   JO    |  JO*  |
 --
@@ -103,6 +104,13 @@ create policy "appointments_update_manager" on public.appointments
   for update to authenticated
   using (public.is_manager())
   with check (public.is_manager());
+
+-- Fshirja: po ashtu vetëm menaxheri dhe admini. Shënimet e terminit
+-- fshihen bashkë me të (`on delete cascade` te schema.sql).
+drop policy if exists "appointments_delete_manager" on public.appointments;
+create policy "appointments_delete_manager" on public.appointments
+  for delete to authenticated
+  using (public.is_manager());
 
 -- =====================================================================
 -- Si i cakton rolet
