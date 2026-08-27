@@ -83,10 +83,14 @@ duhej vetëm nëse një ditë krijon një projekt tjetër: e ngjit atje te **SQL
 Editor** → **Run**. Radha e skedave për një projekt të ri është:
 `schema.sql` → `admin.sql` → `roles.sql` → `nr.sql` → `activity.sql`.
 
-> **Mbetet për t'u ekzekutuar:** `supabase/nr.sql` — ai që i jep secilit termin
-> numrin e shkurtër (`#1000`). Pa të, aplikacioni punon njësoj, por adresat
-> mbeten me numrin e gjatë të brendshëm. Hape **SQL Editor** → **New query**,
-> ngjit gjithë skedën, **Run**.
+> **Mbetet për t'u ekzekutuar:** `supabase/mbetur.sql` — një skedë e vetme që
+> i bashkon të dyja gjërat që baza pret ende: rregullin `profiles_select_all`
+> (emailet te kolona *Përdoruesi*) dhe numrin e shkurtër të terminit
+> (`#1000`). Hape **SQL Editor** → **New query**, ngjit gjithë skedën, **Run**.
+> Ekzekutohet dot disa herë pa dëm.
+>
+> Pa të, aplikacioni punon njësoj — thjesht pa numra dhe me një vizë te
+> kolona *Përdoruesi*.
 
 ### Hapi 6: Kopjo skedën e rregullimeve
 
@@ -296,6 +300,7 @@ supabase/
   admin.sql                 Profilet, roli admin dhe trigger-i
   roles.sql                 Tri rolet dhe lejet
   nr.sql                    Numri i shkurtër i terminit (#1000)
+  mbetur.sql                Të dyja migrimet e mbetura, në një skedë
   activity.sql              Përcjellja e kohës
 ```
 
