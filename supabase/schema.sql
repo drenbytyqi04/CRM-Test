@@ -23,6 +23,9 @@ create table if not exists public.appointments (
 
   -- Kush e caktoi terminin (menaxheri ose admini).
   user_id uuid not null default auth.uid()
+    -- VINI RE: `llogari-pa-humbje.sql` e kthen këtë lidhje te `profiles`,
+    -- që fshirja e një llogarie të mos marrë me vete punën e saj. Këtu nuk
+    -- bëhet dot: `profiles` krijohet më vonë, te `admin.sql`.
     references auth.users (id) on delete cascade,
 
   -- --- Personalia e personit që takohet ---
@@ -79,6 +82,9 @@ create table if not exists public.notes (
   appointment_id uuid not null
     references public.appointments (id) on delete cascade,
   user_id uuid not null default auth.uid()
+    -- VINI RE: `llogari-pa-humbje.sql` e kthen këtë lidhje te `profiles`,
+    -- që fshirja e një llogarie të mos marrë me vete punën e saj. Këtu nuk
+    -- bëhet dot: `profiles` krijohet më vonë, te `admin.sql`.
     references auth.users (id) on delete cascade,
   body text not null,
   created_at timestamptz not null default now(),

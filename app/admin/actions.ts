@@ -100,17 +100,20 @@ export async function createUserAccount(
 
 
 /**
- * Fshin një llogari. VETËM administratori.
+ * Heq hyrjen e një llogarie. VETËM administratori.
  *
- * Fshirja merr me vete gjithçka të asaj llogarie — terminet, shënimet dhe
- * aktivitetin — sepse te `schema.sql` lidhjet janë `on delete cascade`.
- * Prandaj faqja i numëron ato para se të pyesë, dhe ofron edhe mundësinë
- * t'i kalosh te vetja në vend që t'i humbasësh.
+ * Fshihet llogaria te `auth.users` — pra personi nuk hyn dot më. Por
+ * profili i tij mbetet, dhe bashkë me të çdo termin që ka caktuar, çdo
+ * shënim që ka shkruar dhe orët e tij të punës. Ato vazhdojnë të mbajnë
+ * emrin e tij, jo timin.
  *
- * Tre gjëra ndalohen me qëllim, sepse secila të lë jashtë sistemit:
- *   1. Të fshish veten.
- *   2. Të fshish adminin e fundit.
- *   3. Të fshish dikë kur nuk je admin (kontrollohet që në rreshtin e parë).
+ * Kjo ndodh sepse `llogari-pa-humbje.sql` i ktheu lidhjet nga `auth.users`
+ * te `profiles`, e cila nuk fshihet kurrë.
+ *
+ * Tre gjëra ndalohen, sepse secila të lë jashtë sistemit:
+ *   1. Të heqësh veten.
+ *   2. Të heqësh adminin e fundit.
+ *   3. Ta bësh pa qenë admin (kontrollohet që në rreshtin e parë).
  */
 export async function deleteUserAccount(
   _prevState: FormState,
@@ -119,33 +122,38 @@ export async function deleteUserAccount(
   const admin = await requireAdmin();
 
   const userId = String(formData.get("userId") ?? "");
-  const kaloTeUne = formData.get("kaloTeUne") === "1";
-
-  if (!userId) return { error: "Mungon llogaria që duhet fshirë." };
+  if (!userId) return { error: "Mungon llogaria." };
   if (userId === admin.id) {
-    return { error: "Nuk e fshin dot llogarinë tënde." };
+    return { error: "Nuk e heq dot hyrjen tënde." };
   }
 
   const supabase = await createClient();
 
   const { data: profili } = await supabase
     .from("profiles")
-    .select("id, email, role")
+    .select("id, email, role, active")
     .eq("id", userId)
-    .maybeSingle<{ id: string; email: string | null; role: string }>();
+    .maybeSingle<{
+      id: string;
+      email: string | null;
+      role: string;
+      active: boolean;
+    }>();
 
   if (!profili) return { error: "Kjo llogari nuk u gjet." };
+  if (!profili.active) return { error: "Kjo llogari s'ka hyrje as tani." };
 
-  // Sistemi pa asnjë admin nuk hapet më nga aplikacioni — roli ndryshohet
-  // vetëm nga paneli i Supabase-it.
+  // Vetëm adminët që ende hyjnë numërohen: një admin pa hyrje nuk e shpëton
+  // dot sistemin nëse mbetet i vetmi.
   if (profili.role === "admin") {
     const { count } = await supabase
       .from("profiles")
       .select("id", { count: "exact", head: true })
-      .eq("role", "admin");
+      .eq("role", "admin")
+      .eq("active", true);
 
     if ((count ?? 0) <= 1) {
-      return { error: "Ky është admini i fundit — nuk fshihet dot." };
+      return { error: "Ky është admini i fundit — nuk hiqet dot." };
     }
   }
 
@@ -156,37 +164,28 @@ export async function deleteUserAccount(
     return { error: e instanceof Error ? e.message : "Lidhja s'u hap dot." };
   }
 
-  // Nëse kërkohet, të dhënat kalojnë te admini para fshirjes; përndryshe
-  // ato ikin bashkë me llogarinë.
-  if (kaloTeUne) {
-    const { error: gabimT } = await sherbimi
-      .from("appointments")
-      .update({ user_id: admin.id })
-      .eq("user_id", userId);
-    const { error: gabimSh } = await sherbimi
-      .from("notes")
-      .update({ user_id: admin.id })
-      .eq("user_id", userId);
-
-    if (gabimT || gabimSh) {
-      return {
-        error:
-          "Të dhënat nuk u kaluan dot, prandaj llogaria NUK u fshi: " +
-          (gabimT?.message ?? gabimSh?.message),
-      };
-    }
-  }
-
   const { error } = await sherbimi.auth.admin.deleteUser(userId);
   if (error) {
-    return { error: `Llogaria nuk u fshi: ${error.message}` };
+    return { error: `Hyrja nuk u hoq: ${error.message}` };
+  }
+
+  // Profili mbetet, i shënuar si pa hyrje, që të dhënat e tij të ruajnë
+  // emrin e autorit.
+  const { error: gabimP } = await sherbimi
+    .from("profiles")
+    .update({ active: false })
+    .eq("id", userId);
+
+  if (gabimP) {
+    return {
+      error:
+        `Hyrja u hoq, por profili nuk u shënua si i mbyllur: ${gabimP.message}`,
+    };
   }
 
   revalidatePath("/", "layout");
   return {
     ok: true,
-    message: `Llogaria ${profili.email ?? ""} u fshi.${
-      kaloTeUne ? " Të dhënat e saj kaluan te ti." : ""
-    }`,
+    message: `${profili.email ?? "Llogaria"} nuk hyn më. Të dhënat e saj mbetën.`,
   };
 }

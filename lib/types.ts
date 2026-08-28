@@ -227,6 +227,14 @@ export type Profile = {
   id: string;
   email: string | null;
   role: "user" | "manager" | "admin";
+  /**
+   * A hyn ende ky person?
+   *
+   * Profili nuk fshihet kurrë — ai mban emrin e autorit te terminet dhe
+   * shënimet e tij. Kur admini i heq hyrjen, fshihet vetëm llogaria te
+   * `auth.users` dhe kjo bëhet `false`.
+   */
+  active: boolean;
   created_at: string;
 };
 

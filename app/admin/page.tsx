@@ -29,7 +29,7 @@ export default async function AdminPage() {
     await Promise.all([
     supabase
       .from("profiles")
-      .select("id, email, role, created_at")
+      .select("id, email, role, active, created_at")
       .order("created_at", { ascending: true })
       .returns<Profile[]>(),
     supabase
@@ -74,8 +74,8 @@ export default async function AdminPage() {
           Përdoruesit
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          Të gjitha llogaritë e sistemit. Vetëm ti mund të hapësh e të fshish
-          llogari.
+          Të gjitha llogaritë e sistemit. Vetëm ti hap llogari të reja dhe u
+          heq hyrjen atyre që largohen.
         </p>
       </header>
 
@@ -111,7 +111,18 @@ export default async function AdminPage() {
                       }`}
                       title={eshteAktiv(profile.id) ? "Aktiv tani" : "Jo aktiv"}
                     />
-                    <span className="text-slate-900">{profile.email ?? "—"}</span>
+                    <span
+                      className={
+                        profile.active ? "text-slate-900" : "text-slate-400"
+                      }
+                    >
+                      {profile.email ?? "—"}
+                    </span>
+                    {!profile.active && (
+                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
+                        pa hyrje
+                      </span>
+                    )}
                   </div>
                 </td>
                 <td className="p-4">
@@ -142,6 +153,7 @@ export default async function AdminPage() {
                     termine={termineCounts.get(profile.id) ?? 0}
                     shenime={noteCounts.get(profile.id) ?? 0}
                     vetja={profile.id === admin.id}
+                    aktiv={profile.active}
                   />
                 </td>
               </tr>
@@ -151,6 +163,13 @@ export default async function AdminPage() {
       </div>
 
       <p className="mt-4 text-sm text-slate-500">
+        Kur i heq hyrjen dikujt, llogaria e tij fshihet dhe nuk hyn më — por
+        terminet, shënimet dhe orët e tij mbeten, dhe vazhdojnë të mbajnë
+        emrin e tij. Prandaj rreshti nuk zhduket nga kjo listë; shënohet{" "}
+        <em>pa hyrje</em>.
+      </p>
+
+      <p className="mt-3 text-sm text-slate-500">
         Rolet ndryshohen vetëm nga paneli i Supabase-it (Table Editor →{" "}
         <code className="rounded bg-slate-100 px-1">profiles</code>), që askush
         të mos e bëjë dot veten admin nga aplikacioni. Vlerat:{" "}

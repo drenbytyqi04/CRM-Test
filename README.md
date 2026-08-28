@@ -81,7 +81,8 @@ në Supabase kliko **Table Editor** në menynë e majtë.
 Skeda `supabase/schema.sql` mbetet si dëshmi e asaj që u ekzekutua. Do të të
 duhej vetëm nëse një ditë krijon një projekt tjetër: e ngjit atje te **SQL
 Editor** → **Run**. Radha e skedave për një projekt të ri është:
-`schema.sql` → `admin.sql` → `roles.sql` → `nr.sql` → `activity.sql`.
+`schema.sql` → `admin.sql` → `roles.sql` → `nr.sql` → `activity.sql` →
+`fshirja.sql` → `llogari-pa-humbje.sql`.
 
 > **E ZBATUAR ✅** — `supabase/mbetur.sql` u ekzekutua më 27 gusht 2026 mbi
 > projektin `crm-test`: 16 terminet morën numrat 1000–1015 dhe rregulli
@@ -237,7 +238,7 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
 | Shkruan shënime | ✅ | ✅ | ✅ |
 | Cakton dhe ndryshon termine | ❌ | ✅ | ✅ |
 | Fshin termine | ❌ | ✅ | ✅ |
-| Hap dhe fshin llogari | ❌ | ❌ | ✅ |
+| Hap llogari dhe heq hyrjen | ❌ | ❌ | ✅ |
 | Faqja *Përdoruesit* dhe *Aktiviteti* | ❌ | ❌ | ✅ |
 
 Përdoruesi i thjeshtë e hap çdo termin dhe e lexon të plotë — personalinë, të
@@ -246,10 +247,11 @@ regjistrohet përmes shënimeve.
 
 Administratori ka edhe:
 
-- **Fshirjen e llogarive** — vetëm admini. Dritarja e konfirmimit tregon sa
-  termine e shënime ka ajo llogari dhe jep dy rrugë: t'i marrësh te vetja, ose
-  t'i fshish bashkë me të. Tri gjëra ndalohen: të fshish veten, adminin e
-  fundit, ose dikë pa qenë admin.
+- **Heqjen e hyrjes** — vetëm admini. Llogaria fshihet dhe personi nuk hyn
+  më, por **asnjë e dhënë e tij nuk humbet**: terminet që ka caktuar,
+  shënimet që ka shkruar dhe orët e tij mbeten, dhe vazhdojnë të mbajnë emrin
+  e tij. Rreshti mbetet në listë, i shënuar *pa hyrje*. Tri gjëra ndalohen:
+  ta heqësh veten, adminin e fundit, ose ta bësh pa qenë admin.
 - **Përdoruesit** — të gjitha llogaritë, rolet, koha aktive sot dhe sa termine e
   shënime ka secili.
 - **Aktiviteti** — koha e secilit për 7 ditët e fundit, me pikë jeshile për
@@ -277,7 +279,7 @@ app/
   admin/page.tsx            Faqja e administratorit: të gjithë përdoruesit
   admin/actions.ts          Hapja e llogarive (vetëm admini)
   admin/user-form.tsx       Paneli "Hap llogari të re"
-  admin/delete-user.tsx     Fshirja e një llogarie, me konfirmim
+  admin/delete-user.tsx     Heqja e hyrjes së një llogarie
   admin/aktiviteti/page.tsx Koha e secilit përdorues, ditë pas dite
   dashboard/page.tsx        Dashboard-i: numrat dhe grafikët
   profili/page.tsx          Profili im: koha, puna dhe lejet
@@ -309,6 +311,7 @@ supabase/
   roles.sql                 Tri rolet dhe lejet
   nr.sql                    Numri i shkurtër i terminit (#1000)
   fshirja.sql               Lejon fshirjen e termineve (menaxher + admin)
+  llogari-pa-humbje.sql     Të dhënat mbijetojnë fshirjen e një llogarie
   mbetur.sql                Të dyja migrimet e fundit, në një skedë
   activity.sql              Përcjellja e kohës
 ```
