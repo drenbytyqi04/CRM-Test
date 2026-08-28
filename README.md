@@ -237,6 +237,7 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
 | Shkruan shënime | ✅ | ✅ | ✅ |
 | Cakton dhe ndryshon termine | ❌ | ✅ | ✅ |
 | Fshin termine | ❌ | ✅ | ✅ |
+| Hap dhe fshin llogari | ❌ | ❌ | ✅ |
 | Faqja *Përdoruesit* dhe *Aktiviteti* | ❌ | ❌ | ✅ |
 
 Përdoruesi i thjeshtë e hap çdo termin dhe e lexon të plotë — personalinë, të
@@ -245,6 +246,10 @@ regjistrohet përmes shënimeve.
 
 Administratori ka edhe:
 
+- **Fshirjen e llogarive** — vetëm admini. Dritarja e konfirmimit tregon sa
+  termine e shënime ka ajo llogari dhe jep dy rrugë: t'i marrësh te vetja, ose
+  t'i fshish bashkë me të. Tri gjëra ndalohen: të fshish veten, adminin e
+  fundit, ose dikë pa qenë admin.
 - **Përdoruesit** — të gjitha llogaritë, rolet, koha aktive sot dhe sa termine e
   shënime ka secili.
 - **Aktiviteti** — koha e secilit për 7 ditët e fundit, me pikë jeshile për
@@ -272,6 +277,7 @@ app/
   admin/page.tsx            Faqja e administratorit: të gjithë përdoruesit
   admin/actions.ts          Hapja e llogarive (vetëm admini)
   admin/user-form.tsx       Paneli "Hap llogari të re"
+  admin/delete-user.tsx     Fshirja e një llogarie, me konfirmim
   admin/aktiviteti/page.tsx Koha e secilit përdorues, ditë pas dite
   dashboard/page.tsx        Dashboard-i: numrat dhe grafikët
   profili/page.tsx          Profili im: koha, puna dhe lejet

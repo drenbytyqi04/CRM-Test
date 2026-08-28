@@ -1,4 +1,5 @@
 import UserForm from "./user-form";
+import DeleteUser from "./delete-user";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
 import {
@@ -18,7 +19,7 @@ export const dynamic = "force-dynamic";
 export default async function AdminPage() {
   // Kush s'është admin, dërgohet te faqja kryesore.
   // Vetëm admini e hap këtë faqe.
-  await requireAdmin();
+  const admin = await requireAdmin();
   const supabase = await createClient();
 
   // Dita e sotme sipas orës së Beogradit, si te funksioni në bazë.
@@ -73,7 +74,8 @@ export default async function AdminPage() {
           Përdoruesit
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          Të gjitha llogaritë e sistemit. Vetëm ti mund të hapësh të reja.
+          Të gjitha llogaritë e sistemit. Vetëm ti mund të hapësh e të fshish
+          llogari.
         </p>
       </header>
 
@@ -95,6 +97,7 @@ export default async function AdminPage() {
               <th className="p-4 font-medium">Termine</th>
               <th className="p-4 font-medium">Shënime</th>
               <th className="p-4 font-medium">Regjistruar</th>
+              <th className="p-4 font-medium"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200">
@@ -131,6 +134,15 @@ export default async function AdminPage() {
                 </td>
                 <td className="p-4 text-slate-500">
                   {formatDate(profile.created_at)}
+                </td>
+                <td className="p-4 text-right align-top">
+                  <DeleteUser
+                    userId={profile.id}
+                    email={profile.email ?? "—"}
+                    termine={termineCounts.get(profile.id) ?? 0}
+                    shenime={noteCounts.get(profile.id) ?? 0}
+                    vetja={profile.id === admin.id}
+                  />
                 </td>
               </tr>
             ))}
