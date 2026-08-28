@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { deleteUserAccount } from "./actions";
 import type { FormState } from "@/lib/types";
+import { DICTS, type Lang } from "@/lib/i18n";
 
 /**
  * Fshirja e një llogarie — vetëm te faqja e adminit.
@@ -19,6 +20,7 @@ export default function DeleteUser({
   shenime,
   vetja,
   aktiv,
+  lang,
 }: {
   userId: string;
   email: string;
@@ -28,7 +30,10 @@ export default function DeleteUser({
   vetja: boolean;
   /** A hyn ende ky person? */
   aktiv: boolean;
+  lang: Lang;
 }) {
+  // Fjalori merret këtu: funksionet e tij nuk kalojnë dot nga serveri.
+  const t = DICTS[lang];
   const [pyet, setPyet] = useState(false);
   const [state, action, pending] = useActionState<FormState, FormData>(
     deleteUserAccount,
@@ -36,11 +41,11 @@ export default function DeleteUser({
   );
 
   if (vetja) {
-    return <span className="text-xs text-slate-400">ti</span>;
+    return <span className="text-xs text-slate-400">{t.usersYou}</span>;
   }
 
   if (!aktiv || state.ok) {
-    return <span className="text-xs text-slate-400">pa hyrje</span>;
+    return <span className="text-xs text-slate-400">{t.usersNoAccess}</span>;
   }
 
   if (!pyet) {
@@ -50,7 +55,7 @@ export default function DeleteUser({
         onClick={() => setPyet(true)}
         className="text-xs text-red-700 underline underline-offset-2 transition hover:text-red-900"
       >
-        Hiqi hyrjen
+        {t.usersRemoveAccess}
       </button>
     );
   }
@@ -72,15 +77,11 @@ export default function DeleteUser({
         className="fixed inset-x-4 top-1/3 z-50 mx-auto max-w-sm rounded-xl border border-slate-200 bg-white p-5 text-left shadow-xl"
       >
         <p className="text-base font-semibold text-slate-900">
-          T&apos;ia heq hyrjen {email}?
+          {t.usersRemoveAsk(email)}
         </p>
 
         <p className="mt-2 text-sm text-slate-600">
-          Nuk hyn më te CRM-ja. Por{" "}
-          <strong>
-            {termine} terminet dhe {shenime} shënimet
-          </strong>{" "}
-          e tij mbeten, dhe vazhdojnë të mbajnë emrin e tij.
+          {t.usersRemoveExplain(termine, shenime)}
         </p>
 
         <div className="mt-5 flex flex-col gap-2">
@@ -91,7 +92,7 @@ export default function DeleteUser({
               disabled={pending}
               className="w-full rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:opacity-50"
             >
-              {pending ? "Duke e hequr..." : "Po, hiqia hyrjen"}
+              {pending ? t.usersRemoving : t.usersRemoveConfirm}
             </button>
           </form>
 
@@ -101,7 +102,7 @@ export default function DeleteUser({
             disabled={pending}
             className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
           >
-            Anulo
+            {t.cancel}
           </button>
         </div>
 

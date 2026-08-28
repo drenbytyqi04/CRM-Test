@@ -3,13 +3,16 @@
 import { useActionState, useEffect, useRef } from "react";
 import { createUserAccount } from "./actions";
 import type { FormState } from "@/lib/types";
+import { DICTS, type Lang } from "@/lib/i18n";
 
 const label = "mb-1 block text-sm font-medium text-slate-700";
 const input =
   "w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none placeholder:text-slate-400 focus:border-slate-900";
 
 /** Paneli me të cilin administratori hap një llogari të re. */
-export default function UserForm() {
+export default function UserForm({ lang }: { lang: Lang }) {
+  // Fjalori merret këtu: funksionet e tij nuk kalojnë dot nga serveri.
+  const t = DICTS[lang];
   const formRef = useRef<HTMLFormElement>(null);
   const [state, action, pending] = useActionState<FormState, FormData>(
     createUserAccount,
@@ -28,7 +31,7 @@ export default function UserForm() {
   return (
     <details className="mb-6 rounded-xl border border-slate-200 bg-white">
       <summary className="cursor-pointer px-5 py-4 text-sm font-medium text-slate-700 select-none">
-        Hap llogari të re
+        {t.userNewPanel}
       </summary>
 
       <form
@@ -38,7 +41,7 @@ export default function UserForm() {
       >
         <div className="grid gap-4 sm:grid-cols-3">
           <label className="block">
-            <span className={label}>Emaili</span>
+            <span className={label}>{t.userNewEmail}</span>
             <input
               name="email"
               type="email"
@@ -50,26 +53,26 @@ export default function UserForm() {
           </label>
 
           <label className="block">
-            <span className={label}>Fjalëkalimi i parë</span>
+            <span className={label}>{t.userNewPassword}</span>
             <input
               name="password"
               type="text"
               required
               minLength={8}
               autoComplete="off"
-              placeholder="të paktën 8 shenja"
+              placeholder={t.userNewPasswordPlaceholder}
               className={input}
             />
             <span className="mt-1 block text-xs text-slate-500">
-              Ia jep vetë njeriut; le ta ndryshojë më pas.
+              {t.userNewPasswordHint}
             </span>
           </label>
 
           <label className="block">
-            <span className={label}>Roli</span>
+            <span className={label}>{t.userNewRole}</span>
             <select name="role" defaultValue="user" className={input}>
-              <option value="user">Përdorues — vetëm lexon dhe shënon</option>
-              <option value="manager">Menaxher — cakton termine</option>
+              <option value="user">{t.userNewRoleUser}</option>
+              <option value="manager">{t.userNewRoleManager}</option>
             </select>
           </label>
         </div>
@@ -80,7 +83,7 @@ export default function UserForm() {
             disabled={pending}
             className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:opacity-50"
           >
-            {pending ? "Duke hapur..." : "Hap llogarinë"}
+            {pending ? t.userNewCreating : t.userNewButton}
           </button>
 
           {state.error && (
@@ -93,11 +96,7 @@ export default function UserForm() {
           )}
         </div>
 
-        <p className="mt-4 text-xs text-slate-500">
-          Roli <strong>admin</strong> nuk jepet nga këtu. Një admin i dytë
-          caktohet me dorë te Supabase → Table Editor → <code>profiles</code>,
-          që një llogari admin e vjedhur të mos krijojë dot të tjera si vetja.
-        </p>
+        <p className="mt-4 text-xs text-slate-500">{t.userNewAdminNote}</p>
       </form>
     </details>
   );

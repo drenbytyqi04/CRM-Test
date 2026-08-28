@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import type { FormState } from "@/lib/types";
+import { getDict } from "@/lib/i18n-server";
 
 /** Rolet që mund të jepen nga aplikacioni. */
 const ROLET_E_LEJUARA = ["user", "manager"] as const;
@@ -28,6 +29,7 @@ export async function createUserAccount(
   formData: FormData
 ): Promise<FormState> {
   await requireAdmin();
+  const t = await getDict();
 
   const email = String(formData.get("email") ?? "")
     .trim()
@@ -36,16 +38,16 @@ export async function createUserAccount(
   const role = String(formData.get("role") ?? "user");
 
   if (!email || !password) {
-    return { error: "Plotëso emailin dhe fjalëkalimin." };
+    return { error: t.errFillBoth };
   }
   if (!looksLikeEmail(email)) {
-    return { error: "Emaili nuk duket i saktë (shembull: emri@shembull.com)." };
+    return { error: t.errBadEmail };
   }
   if (password.length < 8) {
-    return { error: "Fjalëkalimi duhet të ketë të paktën 8 shenja." };
+    return { error: t.errPasswordShort };
   }
   if (!ROLET_E_LEJUARA.includes(role as (typeof ROLET_E_LEJUARA)[number])) {
-    return { error: "Roli i zgjedhur nuk njihet." };
+    return { error: t.errUnknownRole };
   }
 
   let supabase;
@@ -66,12 +68,12 @@ export async function createUserAccount(
   if (error) {
     const m = error.message.toLowerCase();
     if (m.includes("already") && m.includes("registered")) {
-      return { error: "Ky email ka tashmë një llogari." };
+      return { error: t.errEmailExists };
     }
-    return { error: `Llogaria nuk u hap: ${error.message}` };
+    return { error: `${t.errAccountNotCreated}: ${error.message}` };
   }
   if (!data.user) {
-    return { error: "Llogaria nuk u hap: baza nuk ktheu asnjë llogari." };
+    return { error: t.errAccountNotCreated };
   }
 
   // Profilin e krijon vetvetiu trigger-i `handle_new_user()`, me rolin
@@ -82,19 +84,16 @@ export async function createUserAccount(
     .upsert({ id: data.user.id, email, role }, { onConflict: "id" });
 
   if (gabimRoli) {
-    return {
-      error:
-        `Llogaria u hap, por roli nuk u vendos: ${gabimRoli.message}. ` +
-        "Ndryshoje rolin te tabela `profiles`.",
-    };
+    return { error: t.errRoleNotSet(gabimRoli.message) };
   }
 
   revalidatePath("/admin");
   return {
     ok: true,
-    message: `Llogaria ${email} u hap si ${
-      role === "manager" ? "menaxher" : "përdorues"
-    }. Jepi fjalëkalimin dhe le ta ndryshojë vetë më pas.`,
+    message: t.okAccountCreated(
+      email,
+      role === "manager" ? t.roleManager : t.roleUser
+    ),
   };
 }
 
@@ -120,11 +119,12 @@ export async function deleteUserAccount(
   formData: FormData
 ): Promise<FormState> {
   const admin = await requireAdmin();
+  const t = await getDict();
 
   const userId = String(formData.get("userId") ?? "");
-  if (!userId) return { error: "Mungon llogaria." };
+  if (!userId) return { error: t.errAccountMissing };
   if (userId === admin.id) {
-    return { error: "Nuk e heq dot hyrjen tënde." };
+    return { error: t.errCannotRemoveSelf };
   }
 
   const supabase = await createClient();
@@ -140,8 +140,8 @@ export async function deleteUserAccount(
       active: boolean;
     }>();
 
-  if (!profili) return { error: "Kjo llogari nuk u gjet." };
-  if (!profili.active) return { error: "Kjo llogari s'ka hyrje as tani." };
+  if (!profili) return { error: t.errAccountNotFound };
+  if (!profili.active) return { error: t.errAlreadyNoAccess };
 
   // Vetëm adminët që ende hyjnë numërohen: një admin pa hyrje nuk e shpëton
   // dot sistemin nëse mbetet i vetmi.
@@ -153,7 +153,7 @@ export async function deleteUserAccount(
       .eq("active", true);
 
     if ((count ?? 0) <= 1) {
-      return { error: "Ky është admini i fundit — nuk hiqet dot." };
+      return { error: t.errLastAdmin };
     }
   }
 
@@ -166,7 +166,7 @@ export async function deleteUserAccount(
 
   const { error } = await sherbimi.auth.admin.deleteUser(userId);
   if (error) {
-    return { error: `Hyrja nuk u hoq: ${error.message}` };
+    return { error: `${t.errAccessNotRemoved}: ${error.message}` };
   }
 
   // Profili mbetet, i shënuar si pa hyrje, që të dhënat e tij të ruajnë
@@ -177,15 +177,9 @@ export async function deleteUserAccount(
     .eq("id", userId);
 
   if (gabimP) {
-    return {
-      error:
-        `Hyrja u hoq, por profili nuk u shënua si i mbyllur: ${gabimP.message}`,
-    };
+    return { error: t.errProfileNotMarked(gabimP.message) };
   }
 
   revalidatePath("/", "layout");
-  return {
-    ok: true,
-    message: `${profili.email ?? "Llogaria"} nuk hyn më. Të dhënat e saj mbetën.`,
-  };
+  return { ok: true, message: t.okAccessRemoved(profili.email ?? "") };
 }

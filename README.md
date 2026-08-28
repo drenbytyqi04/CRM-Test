@@ -192,6 +192,10 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
 - **Lista:** një tabelë e ngjeshur — *Nr · Emri · Data e terminit · Sigurimi ·
   Pers. · Kontr. · Shën. · Statusi* — ku çdo termin zë një rresht të vetëm.
   Në ekran të vogël kolonat dytësore fshihen vetvetiu.
+- **Gjuha:** CRM-ja flet **gjermanisht** dhe **shqip**. Gjermanishtja është e
+  parazgjedhur; çelësi *Deutsch / Shqip* rri poshtë te menyja anash dhe e
+  ndryshon gjithë faqen menjëherë. Zgjedhja ruhet te shfletuesi dhe mbetet
+  edhe pas daljes.
 - **Filtro:** menyja *Statusi* lart. Përmbledhja tregon sa termine, sa u
   mbajtën dhe sa kontrata u mbyllën.
 - **Hap një termin:** kliko mbi emrin. Faqja ndahet në pesë skeda —
@@ -287,6 +291,8 @@ app/
   status-filter.tsx         Menyja e filtrit sipas statusit
   sidebar.tsx               Menyja anash: lidhjet, roli dhe "Dil"
   sidebar-link.tsx          Një lidhje e menysë, që ndriçon te faqja e vet
+  language-switcher.tsx     Çelësi Deutsch / Shqip
+  language-action.ts        Ruan gjuhën e zgjedhur te cookie-ja
   terminet/
     appointment-page.tsx    Faqja e një termini (e përbashkët për tri rolet)
     tabs.tsx                Skedat e faqes së terminit
@@ -304,6 +310,8 @@ lib/
   supabase/admin.ts         Lidhja me çelësin sekret — vetëm për hapjen e llogarive
   auth.ts                   "Kush është i kyçur?" dhe "çfarë roli ka?"
   types.ts                  Tipat, statuset dhe ndihmësit e vegjël
+  i18n.ts                   Fjalori: çdo tekst, gjermanisht dhe shqip
+  i18n-server.ts            Lexon gjuhën e zgjedhur nga cookie-ja
 proxy.ts                    Ndalon të pakyçurit para se të hapin faqet
 supabase/
   schema.sql                Tabelat `appointments` dhe `notes`
@@ -422,7 +430,38 @@ dhe *trajtim* — mund të shoqërojnë çdo status.
 **Kontratat nuk fryhen dot:** baza refuzon një numër më të madh se numri i
 personave të terminit.
 
-## Pjesa 8 — Kur diçka nuk shkon
+## Pjesa 8 — Dy gjuhët
+
+Çdo tekst që sheh njeriu rri te `lib/i18n.ts`, jo nëpër faqe. Aty janë dy
+fjalorë: `de` (gjermanisht) dhe `sq` (shqip).
+
+**Si punon.** Gjuha ruhet te një cookie e quajtur `gjuha`. Serveri e lexon me
+`getI18n()` te `lib/i18n-server.ts` dhe ia jep faqes fjalorin e duhur. Nëse
+askush s'ka zgjedhur ende, hyn gjermanishtja.
+
+**Pse kështu dhe jo `/de/...` e `/sq/...`.** Ashtu do të dyfishoheshin të gjitha
+adresat, dhe çdo lidhje do të duhej të mbante gjuhën me vete. Me cookie, adresa
+mbetet një e vetme.
+
+**Përkthimi nuk harrohet dot.** Tipi `Dict` merr formën e gjermanishtes. Nëse
+shtohet një çelës i ri atje dhe shqipja mbetet pa të, `npx tsc --noEmit` ndalet
+me gabim — pra mungesa kapet para se të dalë në ekran, jo nga përdoruesi.
+
+**Njëjës dhe shumës.** Numrat kalojnë nga ndihmësi `sasi()`, që zgjedh formën:
+*1 Termin* / *2 Termine*, *1 termin* / *2 termine*. Pa të do të dilte
+«1 Termine».
+
+**Datat.** Secila gjuhë ka formatin e vet (`de-DE`, `sq-AL`), por zona mbetet
+gjithmonë ajo e Beogradit — gjuha ndryshon fjalët e muajve, jo orën.
+
+**Kujdes te komponentët e shfletuesit.** Fjalori përmban funksione, dhe
+funksionet nuk kalojnë dot nga serveri te shfletuesi. Prandaj komponentëve
+`"use client"` u jepet vetëm kodi i gjuhës (`lang`), dhe ata e marrin fjalorin
+vetë me `DICTS[lang]`.
+
+---
+
+## Pjesa 9 — Kur diçka nuk shkon
 
 | Problemi | Zgjidhja |
 | --- | --- |

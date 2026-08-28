@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { updateNote } from "@/app/actions";
 import { type FormState, type Note } from "@/lib/types";
+import { DICTS, type Lang } from "@/lib/i18n";
 
 /**
  * Një rresht i tabelës së shënimeve: përdoruesi, teksti, data.
@@ -19,13 +20,17 @@ export default function NoteRow({
   canEdit,
   createdLabel,
   updatedLabel,
+  lang,
 }: {
   note: Note;
   autori: string;
   canEdit: boolean;
   createdLabel: string;
   updatedLabel: string | null;
+  lang: Lang;
 }) {
+  // Fjalori merret këtu: funksionet e tij nuk kalojnë dot nga serveri.
+  const t = DICTS[lang];
   const [editing, setEditing] = useState(false);
   const [state, action, pending] = useActionState<FormState, FormData>(
     updateNote,
@@ -61,14 +66,14 @@ export default function NoteRow({
                 disabled={pending}
                 className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-slate-700 disabled:opacity-50"
               >
-                {pending ? "Duke ruajtur..." : "Ruaj"}
+                {pending ? t.saving : t.save}
               </button>
               <button
                 type="button"
                 onClick={() => setEditing(false)}
                 className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 transition hover:bg-slate-50"
               >
-                Anulo
+                {t.cancel}
               </button>
               {state.error && (
                 <p className="text-sm text-red-600" role="alert">
@@ -86,7 +91,7 @@ export default function NoteRow({
                 onClick={() => setEditing(true)}
                 className="shrink-0 text-xs text-slate-500 underline transition hover:text-slate-900"
               >
-                Ndrysho
+                {t.noteEdit}
               </button>
             )}
           </div>
@@ -97,7 +102,7 @@ export default function NoteRow({
         {createdLabel}
         {updatedLabel && (
           <span className="mt-0.5 block text-xs text-slate-400">
-            ndryshuar {updatedLabel}
+            {t.noteChanged} {updatedLabel}
           </span>
         )}
       </td>

@@ -1,31 +1,39 @@
+import type { Dict } from "./i18n";
 
-/** Gjinia. */
+/** Gjinia. Emrat e lexueshëm janë te `lib/i18n.ts`. */
 export const GENDERS = [
-  { value: "f", label: "Femër" },
-  { value: "m", label: "Mashkull" },
+  { value: "f", key: "genderF" },
+  { value: "m", key: "genderM" },
 ] as const;
 
-export function genderLabel(value: string | null): string {
-  return GENDERS.find((g) => g.value === value)?.label ?? "—";
+export function genderLabel(value: string | null, t: Dict): string {
+  const g = GENDERS.find((x) => x.value === value);
+  return g ? t[g.key] : "—";
 }
 
-/** Statuset e një termini. Vetëm NJË prej tyre vlen njëherësh. */
+/**
+ * Statuset e një termini. Vetëm NJË prej tyre vlen njëherësh.
+ *
+ * Këtu rrinë vetëm vlerat që shkojnë te baza. Emrat e lexueshëm janë te
+ * `lib/i18n.ts`, sepse ndryshojnë me gjuhën.
+ */
 export const APPOINTMENT_STATUSES = [
-  { value: "open", label: "I hapur" },
-  { value: "held", label: "U mbajt" },
-  { value: "cancelled", label: "I anuluar" },
-  { value: "not_reached", label: "Nuk u arrit" },
-  { value: "refused", label: "S'deshi termin" },
-  { value: "negative", label: "Negativ" },
-  { value: "not_home", label: "S'ishte në shtëpi" },
-  { value: "address_not_found", label: "Adresa s'u gjet" },
-  { value: "advisor_failed", label: "S'u këshillua dot" },
+  { value: "open", key: "statusOpen" },
+  { value: "held", key: "statusHeld" },
+  { value: "cancelled", key: "statusCancelled" },
+  { value: "not_reached", key: "statusNotReached" },
+  { value: "refused", key: "statusRefused" },
+  { value: "negative", key: "statusNegative" },
+  { value: "not_home", key: "statusNotHome" },
+  { value: "address_not_found", key: "statusAddressNotFound" },
+  { value: "advisor_failed", key: "statusAdvisorFailed" },
 ] as const;
 
 export type AppointmentStatus = (typeof APPOINTMENT_STATUSES)[number]["value"];
 
-export function appointmentStatusLabel(value: string): string {
-  return APPOINTMENT_STATUSES.find((s) => s.value === value)?.label ?? value;
+export function appointmentStatusLabel(value: string, t: Dict): string {
+  const s = APPOINTMENT_STATUSES.find((x) => x.value === value);
+  return s ? t[s.key] : value;
 }
 
 /** Ngjyrat e etiketës për statusin e terminit. */
@@ -198,9 +206,14 @@ export function defaultAppointmentSlot(): string {
   )}T10:00`;
 }
 
-/** Data dhe ora e terminit për ta lexuar njeriu, në orën e Beogradit. */
-export function formatBeograd(iso: string): string {
-  return new Intl.DateTimeFormat("sq-AL", {
+/**
+ * Data dhe ora e terminit për ta lexuar njeriu, në orën e Beogradit.
+ *
+ * `locale` vjen nga gjuha e zgjedhur: "28. August 2026" ose "28 gusht 2026".
+ * Zona kohore mbetet gjithmonë Beogradi, pavarësisht gjuhës.
+ */
+export function formatBeograd(iso: string, locale = "de-DE"): string {
+  return new Intl.DateTimeFormat(locale, {
     timeZone: TZ,
     day: "numeric",
     month: "long",
@@ -238,15 +251,16 @@ export type Profile = {
   created_at: string;
 };
 
-/** Emrat e roleve në shqip. */
-export const ROLE_LABELS: Record<string, string> = {
-  user: "Përdorues",
-  manager: "Menaxher",
-  admin: "Admin",
-};
+/** Emrat e roleve. Teksti vjen nga fjalori, sipas gjuhës. */
+const ROLE_KEYS = {
+  user: "roleUser",
+  manager: "roleManager",
+  admin: "roleAdmin",
+} as const;
 
-export function roleLabel(role: string): string {
-  return ROLE_LABELS[role] ?? role;
+export function roleLabel(role: string, t: Dict): string {
+  const k = ROLE_KEYS[role as keyof typeof ROLE_KEYS];
+  return k ? t[k] : role;
 }
 
 /** Ngjyrat e etiketës së rolit. */
@@ -310,7 +324,7 @@ export function isRecent(iso: string | undefined | null, minutes = 5): boolean {
   return Date.now() - new Date(iso).getTime() < minutes * 60 * 1000;
 }
 
-/** Sekondat në formë të lexueshme: "2h 15min", "45min", "—". */
+/** Sekondat në formë të lexueshme: "2h 15min", "45min", "—". Njësoj në të dyja gjuhët. */
 export function formatDuration(seconds: number): string {
   if (!seconds || seconds < 60) return seconds > 0 ? "< 1min" : "—";
   const minutes = Math.round(seconds / 60);
@@ -322,8 +336,8 @@ export function formatDuration(seconds: number): string {
 }
 
 /** Data e shkurtër e një dite, p.sh. "e mar 25/8". */
-export function formatDayLabel(day: string): string {
-  return new Intl.DateTimeFormat("sq-AL", {
+export function formatDayLabel(day: string, locale = "de-DE"): string {
+  return new Intl.DateTimeFormat(locale, {
     timeZone: TZ,
     weekday: "short",
     day: "numeric",
@@ -338,8 +352,8 @@ export function formatDayShort(day: string): string {
 }
 
 /** Vetëm data, pa orë: "28 janar 1985". Për datëlindje e ngjashme. */
-export function formatDateOnly(day: string): string {
-  return new Date(`${day.slice(0, 10)}T12:00:00Z`).toLocaleDateString("sq-AL", {
+export function formatDateOnly(day: string, locale = "de-DE"): string {
+  return new Date(`${day.slice(0, 10)}T12:00:00Z`).toLocaleDateString(locale, {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -353,8 +367,8 @@ export function formatDateOnly(day: string): string {
  * e ndërton faqen — dhe serverat e Vercel-it punojnë me orën botërore (UTC),
  * pra ora e krijimit shfaqej 1–2 orë prapa.
  */
-export function formatDate(iso: string): string {
-  return new Intl.DateTimeFormat("sq-AL", {
+export function formatDate(iso: string, locale = "de-DE"): string {
+  return new Intl.DateTimeFormat(locale, {
     timeZone: TZ,
     day: "numeric",
     month: "long",

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BarRow, Card, DayBars, StatTile } from "@/app/stats";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
+import { getI18n } from "@/lib/i18n-server";
 import {
   APPOINTMENT_STATUSES,
   APPOINTMENT_STATUS_CLASSES,
@@ -20,6 +21,7 @@ export const dynamic = "force-dynamic";
 const DITE = 14;
 
 export default async function DashboardPage() {
+  const { t, locale } = await getI18n();
   const user = await requireUser();
   const supabase = await createClient();
 
@@ -99,62 +101,61 @@ export default async function DashboardPage() {
     <main className="mx-auto w-full max-w-5xl px-5 py-10">
       <header className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-          Dashboard
+          {t.dashTitle}
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          Pamja e përgjithshme e termineve. Numrat llogariten sa herë hapet
-          faqja.
+          {t.dashSubtitle}
         </p>
       </header>
 
       {terminetResult.error && (
         <p className="mb-6 rounded-lg bg-red-50 p-4 text-sm text-red-700">
-          Nuk u lexuan dot terminet: {terminetResult.error.message}
+          {t.listLoadError}: {terminetResult.error.message}
         </p>
       )}
 
       {/* ---------- Numrat e mëdhenj ---------- */}
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatTile
-          etiketa="Termine gjithsej"
+          etiketa={t.dashTotal}
           vlera={terminet.length}
-          nen={`${persona} persona`}
+          nen={t.dashPersons(persona)}
         />
         <StatTile
-          etiketa="U mbajtën"
+          etiketa={t.dashHeld}
           vlera={uMbajten}
           nen={
             terminet.length > 0
-              ? `${Math.round((uMbajten / terminet.length) * 100)}% e të gjithave`
-              : "—"
+              ? t.dashOfAll(Math.round((uMbajten / terminet.length) * 100))
+              : t.noValue
           }
         />
         <StatTile
-          etiketa="Kontrata të mbyllura"
+          etiketa={t.dashContracts}
           vlera={kontrata}
-          nen={`${normaMbylljes}% e termineve të mbajtura dhanë kontratë`}
+          nen={t.dashCloseRate(normaMbylljes)}
         />
         <StatTile
-          etiketa="Të ardhshme"
+          etiketa={t.dashUpcoming}
           vlera={teArdhshme.length}
-          nen={sotTermine > 0 ? `${sotTermine} sot` : "asnjë sot"}
+          nen={sotTermine > 0 ? t.dashTodayN(sotTermine) : t.dashNoneToday}
         />
       </div>
 
       <div className="mb-6 grid gap-4 lg:grid-cols-2">
         {/* ---------- Statuset ---------- */}
         <Card
-          titull="Sipas statusit"
-          nen="Çdo termin ka vetëm një status njëherësh."
+          titull={t.dashByStatus}
+          nen={t.dashByStatusHint}
         >
           {sipasStatusit.length === 0 ? (
-            <p className="text-sm text-slate-500">Ende s&apos;ka termine.</p>
+            <p className="text-sm text-slate-500">{t.dashNoAppointments}</p>
           ) : (
             <div>
               {sipasStatusit.map((s) => (
                 <BarRow
                   key={s.value}
-                  etiketa={s.label}
+                  etiketa={t[s.key]}
                   vlera={s.sa}
                   maks={maksStatus}
                   perqindje={Math.round((s.sa / terminet.length) * 100)}
@@ -174,8 +175,8 @@ export default async function DashboardPage() {
 
         {/* ---------- Ditët e fundit ---------- */}
         <Card
-          titull="Të regjistruar sipas ditës"
-          nen={`${DITE} ditët e fundit, sipas orës së Beogradit.`}
+          titull={t.dashByDay}
+          nen={t.dashByDayHint(DITE)}
         >
           <DayBars dite={perDite} />
         </Card>
@@ -183,37 +184,37 @@ export default async function DashboardPage() {
 
       {/* ---------- Terminet e radhës ---------- */}
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card titull="Terminet e radhës" nen="Pesë të parët që vijnë.">
+        <Card titull={t.dashNext} nen={t.dashNextHint}>
           {teArdhshme.length === 0 ? (
             <p className="text-sm text-slate-500">
-              Asnjë termin i hapur në të ardhmen.
+              {t.dashNoUpcoming}
             </p>
           ) : (
             <ul className="divide-y divide-slate-100">
               {[...teArdhshme]
                 .sort((a, b) => a.scheduled_at.localeCompare(b.scheduled_at))
                 .slice(0, 5)
-                .map((t) => (
-                  <li key={t.id}>
+                .map((termini) => (
+                  <li key={termini.id}>
                     <Link
-                      href={appointmentPath(t, user.role)}
+                      href={appointmentPath(termini, user.role)}
                       className="-mx-2 flex items-center justify-between gap-3 rounded-lg px-2 py-2.5 transition hover:bg-slate-50"
                     >
                       <span className="min-w-0">
                         <span className="block truncate text-sm text-slate-900">
-                          {t.nr != null && (
+                          {termini.nr != null && (
                             <span className="mr-1.5 text-slate-400">
-                              #{t.nr}
+                              #{termini.nr}
                             </span>
                           )}
-                          {t.name}
+                          {termini.name}
                         </span>
                         <span className="block truncate text-xs text-slate-500">
-                          {formatBeograd(t.scheduled_at)}
+                          {formatBeograd(termini.scheduled_at, locale)}
                         </span>
                       </span>
                       <span className="shrink-0 text-xs text-slate-400">
-                        {t.persons_count} pers.
+                        {termini.persons_count} {t.dashPersShort}
                       </span>
                     </Link>
                   </li>
@@ -225,11 +226,11 @@ export default async function DashboardPage() {
         {/* ---------- Agjentët: vetëm admini ---------- */}
         {user.isAdmin ? (
           <Card
-            titull="Sipas agjentit"
-            nen="Kush i ka caktuar terminet dhe sa kontrata dolën."
+            titull={t.dashByAgent}
+            nen={t.dashByAgentHint}
           >
             {agjentet.length === 0 ? (
-              <p className="text-sm text-slate-500">Ende s&apos;ka termine.</p>
+              <p className="text-sm text-slate-500">{t.dashNoAppointments}</p>
             ) : (
               <div>
                 {agjentet.map((a) => (
@@ -241,7 +242,7 @@ export default async function DashboardPage() {
                   />
                 ))}
                 <p className="mt-3 text-xs text-slate-500">
-                  Kontrata:{" "}
+                  {t.dashContractsLine}:{" "}
                   {agjentet
                     .map((a) => `${a.email.split("@")[0]} ${a.kontrata}`)
                     .join(" · ")}
@@ -250,13 +251,12 @@ export default async function DashboardPage() {
             )}
           </Card>
         ) : (
-          <Card titull="Shënimet" nen="Feedback-u i shkruar te terminet.">
+          <Card titull={t.dashNotes} nen={t.dashNotesHint}>
             <p className="text-3xl font-semibold tracking-tight text-slate-900">
               {notes.length}
             </p>
             <p className="mt-1 text-sm text-slate-500">
-              {notes.filter((n) => n.user_id === user.id).length} të shkruara
-              nga ti.
+              {t.dashNotesMine(notes.filter((n) => n.user_id === user.id).length)}
             </p>
           </Card>
         )}

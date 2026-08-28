@@ -2,6 +2,7 @@ import UserForm from "./user-form";
 import DeleteUser from "./delete-user";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
+import { getI18n } from "@/lib/i18n-server";
 import {
   ROLE_CLASSES,
   formatDate,
@@ -19,6 +20,7 @@ export const dynamic = "force-dynamic";
 export default async function AdminPage() {
   // Kush s'është admin, dërgohet te faqja kryesore.
   // Vetëm admini e hap këtë faqe.
+  const { t, lang, locale } = await getI18n();
   const admin = await requireAdmin();
   const supabase = await createClient();
 
@@ -71,19 +73,18 @@ export default async function AdminPage() {
       {/* Lidhjet, emaili dhe "Dil" rrinë te menyja anash. */}
       <header className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-          Përdoruesit
+          {t.usersTitle}
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          Të gjitha llogaritë e sistemit. Vetëm ti hap llogari të reja dhe u
-          heq hyrjen atyre që largohen.
+          {t.usersSubtitle}
         </p>
       </header>
 
-      <UserForm />
+      <UserForm lang={lang} />
 
       {profilesResult.error && (
         <p className="mb-6 rounded-lg bg-red-50 p-4 text-sm text-red-700">
-          Nuk u lexuan dot përdoruesit: {profilesResult.error.message}
+          {t.usersLoadError}: {profilesResult.error.message}
         </p>
       )}
 
@@ -91,12 +92,12 @@ export default async function AdminPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-slate-200 text-left text-slate-500">
-              <th className="p-4 font-medium">Emaili</th>
-              <th className="p-4 font-medium">Roli</th>
-              <th className="p-4 font-medium">Aktiv sot</th>
-              <th className="p-4 font-medium">Termine</th>
-              <th className="p-4 font-medium">Shënime</th>
-              <th className="p-4 font-medium">Regjistruar</th>
+              <th className="p-4 font-medium">{t.usersColEmail}</th>
+              <th className="p-4 font-medium">{t.usersColRole}</th>
+              <th className="p-4 font-medium">{t.usersColActiveToday}</th>
+              <th className="p-4 font-medium">{t.usersColAppointments}</th>
+              <th className="p-4 font-medium">{t.usersColNotes}</th>
+              <th className="p-4 font-medium">{t.usersColRegistered}</th>
               <th className="p-4 font-medium"></th>
             </tr>
           </thead>
@@ -109,7 +110,7 @@ export default async function AdminPage() {
                       className={`inline-block h-2 w-2 rounded-full ${
                         eshteAktiv(profile.id) ? "bg-emerald-500" : "bg-slate-300"
                       }`}
-                      title={eshteAktiv(profile.id) ? "Aktiv tani" : "Jo aktiv"}
+                      title={eshteAktiv(profile.id) ? t.usersActiveNow : t.usersNotActive}
                     />
                     <span
                       className={
@@ -120,7 +121,7 @@ export default async function AdminPage() {
                     </span>
                     {!profile.active && (
                       <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
-                        pa hyrje
+                        {t.usersNoAccess}
                       </span>
                     )}
                   </div>
@@ -131,7 +132,7 @@ export default async function AdminPage() {
                       ROLE_CLASSES[profile.role] ?? ROLE_CLASSES.user
                     }`}
                   >
-                    {roleLabel(profile.role)}
+                    {roleLabel(profile.role, t)}
                   </span>
                 </td>
                 <td className="p-4 whitespace-nowrap text-slate-600">
@@ -144,7 +145,7 @@ export default async function AdminPage() {
                   {noteCounts.get(profile.id) ?? 0}
                 </td>
                 <td className="p-4 text-slate-500">
-                  {formatDate(profile.created_at)}
+                  {formatDate(profile.created_at, locale)}
                 </td>
                 <td className="p-4 text-right align-top">
                   <DeleteUser
@@ -153,6 +154,7 @@ export default async function AdminPage() {
                     termine={termineCounts.get(profile.id) ?? 0}
                     shenime={noteCounts.get(profile.id) ?? 0}
                     vetja={profile.id === admin.id}
+                    lang={lang}
                     aktiv={profile.active}
                   />
                 </td>
@@ -163,16 +165,11 @@ export default async function AdminPage() {
       </div>
 
       <p className="mt-4 text-sm text-slate-500">
-        Kur i heq hyrjen dikujt, llogaria e tij fshihet dhe nuk hyn më — por
-        terminet, shënimet dhe orët e tij mbeten, dhe vazhdojnë të mbajnë
-        emrin e tij. Prandaj rreshti nuk zhduket nga kjo listë; shënohet{" "}
-        <em>pa hyrje</em>.
+        {t.usersKeepDataNote}
       </p>
 
       <p className="mt-3 text-sm text-slate-500">
-        Rolet ndryshohen vetëm nga paneli i Supabase-it (Table Editor →{" "}
-        <code className="rounded bg-slate-100 px-1">profiles</code>), që askush
-        të mos e bëjë dot veten admin nga aplikacioni. Vlerat:{" "}
+        {t.usersRolesNote}{" "}
         <code className="rounded bg-slate-100 px-1">user</code>,{" "}
         <code className="rounded bg-slate-100 px-1">manager</code>,{" "}
         <code className="rounded bg-slate-100 px-1">admin</code>.

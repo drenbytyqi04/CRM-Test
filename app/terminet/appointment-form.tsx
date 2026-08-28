@@ -9,6 +9,7 @@ import {
   type FormState,
 } from "@/lib/types";
 import { TabPanel } from "./tabs";
+import { DICTS, type Lang } from "@/lib/i18n";
 
 const input =
   "w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none placeholder:text-slate-400 focus:border-slate-900";
@@ -27,10 +28,14 @@ const label = "mb-1 block text-sm font-medium text-slate-700";
 export default function AppointmentForm({
   appointment,
   scheduledDefault,
+  lang,
 }: {
   appointment?: Appointment;
   scheduledDefault: string;
+  lang: Lang;
 }) {
+  // Fjalori merret këtu: funksionet e tij nuk kalojnë dot nga serveri.
+  const t = DICTS[lang];
   const formRef = useRef<HTMLFormElement>(null);
   const duke = Boolean(appointment);
 
@@ -65,12 +70,12 @@ export default function AppointmentForm({
       <TabPanel id="personalia">
       <section className="rounded-xl border border-slate-200 bg-white p-5">
         <h2 className="mb-4 text-base font-semibold text-slate-900">
-          Personalia
+          {t.tabPersonalia}
         </h2>
         <div className="grid gap-4 sm:grid-cols-3">
           <label className="block sm:col-span-2">
             <span className={label}>
-              Emri <span className="text-red-600">*</span>
+              {t.fName} <span className="text-red-600">*</span>
             </span>
             <input
               name="name"
@@ -81,7 +86,7 @@ export default function AppointmentForm({
             />
           </label>
           <label className="block">
-            <span className={label}>Numri i klientit</span>
+            <span className={label}>{t.fCustomerNumber}</span>
             <input
               name="customerNumber"
               defaultValue={appointment?.customer_number ?? ""}
@@ -90,7 +95,7 @@ export default function AppointmentForm({
           </label>
 
           <label className="block">
-            <span className={label}>Gjinia</span>
+            <span className={label}>{t.fGender}</span>
             <select
               name="gender"
               defaultValue={appointment?.gender ?? ""}
@@ -99,13 +104,13 @@ export default function AppointmentForm({
               <option value="">—</option>
               {GENDERS.map((g) => (
                 <option key={g.value} value={g.value}>
-                  {g.label}
+                  {t[g.key]}
                 </option>
               ))}
             </select>
           </label>
           <label className="block">
-            <span className={label}>Kombësia</span>
+            <span className={label}>{t.fNationality}</span>
             <input
               name="nationality"
               defaultValue={appointment?.nationality ?? ""}
@@ -113,7 +118,7 @@ export default function AppointmentForm({
             />
           </label>
           <label className="block">
-            <span className={label}>Datëlindja</span>
+            <span className={label}>{t.fBirthDate}</span>
             <input
               name="birthDate"
               type="date"
@@ -123,7 +128,7 @@ export default function AppointmentForm({
           </label>
 
           <label className="block">
-            <span className={label}>Telefoni</span>
+            <span className={label}>{t.fPhone}</span>
             <input
               name="phone"
               type="tel"
@@ -132,7 +137,7 @@ export default function AppointmentForm({
             />
           </label>
           <label className="block">
-            <span className={label}>Celulari</span>
+            <span className={label}>{t.fMobile}</span>
             <input
               name="mobile"
               type="tel"
@@ -141,7 +146,7 @@ export default function AppointmentForm({
             />
           </label>
           <label className="block">
-            <span className={label}>Emaili</span>
+            <span className={label}>{t.fEmail}</span>
             <input
               name="email"
               type="email"
@@ -151,7 +156,7 @@ export default function AppointmentForm({
           </label>
 
           <label className="block">
-            <span className={label}>Rruga</span>
+            <span className={label}>{t.fStreet}</span>
             <input
               name="street"
               defaultValue={appointment?.street ?? ""}
@@ -159,7 +164,7 @@ export default function AppointmentForm({
             />
           </label>
           <label className="block">
-            <span className={label}>Kodi postar</span>
+            <span className={label}>{t.fPostalCode}</span>
             <input
               name="postalCode"
               defaultValue={appointment?.postal_code ?? ""}
@@ -167,7 +172,7 @@ export default function AppointmentForm({
             />
           </label>
           <label className="block">
-            <span className={label}>Qyteti</span>
+            <span className={label}>{t.fCity}</span>
             <input
               name="city"
               defaultValue={appointment?.city ?? ""}
@@ -175,7 +180,7 @@ export default function AppointmentForm({
             />
           </label>
           <label className="block">
-            <span className={label}>Kantoni</span>
+            <span className={label}>{t.fCanton}</span>
             <input
               name="canton"
               defaultValue={appointment?.canton ?? ""}
@@ -191,11 +196,11 @@ export default function AppointmentForm({
       <TabPanel id="teknike">
       <section className="rounded-xl border border-slate-200 bg-white p-5">
         <h2 className="mb-4 text-base font-semibold text-slate-900">
-          Të dhëna teknike
+          {t.tabTechnical}
         </h2>
         <div className="grid gap-4 sm:grid-cols-3">
           <label className="block">
-            <span className={label}>Call center</span>
+            <span className={label}>{t.fCallCenter}</span>
             <input
               name="callCenter"
               defaultValue={appointment?.call_center ?? ""}
@@ -204,7 +209,7 @@ export default function AppointmentForm({
             />
           </label>
           <label className="block">
-            <span className={label}>Sigurimi aktual</span>
+            <span className={label}>{t.fCurrentInsurance}</span>
             <input
               name="currentInsurance"
               defaultValue={appointment?.current_insurance ?? ""}
@@ -213,7 +218,7 @@ export default function AppointmentForm({
             />
           </label>
           <label className="block">
-            <span className={label}>Gjuha</span>
+            <span className={label}>{t.fLanguage}</span>
             <input
               name="language"
               defaultValue={appointment?.language ?? ""}
@@ -222,7 +227,7 @@ export default function AppointmentForm({
             />
           </label>
           <label className="block">
-            <span className={label}>Data e telefonatës</span>
+            <span className={label}>{t.fCallDate}</span>
             <input
               name="callDate"
               type="date"
@@ -232,7 +237,7 @@ export default function AppointmentForm({
           </label>
           <label className="block">
             <span className={label}>
-              Data dhe ora e terminit <span className="text-red-600">*</span>
+              {t.fScheduledAt} <span className="text-red-600">*</span>
             </span>
             <input
               name="scheduledAt"
@@ -243,7 +248,7 @@ export default function AppointmentForm({
             />
           </label>
           <label className="block">
-            <span className={label}>Numri i personave</span>
+            <span className={label}>{t.fPersonsCount}</span>
             <input
               name="personsCount"
               type="number"
@@ -261,11 +266,11 @@ export default function AppointmentForm({
       <TabPanel id="rezultati">
       <section className="rounded-xl border border-slate-200 bg-white p-5">
         <h2 className="mb-4 text-base font-semibold text-slate-900">
-          Rezultati
+          {t.tabResult}
         </h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block">
-            <span className={label}>Statusi</span>
+            <span className={label}>{t.fStatus}</span>
             <select
               name="status"
               defaultValue={appointment?.status ?? "open"}
@@ -273,16 +278,16 @@ export default function AppointmentForm({
             >
               {APPOINTMENT_STATUSES.map((s) => (
                 <option key={s.value} value={s.value}>
-                  {s.label}
+                  {t[s.key]}
                 </option>
               ))}
             </select>
             <span className="mt-1 block text-xs text-slate-500">
-              Vetëm një status njëherësh — kështu raportet nuk bien në kundërshtim.
+              {t.statusHint}
             </span>
           </label>
           <label className="block">
-            <span className={label}>Kontrata të mbyllura</span>
+            <span className={label}>{t.fContractsClosed}</span>
             <input
               name="contractsClosed"
               type="number"
@@ -291,7 +296,7 @@ export default function AppointmentForm({
               className={input}
             />
             <span className="mt-1 block text-xs text-slate-500">
-              Nuk lejohet më shumë se numri i personave.
+              {t.contractsHint}
             </span>
           </label>
         </div>
@@ -304,7 +309,7 @@ export default function AppointmentForm({
               defaultChecked={appointment?.multi_year_contract ?? false}
               className="h-4 w-4"
             />
-            Kontratë shumëvjeçare
+            {t.fMultiYear}
           </label>
           <label className="flex items-center gap-2 text-sm text-slate-700">
             <input
@@ -313,7 +318,7 @@ export default function AppointmentForm({
               defaultChecked={appointment?.treatment ?? false}
               className="h-4 w-4"
             />
-            Trajtim
+            {t.fTreatment}
           </label>
         </div>
       </section>
@@ -324,16 +329,15 @@ export default function AppointmentForm({
       <TabPanel id="detaje">
       <section className="rounded-xl border border-slate-200 bg-white p-5">
         <h2 className="mb-1 text-base font-semibold text-slate-900">
-          Detaje të këshillimit
+          {t.tabDetails}
         </h2>
         <p className="mb-4 text-xs text-slate-500">
-          Të dhënat shëndetësore janë të ndjeshme. Plotësoji vetëm nëse i duhen
-          këshillimit dhe personi është i informuar.
+          {t.detailsHint}
         </p>
 
         <div className="space-y-4">
           <label className="block">
-            <span className={label}>Detaje familjare</span>
+            <span className={label}>{t.fFamilyDetails}</span>
             <input
               name="familyDetails"
               defaultValue={appointment?.family_details ?? ""}
@@ -343,19 +347,19 @@ export default function AppointmentForm({
           </label>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block">
-              <span className={label}>Trajtim aktual</span>
+              <span className={label}>{t.fCurrentTreatment}</span>
               <select
                 name="currentTreatment"
                 defaultValue={appointment?.current_treatment ?? ""}
                 className={`${input} bg-white`}
               >
                 <option value="">—</option>
-                <option value="jo">Jo</option>
-                <option value="po">Po</option>
+                <option value="jo">{t.no}</option>
+                <option value="po">{t.yes}</option>
               </select>
             </label>
             <label className="block">
-              <span className={label}>Lloji i trajtimit</span>
+              <span className={label}>{t.fTreatmentType}</span>
               <input
                 name="treatmentType"
                 defaultValue={appointment?.treatment_type ?? ""}
@@ -364,7 +368,7 @@ export default function AppointmentForm({
             </label>
           </div>
           <label className="block">
-            <span className={label}>Medikamente të rregullta</span>
+            <span className={label}>{t.fMedications}</span>
             <input
               name="medications"
               defaultValue={appointment?.medications ?? ""}
@@ -384,11 +388,7 @@ export default function AppointmentForm({
           disabled={pending}
           className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:opacity-50"
         >
-          {pending
-            ? "Duke ruajtur..."
-            : duke
-              ? "Ruaj ndryshimet"
-              : "Cakto terminin"}
+          {pending ? t.saving : duke ? t.saveChanges : t.createAppointment}
         </button>
 
         {state.error && (

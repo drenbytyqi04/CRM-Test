@@ -1,6 +1,8 @@
 import { Card, DayBars, StatTile } from "@/app/stats";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
+import { getI18n } from "@/lib/i18n-server";
+import type { Dict } from "@/lib/i18n";
 import {
   APPOINTMENT_STATUS_CLASSES,
   ROLE_CLASSES,
@@ -22,33 +24,34 @@ export const dynamic = "force-dynamic";
 
 const DITE = 14;
 
-/** Çfarë mund të bëjë secili rol. Teksti është i njëjti si te `roles.sql`. */
-const LEJET: Record<string, { po: string[]; jo: string[] }> = {
-  user: {
-    po: ["Lexon të gjitha terminet e regjistruara", "Shkruan feedback te çdo termin"],
-    jo: ["Cakton ose ndryshon termine", "Sheh përdoruesit dhe aktivitetin"],
-  },
-  manager: {
-    po: [
-      "Lexon të gjitha terminet e regjistruara",
-      "Shkruan feedback te çdo termin",
-      "Cakton termine të reja",
-      "Ndryshon çdo termin",
-    ],
-    jo: ["Sheh përdoruesit dhe aktivitetin", "Ndryshon rolet"],
-  },
-  admin: {
-    po: [
-      "Lexon të gjitha terminet e regjistruara",
-      "Shkruan dhe ndryshon çdo shënim",
-      "Cakton dhe ndryshon çdo termin",
-      "Sheh përdoruesit dhe kohën e tyre aktive",
-    ],
-    jo: ["Ndryshon rolet — kjo bëhet vetëm nga paneli i Supabase-it"],
-  },
-};
+/** Çfarë mund të bëjë secili rol. I njëjti kuptim si te `roles.sql`. */
+function lejet(role: string, t: Dict): { po: string[]; jo: string[] } {
+  if (role === "admin") {
+    return {
+      po: [t.permReadAll, t.permEditAnyNote, t.permEditAppointments, t.permSeeUsers],
+      jo: [t.permNoChangeRolesAdmin],
+    };
+  }
+  if (role === "manager") {
+    return {
+      po: [
+        t.permReadAll,
+        t.permWriteNotes,
+        t.permCreateAppointments,
+        t.permEditAppointments,
+        t.permDeleteAppointments,
+      ],
+      jo: [t.permNoSeeUsers, t.permNoChangeRoles],
+    };
+  }
+  return {
+    po: [t.permReadAll, t.permWriteNotes],
+    jo: [t.permNoCreateAppointments, t.permNoSeeUsers],
+  };
+}
 
 export default async function ProfilePage() {
+  const { t, locale } = await getI18n();
   const user = await requireUser();
   const supabase = await createClient();
 
@@ -111,21 +114,21 @@ export default async function ProfilePage() {
     (t) => beogradDay(t.scheduled_at) === sot
   ).length;
 
-  const lejet = LEJET[user.role] ?? LEJET.user;
+  const lejeta = lejet(user.role, t);
 
   return (
     <main className="mx-auto w-full max-w-4xl px-5 py-10">
       <header className="mb-6">
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-            Profili im
+            {t.profileTitle}
           </h1>
           <span
             className={`rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${
               ROLE_CLASSES[user.role] ?? ROLE_CLASSES.user
             }`}
           >
-            {roleLabel(user.role)}
+            {roleLabel(user.role, t)}
           </span>
         </div>
         <p className="mt-1 text-sm text-slate-500">{user.email}</p>
@@ -134,53 +137,53 @@ export default async function ProfilePage() {
       {/* ---------- Llogaria ---------- */}
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatTile
-          etiketa="Aktiv sot"
+          etiketa={t.profileActiveToday}
           vlera={formatDuration(sekondaSot)}
-          nen="koha brenda CRM-së"
+          nen={t.profileActiveTodayHint}
         />
         <StatTile
-          etiketa={`${DITE} ditët e fundit`}
+          etiketa={t.profileLastDays(DITE)}
           vlera={formatDuration(sekondaGjithsej)}
-          nen={`${ditePune} ditë pune`}
+          nen={t.profileWorkDays(ditePune)}
         />
         <StatTile
-          etiketa="Mesatarja në ditë"
+          etiketa={t.profileAverage}
           vlera={formatDuration(mesatarja)}
-          nen="vetëm ditët me punë"
+          nen={t.profileAverageHint}
         />
         <StatTile
-          etiketa="Shënime të shkruara"
+          etiketa={t.profileNotesWritten}
           vlera={notes.length}
-          nen="feedback te terminet"
+          nen={t.profileNotesHint}
         />
       </div>
 
       <div className="mb-6 grid gap-4 lg:grid-cols-2">
         <Card
-          titull="Koha ime, ditë pas dite"
-          nen={`Minuta brenda CRM-së, ${DITE} ditët e fundit.`}
+          titull={t.profileTimeChart}
+          nen={t.profileTimeChartHint(DITE)}
         >
           <DayBars dite={koha} njesi="min" />
         </Card>
 
-        <Card titull="Llogaria">
+        <Card titull={t.profileAccount}>
           <dl className="grid gap-4 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-slate-500">Emaili</dt>
+              <dt className="text-slate-500">{t.profileEmail}</dt>
               <dd className="mt-1 break-words text-slate-900">{user.email}</dd>
             </div>
             <div>
-              <dt className="text-slate-500">Roli</dt>
-              <dd className="mt-1 text-slate-900">{roleLabel(user.role)}</dd>
+              <dt className="text-slate-500">{t.profileRole}</dt>
+              <dd className="mt-1 text-slate-900">{roleLabel(user.role, t)}</dd>
             </div>
             <div>
-              <dt className="text-slate-500">Llogaria e hapur më</dt>
+              <dt className="text-slate-500">{t.profileCreatedAt}</dt>
               <dd className="mt-1 text-slate-900">
-                {profile ? formatDate(profile.created_at) : "—"}
+                {profile ? formatDate(profile.created_at, locale) : t.noValue}
               </dd>
             </div>
             <div>
-              <dt className="text-slate-500">Adresa e termineve</dt>
+              <dt className="text-slate-500">{t.profileUrl}</dt>
               <dd className="mt-1 font-mono text-xs text-slate-900">
                 /{rolePrefix(user.role)}/terminet/…
               </dd>
@@ -197,35 +200,35 @@ export default async function ProfilePage() {
       {user.isManager && (
         <div className="mb-6 grid gap-4 lg:grid-cols-2">
           <Card
-            titull="Terminet e mia"
-            nen="Ato që i kam caktuar unë."
+            titull={t.profileMyAppointments}
+            nen={t.profileMyAppointmentsHint}
           >
             <div className="flex flex-wrap gap-6">
               <div>
                 <p className="text-3xl font-semibold tracking-tight text-slate-900">
                   {terminet.length}
                 </p>
-                <p className="text-sm text-slate-500">termine</p>
+                <p className="text-sm text-slate-500">{t.profileAppointments}</p>
               </div>
               <div>
                 <p className="text-3xl font-semibold tracking-tight text-slate-900">
                   {kontrata}
                 </p>
-                <p className="text-sm text-slate-500">kontrata</p>
+                <p className="text-sm text-slate-500">{t.profileContracts}</p>
               </div>
               <div>
                 <p className="text-3xl font-semibold tracking-tight text-slate-900">
                   {terminetSot}
                 </p>
-                <p className="text-sm text-slate-500">sot</p>
+                <p className="text-sm text-slate-500">{t.profileToday}</p>
               </div>
             </div>
           </Card>
 
-          <Card titull="Sipas statusit" nen="Vetëm terminet e mia.">
+          <Card titull={t.profileByStatus} nen={t.profileByStatusHint}>
             {sipasStatusit.length === 0 ? (
               <p className="text-sm text-slate-500">
-                Ende s&apos;ke caktuar asnjë termin.
+                {t.profileNoAppointments}
               </p>
             ) : (
               <ul className="flex flex-wrap gap-2">
@@ -237,7 +240,7 @@ export default async function ProfilePage() {
                       APPOINTMENT_STATUS_CLASSES.cancelled
                     }`}
                   >
-                    {appointmentStatusLabel(status)} · {sa}
+                    {appointmentStatusLabel(status, t)} · {sa}
                   </li>
                 ))}
               </ul>
@@ -248,12 +251,12 @@ export default async function ProfilePage() {
 
       {/* ---------- Lejet ---------- */}
       <Card
-        titull="Çfarë mund të bësh"
-        nen="Këto rregulla i zbaton vetë baza e të dhënave, jo faqja."
+        titull={t.profilePermissions}
+        nen={t.profilePermissionsHint}
       >
         <div className="grid gap-6 sm:grid-cols-2">
           <ul className="space-y-2 text-sm">
-            {lejet.po.map((v) => (
+            {lejeta.po.map((v) => (
               <li key={v} className="flex gap-2 text-slate-700">
                 <span aria-hidden className="text-emerald-600">
                   ✓
@@ -263,7 +266,7 @@ export default async function ProfilePage() {
             ))}
           </ul>
           <ul className="space-y-2 text-sm">
-            {lejet.jo.map((v) => (
+            {lejeta.jo.map((v) => (
               <li key={v} className="flex gap-2 text-slate-400">
                 <span aria-hidden>✕</span>
                 {v}

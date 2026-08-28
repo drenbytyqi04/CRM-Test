@@ -5,6 +5,7 @@ import ActivityTracker from "./activity-tracker";
 import Sidebar from "./sidebar";
 import { getCurrentUser } from "@/lib/auth";
 import { hasSupabaseConfig } from "@/lib/supabase/server";
+import { getLang } from "@/lib/i18n-server";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,16 +14,19 @@ const geistSans = Geist({
 
 export const metadata: Metadata = {
   title: "CRM",
-  description: "Termine dhe shënime",
+  description: "Termine",
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   // Menyja anash del vetëm për të kyçurit. Faqja e hyrjes mbetet e zhveshur,
   // sepse aty s'ka ende as llogari e as ku të shkosh.
   const user = hasSupabaseConfig() ? await getCurrentUser() : null;
+  // `lang` i thotë shfletuesit në ç'gjuhë është faqja: e ndihmon leximin
+  // me zë dhe përkthimin automatik.
+  const lang = await getLang();
 
   return (
-    <html lang="sq" className={`${geistSans.variable} h-full antialiased`}>
+    <html lang={lang} className={`${geistSans.variable} h-full antialiased`}>
       <body className="min-h-full bg-slate-50">
         {user ? (
           <div className="flex min-h-screen flex-col sm:flex-row">

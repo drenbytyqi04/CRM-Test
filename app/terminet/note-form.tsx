@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useRef } from "react";
 import { addNote } from "@/app/actions";
 import type { FormState } from "@/lib/types";
+import { DICTS, type Lang } from "@/lib/i18n";
 
 /**
  * Kutia e shpejtë për të shtuar një shënim te termini.
@@ -10,7 +11,15 @@ import type { FormState } from "@/lib/types";
  * Rri gjithmonë e hapur mbi tabelë, që shkrimi të jetë një klikim i vetëm:
  * shkruaj dhe shtyp Ctrl+Enter ose butonin.
  */
-export default function NoteForm({ appointmentId }: { appointmentId: string }) {
+export default function NoteForm({
+  appointmentId,
+  lang,
+}: {
+  appointmentId: string;
+  lang: Lang;
+}) {
+  // Fjalori merret këtu: funksionet e tij nuk kalojnë dot nga serveri.
+  const t = DICTS[lang];
   const formRef = useRef<HTMLFormElement>(null);
   const [state, action, pending] = useActionState<FormState, FormData>(
     addNote,
@@ -32,13 +41,13 @@ export default function NoteForm({ appointmentId }: { appointmentId: string }) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <label className="flex-1">
           <span className="mb-1 block text-sm font-medium text-slate-700">
-            Shënim i ri
+            {t.noteNew}
           </span>
           <textarea
             name="body"
             rows={2}
             required
-            placeholder="P.sh. Kd sind bei Helsana me VVG, 1000 CHF në muaj. Termini fiks në orën 10:00."
+            placeholder={t.notePlaceholder}
             className="w-full resize-y rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none placeholder:text-slate-400 focus:border-slate-900"
             onKeyDown={(e) => {
               // Ctrl+Enter e ruan pa e lëvizur dorën nga tastiera.
@@ -54,7 +63,7 @@ export default function NoteForm({ appointmentId }: { appointmentId: string }) {
           disabled={pending}
           className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:opacity-50 sm:mb-1"
         >
-          {pending ? "Duke ruajtur..." : "Shto shënimin"}
+          {pending ? t.saving : t.noteAdd}
         </button>
       </div>
 

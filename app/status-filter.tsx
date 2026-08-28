@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { APPOINTMENT_STATUSES } from "@/lib/types";
+import { DICTS, type Lang } from "@/lib/i18n";
 
 /**
  * Filtri i statusit si një menu e vetme.
@@ -14,15 +15,19 @@ import { APPOINTMENT_STATUSES } from "@/lib/types";
 export default function StatusFilter({
   vlera,
   vetemTeMijat,
+  lang,
 }: {
   vlera: string;
   vetemTeMijat: boolean;
+  lang: Lang;
 }) {
+  // Fjalori merret këtu: funksionet e tij nuk kalojnë dot nga serveri.
+  const t = DICTS[lang];
   const router = useRouter();
 
   return (
     <label className="flex items-center gap-2 text-sm">
-      <span className="text-slate-500">Statusi</span>
+      <span className="text-slate-500">{t.filterStatus}</span>
       <select
         data-testid="status-filter"
         value={vlera}
@@ -35,10 +40,10 @@ export default function StatusFilter({
         }}
         className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-slate-900 outline-none focus:border-slate-900"
       >
-        <option value="">Të gjitha</option>
+        <option value="">{t.filterAll}</option>
         {APPOINTMENT_STATUSES.map((s) => (
           <option key={s.value} value={s.value}>
-            {s.label}
+            {t[s.key]}
           </option>
         ))}
       </select>

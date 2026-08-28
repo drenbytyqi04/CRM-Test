@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, requireManager, requireUser } from "@/lib/auth";
+import { getDict } from "@/lib/i18n-server";
+import type { Dict } from "@/lib/i18n";
 import {
   APPOINTMENT_STATUSES,
   fromBeogradInput,
@@ -48,15 +50,16 @@ export async function addNote(
   formData: FormData
 ): Promise<FormState> {
   const user = await requireUser();
+  const t = await getDict();
 
   const appointmentId = String(formData.get("appointmentId") ?? "");
   const body = textOrNull(formData.get("body"));
 
   if (!appointmentId) {
-    return { error: "Mungon termini të cilit i përket shënimi." };
+    return { error: t.errNoAppointment };
   }
   if (!body) {
-    return { error: "Shënimi nuk mund të jetë bosh." };
+    return { error: t.errEmptyNote };
   }
 
   const supabase = await createClient();
@@ -65,7 +68,7 @@ export async function addNote(
     .insert({ appointment_id: appointmentId, body, user_id: user.id });
 
   if (error) {
-    return { error: `Nuk u ruajt dot shënimi: ${error.message}` };
+    return { error: `${t.errNoteNotSaved}: ${error.message}` };
   }
 
   freskoTerminet();
@@ -82,15 +85,16 @@ export async function updateNote(
   formData: FormData
 ): Promise<FormState> {
   const user = await requireUser();
+  const t = await getDict();
 
   const noteId = String(formData.get("noteId") ?? "");
   const body = textOrNull(formData.get("body"));
 
   if (!noteId) {
-    return { error: "Mungon shënimi që duhet ndryshuar." };
+    return { error: t.errNoteMissing };
   }
   if (!body) {
-    return { error: "Shënimi nuk mund të jetë bosh." };
+    return { error: t.errEmptyNote };
   }
 
   const supabase = await createClient();
@@ -103,10 +107,10 @@ export async function updateNote(
     .maybeSingle<{ id: string; user_id: string; appointment_id: string }>();
 
   if (!note) {
-    return { error: "Ky shënim nuk u gjet." };
+    return { error: t.errNoteNotFound };
   }
   if (!user.isAdmin && note.user_id !== user.id) {
-    return { error: "Këtë shënim e ka shkruar dikush tjetër." };
+    return { error: t.errNoteNotYours };
   }
 
   const { data, error } = await supabase
@@ -116,14 +120,14 @@ export async function updateNote(
     .select("id");
 
   if (error) {
-    return { error: `Nuk u ruajt dot shënimi: ${error.message}` };
+    return { error: `${t.errNoteNotSaved}: ${error.message}` };
   }
   if (!data || data.length === 0) {
-    return { error: "Shënimi nuk u ruajt: baza nuk e lejoi këtë veprim." };
+    return { error: t.errNoteRejected };
   }
 
   freskoTerminet();
-  return { ok: true, message: "Shënimi u ndryshua." };
+  return { ok: true, message: t.noteUpdated };
 }
 
 /**
@@ -193,24 +197,17 @@ function validateAppointment(
   contracts: number,
   status: string,
   name: string | null,
-  email: string | null
+  email: string | null,
+  t: Dict
 ): string | null {
-  if (!name) return "Emri është i detyrueshëm.";
-  if (email && !looksLikeEmail(email)) {
-    return "Emaili nuk duket i saktë (shembull: emri@shembull.com).";
-  }
-  if (!scheduled) return "Data dhe ora e terminit janë të detyrueshme.";
-  if (!Number.isInteger(persons) || persons < 1) {
-    return "Numri i personave duhet të jetë të paktën 1.";
-  }
-  if (!Number.isInteger(contracts) || contracts < 0) {
-    return "Numri i kontratave nuk është i saktë.";
-  }
-  if (contracts > persons) {
-    return `Nuk mund të ketë ${contracts} kontrata për ${persons} persona.`;
-  }
+  if (!name) return t.errNameRequired;
+  if (email && !looksLikeEmail(email)) return t.errBadEmail;
+  if (!scheduled) return t.errDateRequired;
+  if (!Number.isInteger(persons) || persons < 1) return t.errPersonsMin;
+  if (!Number.isInteger(contracts) || contracts < 0) return t.errContractsBad;
+  if (contracts > persons) return t.errContractsTooMany(contracts, persons);
   if (!APPOINTMENT_STATUSES.some((s) => s.value === status)) {
-    return "Statusi i zgjedhur nuk njihet.";
+    return t.errUnknownStatus;
   }
   return null;
 }
@@ -221,6 +218,7 @@ export async function createAppointment(
   formData: FormData
 ): Promise<FormState> {
   const user = await requireManager();
+  const t = await getDict();
   const { scheduled, persons, contracts, status, values } =
     readAppointmentFields(formData);
 
@@ -230,7 +228,8 @@ export async function createAppointment(
     contracts,
     status,
     values.name,
-    values.email
+    values.email,
+    t
   );
   if (gabim) return { error: gabim };
 
@@ -245,11 +244,11 @@ export async function createAppointment(
   });
 
   if (error) {
-    return { error: `Nuk u ruajt dot termini: ${error.message}` };
+    return { error: `${t.errAppointmentNotSaved}: ${error.message}` };
   }
 
   freskoTerminet();
-  return { ok: true, message: "Termini u caktua." };
+  return { ok: true, message: t.appointmentCreated };
 }
 
 /** Ndryshon një termin: të dhënat teknike, rezultatin dhe detajet. */
@@ -258,11 +257,12 @@ export async function updateAppointment(
   formData: FormData
 ): Promise<FormState> {
   await requireManager();
+  const t = await getDict();
   const id = String(formData.get("appointmentId") ?? "");
   const { scheduled, persons, contracts, status, values } =
     readAppointmentFields(formData);
 
-  if (!id) return { error: "Mungon termini që duhet ndryshuar." };
+  if (!id) return { error: t.errAppointmentMissing };
 
   const gabim = validateAppointment(
     scheduled,
@@ -270,7 +270,8 @@ export async function updateAppointment(
     contracts,
     status,
     values.name,
-    values.email
+    values.email,
+    t
   );
   if (gabim) return { error: gabim };
 
@@ -283,7 +284,7 @@ export async function updateAppointment(
     .eq("id", id)
     .maybeSingle<{ id: string; user_id: string }>();
 
-  if (!termini) return { error: "Ky termin nuk u gjet." };
+  if (!termini) return { error: t.errAppointmentNotFound };
 
   const { data, error } = await supabase
     .from("appointments")
@@ -299,14 +300,14 @@ export async function updateAppointment(
     .select("id");
 
   if (error) {
-    return { error: `Nuk u ruajtën dot ndryshimet: ${error.message}` };
+    return { error: `${t.errAppointmentNotSaved}: ${error.message}` };
   }
   if (!data || data.length === 0) {
-    return { error: "Ndryshimet nuk u ruajtën: baza nuk e lejoi këtë veprim." };
+    return { error: t.errChangesRejected };
   }
 
   freskoTerminet();
-  return { ok: true, message: "Termini u përditësua." };
+  return { ok: true, message: t.appointmentUpdated };
 }
 
 /**
@@ -323,9 +324,10 @@ export async function deleteAppointment(
   formData: FormData
 ): Promise<FormState> {
   await requireManager();
+  const t = await getDict();
 
   const id = String(formData.get("appointmentId") ?? "");
-  if (!id) return { error: "Mungon termini që duhet fshirë." };
+  if (!id) return { error: t.errDeleteMissing };
 
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -335,16 +337,12 @@ export async function deleteAppointment(
     .select("id");
 
   if (error) {
-    return { error: `Termini nuk u fshi: ${error.message}` };
+    return { error: `${t.errDeleteFailed}: ${error.message}` };
   }
   // Pa `select` + kontroll, një fshirje që rregullat e bazës nuk e lejojnë
   // do të dukej sikur u krye.
   if (!data || data.length === 0) {
-    return {
-      error:
-        "Termini nuk u fshi: baza nuk e lejoi këtë veprim. " +
-        "Ka gjasë të mos jetë ekzekutuar ende `supabase/fshirja.sql`.",
-    };
+    return { error: t.errDeleteRejected };
   }
 
   freskoTerminet();

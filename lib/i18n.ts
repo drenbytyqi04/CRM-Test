@@ -1,0 +1,723 @@
+/**
+ * Dy gjuhët e CRM-së: gjermanisht (e parazgjedhur) dhe shqip.
+ *
+ * Çdo tekst që sheh njeriu rri këtu, jo në kod. Kështu përkthimi bëhet në
+ * një vend të vetëm, dhe asnjë fjalë nuk mbetet e harruar në ndonjë faqe.
+ *
+ * `Dict` merr formën e gjermanishtes, prandaj TypeScript-i ankohet nëse
+ * shqipes i mungon ndonjë çelës — mungesat kapen para se të dalin në ekran.
+ */
+
+export const LANGS = [
+  { code: "de", label: "Deutsch" },
+  { code: "sq", label: "Shqip" },
+] as const;
+
+export type Lang = (typeof LANGS)[number]["code"];
+
+/** Gjuha kur nuk ka zgjedhur askush. */
+export const LANG_PARAZGJEDHUR: Lang = "de";
+
+/** Emri i cookie-t ku ruhet zgjedhja. */
+export const LANG_COOKIE = "gjuha";
+
+export function eshteLang(v: string | undefined): v is Lang {
+  return v === "de" || v === "sq";
+}
+
+/** Formati i datave për secilën gjuhë. Zona mbetet gjithmonë Beogradi. */
+export const LOCALE: Record<Lang, string> = {
+  de: "de-DE",
+  sq: "sq-AL",
+};
+
+/**
+ * Numri bashkë me emrin, në njëjës ose shumës.
+ *
+ * Pa këtë del «1 Termine» ose «1 shënime» — numri thotë një, fjala thotë
+ * shumë. Të dyja gjuhët e bëjnë njësoj: një formë për 1, një për të tjerat.
+ */
+function sasi(n: number, njejes: string, shumes: string): string {
+  return `${n} ${n === 1 ? njejes : shumes}`;
+}
+
+const de = {
+  // ---------- E përbashkët ----------
+  appName: "CRM",
+  appTagline: "Termine",
+  save: "Speichern",
+  cancel: "Abbrechen",
+  delete: "Löschen",
+  yes: "Ja",
+  no: "Nein",
+  saving: "Wird gespeichert…",
+  deleting: "Wird gelöscht…",
+  noValue: "—",
+  language: "Sprache",
+
+  // ---------- Menyja anash ----------
+  navDashboard: "Dashboard",
+  navAppointments: "Termine",
+  navProfile: "Profil",
+  navUsers: "Benutzer",
+  navActivity: "Aktivität",
+  signOut: "Abmelden",
+
+  // ---------- Hyrja ----------
+  loginTitle: "Anmelden",
+  loginEmail: "E-Mail",
+  loginPassword: "Passwort",
+  loginButton: "Anmelden",
+  loginWaiting: "Bitte warten…",
+  loginPasswordHint: "mindestens 6 Zeichen",
+  loginNoSignup:
+    "Keine freie Registrierung. Ihr Konto wird vom Administrator angelegt.",
+  loginBadCredentials: "E-Mail oder Passwort ist falsch.",
+  loginNotConfirmed:
+    "Die E-Mail wurde noch nicht bestätigt. Bitte prüfen Sie Ihr Postfach.",
+  loginFillBoth: "Bitte E-Mail und Passwort ausfüllen.",
+
+  // ---------- Rolet ----------
+  roleUser: "Benutzer",
+  roleManager: "Manager",
+  roleAdmin: "Admin",
+
+  // ---------- Gjinia ----------
+  genderF: "Weiblich",
+  genderM: "Männlich",
+
+  // ---------- Statuset ----------
+  statusOpen: "Offen",
+  statusHeld: "Stattgefunden",
+  statusCancelled: "Storniert",
+  statusNotReached: "Nicht erreicht",
+  statusRefused: "Kein Termin gewünscht",
+  statusNegative: "Negativ",
+  statusNotHome: "Nicht angetroffen",
+  statusAddressNotFound: "Adresse nicht gefunden",
+  statusAdvisorFailed: "Keine Beratung möglich",
+
+  // ---------- Lista e termineve ----------
+  listTitle: "Termine",
+  listSummary: (n: number, held: number, contracts: number) =>
+    `${sasi(n, "Termin", "Termine")} · ${held} stattgefunden · ${sasi(
+      contracts,
+      "Vertrag",
+      "Verträge"
+    )}`,
+  listAll: "Alle",
+  listMine: "Meine",
+  listNewAppointment: "Neuen Termin anlegen",
+  listEmpty: "Keine Termine vorhanden.",
+  listLoadError: "Termine konnten nicht geladen werden",
+  activeToday: "Heute aktiv",
+  activeTodayTitle: "Heute im CRM verbrachte Zeit",
+  colNr: "Nr",
+  colName: "Name",
+  colDate: "Termindatum",
+  colInsurance: "Versicherung",
+  colPersons: "Pers.",
+  colContracts: "Vertr.",
+  colNotes: "Notiz.",
+  colStatus: "Status",
+  filterStatus: "Status",
+  filterAll: "Alle",
+
+  // ---------- Faqja e terminit ----------
+  backToList: "← Alle Termine",
+  assignedBy: "Angelegt von",
+  registeredOn: (kur: string) => `Angelegt am ${kur} · Belgrader Zeit`,
+  tabPersonalia: "Personalien",
+  tabTechnical: "Technische Daten",
+  tabResult: "Ergebnis",
+  tabDetails: "Details",
+  tabFeedback: (n: number) => `Feedback (${n})`,
+  readOnlyHint:
+    "Termine werden nur vom Manager angelegt und geändert. Feedback können Sie im Tab «Feedback» schreiben.",
+
+  // Personalia
+  fName: "Name",
+  fCustomerNumber: "Kundennummer",
+  fGender: "Geschlecht",
+  fNationality: "Nationalität",
+  fBirthDate: "Geburtsdatum",
+  fPhone: "Telefon",
+  fMobile: "Mobil",
+  fEmail: "E-Mail",
+  fStreet: "Straße",
+  fPostalCode: "PLZ",
+  fCity: "Ort",
+  fCanton: "Kanton",
+  fPlace: "Ort",
+
+  // Teknike
+  fCallCenter: "Call Center",
+  fCurrentInsurance: "Aktuelle Versicherung",
+  fLanguage: "Sprache",
+  fCallDate: "Anrufdatum",
+  fScheduledAt: "Datum und Uhrzeit des Termins",
+  fPersonsCount: "Anzahl Personen",
+  fCreatedAt: "Angelegt am",
+
+  // Rezultati
+  fStatus: "Status",
+  fContractsClosed: "Abgeschlossene Verträge",
+  fMultiYear: "Mehrjahresvertrag",
+  fTreatment: "Behandlung",
+  statusHint:
+    "Nur ein Status gleichzeitig — so widersprechen sich die Auswertungen nicht.",
+  contractsHint: "Nicht mehr als die Anzahl der Personen.",
+
+  // Detaje
+  fFamilyDetails: "Familiäre Angaben",
+  fCurrentTreatment: "Laufende Behandlung",
+  fTreatmentType: "Art der Behandlung",
+  fMedications: "Regelmäßige Medikamente",
+  detailsHint:
+    "Gesundheitsdaten sind sensibel. Bitte nur ausfüllen, wenn sie für die Beratung nötig sind und die Person informiert ist.",
+
+  // Butonat e formularit
+  createAppointment: "Termin anlegen",
+  saveChanges: "Änderungen speichern",
+  appointmentCreated: "Termin wurde angelegt.",
+  appointmentUpdated: "Termin wurde aktualisiert.",
+
+  // Fshirja e terminit
+  deleteAppointment: "Termin löschen",
+  deleteAppointmentAsk: (emri: string) => `Termin «${emri}» löschen?`,
+  deleteAppointmentNotes: (n: number) =>
+    `Dabei ${n === 1 ? "wird" : "werden"} auch ${sasi(
+      n,
+      "Notiz",
+      "Notizen"
+    )} gelöscht. Das lässt sich nicht rückgängig machen.`,
+  deleteAppointmentPlain: "Das lässt sich nicht rückgängig machen.",
+  deleteConfirm: "Ja, löschen",
+
+  // ---------- Feedback ----------
+  feedbackTitle: "Feedback zum Termin",
+  noteNew: "Neue Notiz",
+  noteAdd: "Notiz hinzufügen",
+  notePlaceholder:
+    "z. B. Kd ist bei Helsana mit VVG, 1000 CHF im Monat. Termin fix um 10:00 Uhr.",
+  noteColUser: "Benutzer",
+  noteColBody: "Notiz",
+  noteColDate: "Datum",
+  noteEmpty: "Noch keine Notizen zu diesem Termin.",
+  noteEdit: "Bearbeiten",
+  noteChanged: "geändert",
+  noteFooter: (n: number) =>
+    `${sasi(n, "Notiz", "Notizen")} · Strg+Enter im Feld oben speichert sofort.`,
+  noteLoadError: "Notizen konnten nicht geladen werden",
+  noteUpdated: "Notiz wurde geändert.",
+
+  // ---------- Dashboard ----------
+  dashTitle: "Dashboard",
+  dashSubtitle:
+    "Überblick über die Termine. Die Zahlen werden bei jedem Aufruf neu berechnet.",
+  dashTotal: "Termine gesamt",
+  dashPersons: (n: number) => sasi(n, "Person", "Personen"),
+  dashHeld: "Stattgefunden",
+  dashOfAll: (p: number) => `${p} % aller Termine`,
+  dashContracts: "Abgeschlossene Verträge",
+  dashCloseRate: (p: number) =>
+    `${p} % der stattgefundenen Termine ergaben einen Vertrag`,
+  dashUpcoming: "Bevorstehend",
+  dashTodayN: (n: number) => `${n} heute`,
+  dashNoneToday: "keine heute",
+  dashByStatus: "Nach Status",
+  dashByStatusHint: "Jeder Termin hat immer nur einen Status.",
+  dashByDay: "Angelegt nach Tag",
+  dashByDayHint: (n: number) => `Die letzten ${n} Tage, Belgrader Zeit.`,
+  dashNext: "Nächste Termine",
+  dashNextHint: "Die fünf nächsten.",
+  dashNoUpcoming: "Kein offener Termin in der Zukunft.",
+  dashByAgent: "Nach Mitarbeiter",
+  dashByAgentHint: "Wer die Termine angelegt hat und wie viele Verträge daraus wurden.",
+  dashContractsLine: "Verträge",
+  dashNotes: "Notizen",
+  dashNotesHint: "Feedback zu den Terminen.",
+  dashNotesMine: (n: number) => `${n} davon von Ihnen.`,
+  dashNoAppointments: "Noch keine Termine.",
+  dashPersShort: "Pers.",
+
+  // ---------- Profili ----------
+  profileTitle: "Mein Profil",
+  profileActiveToday: "Heute aktiv",
+  profileActiveTodayHint: "Zeit im CRM",
+  profileLastDays: (n: number) => `Die letzten ${n} Tage`,
+  profileWorkDays: (n: number) => sasi(n, "Arbeitstag", "Arbeitstage"),
+  profileAverage: "Durchschnitt pro Tag",
+  profileAverageHint: "nur Tage mit Aktivität",
+  profileNotesWritten: "Geschriebene Notizen",
+  profileNotesHint: "Feedback zu Terminen",
+  profileTimeChart: "Meine Zeit, Tag für Tag",
+  profileTimeChartHint: (n: number) => `Minuten im CRM, die letzten ${n} Tage.`,
+  profileAccount: "Konto",
+  profileEmail: "E-Mail",
+  profileRole: "Rolle",
+  profileCreatedAt: "Konto angelegt am",
+  profileUrl: "Adresse der Termine",
+  profilePasswordNote:
+    "Passwörter werden nirgends lesbar gespeichert, deshalb auch hier nicht angezeigt. Sie werden im Supabase-Panel geändert.",
+  profileMyAppointments: "Meine Termine",
+  profileMyAppointmentsHint: "Die von mir angelegten.",
+  profileAppointments: "Termine",
+  profileContracts: "Verträge",
+  profileToday: "heute",
+  profileByStatus: "Nach Status",
+  profileByStatusHint: "Nur meine Termine.",
+  profileNoAppointments: "Sie haben noch keinen Termin angelegt.",
+  profilePermissions: "Was Sie dürfen",
+  profilePermissionsHint:
+    "Diese Regeln setzt die Datenbank selbst durch, nicht die Oberfläche.",
+
+  permReadAll: "Alle angelegten Termine lesen",
+  permWriteNotes: "Feedback zu jedem Termin schreiben",
+  permCreateAppointments: "Neue Termine anlegen",
+  permEditAppointments: "Jeden Termin ändern",
+  permDeleteAppointments: "Termine löschen",
+  permEditAnyNote: "Jede Notiz schreiben und ändern",
+  permSeeUsers: "Benutzer und deren Arbeitszeit sehen",
+  permNoCreateAppointments: "Termine anlegen oder ändern",
+  permNoSeeUsers: "Benutzer und Aktivität sehen",
+  permNoChangeRoles: "Rollen ändern",
+  permNoChangeRolesAdmin:
+    "Rollen ändern — das geht nur im Supabase-Panel",
+
+  // ---------- Përdoruesit ----------
+  usersTitle: "Benutzer",
+  usersSubtitle:
+    "Alle Konten des Systems. Nur Sie legen neue Konten an und entziehen den Zugang.",
+  usersLoadError: "Benutzer konnten nicht geladen werden",
+  usersColEmail: "E-Mail",
+  usersColRole: "Rolle",
+  usersColActiveToday: "Heute aktiv",
+  usersColAppointments: "Termine",
+  usersColNotes: "Notizen",
+  usersColRegistered: "Angelegt",
+  usersNoAccess: "kein Zugang",
+  usersActiveNow: "Jetzt aktiv",
+  usersNotActive: "Nicht aktiv",
+  usersYou: "Sie",
+  usersRemoveAccess: "Zugang entziehen",
+  usersRemoveAsk: (email: string) => `${email} den Zugang entziehen?`,
+  usersRemoveExplain: (t: number, n: number) =>
+    `Die Person kann sich nicht mehr anmelden. Aber ihre ${sasi(
+      t,
+      "Termin",
+      "Termine"
+    )} und ${sasi(
+      n,
+      "Notiz",
+      "Notizen"
+    )} bleiben erhalten und tragen weiterhin ihren Namen.`,
+  usersRemoveConfirm: "Ja, Zugang entziehen",
+  usersRemoving: "Wird entzogen…",
+  usersKeepDataNote:
+    "Wenn Sie jemandem den Zugang entziehen, wird das Konto gelöscht und die Person kann sich nicht mehr anmelden — aber ihre Termine, Notizen und Arbeitszeiten bleiben und tragen weiterhin ihren Namen. Deshalb verschwindet die Zeile nicht aus dieser Liste; sie wird als «kein Zugang» markiert.",
+  usersRolesNote:
+    "Rollen werden nur im Supabase-Panel geändert (Table Editor → profiles), damit sich niemand über die Anwendung selbst zum Admin machen kann. Werte:",
+
+  // Hapja e llogarive
+  userNewPanel: "Neues Konto anlegen",
+  userNewEmail: "E-Mail",
+  userNewPassword: "Erstes Passwort",
+  userNewPasswordHint:
+    "Geben Sie es der Person persönlich; sie kann es später ändern.",
+  userNewPasswordPlaceholder: "mindestens 8 Zeichen",
+  userNewRole: "Rolle",
+  userNewRoleUser: "Benutzer — liest nur und schreibt Notizen",
+  userNewRoleManager: "Manager — legt Termine an",
+  userNewButton: "Konto anlegen",
+  userNewCreating: "Wird angelegt…",
+  userNewAdminNote:
+    "Die Rolle admin wird hier nicht vergeben. Ein zweiter Admin wird von Hand in Supabase → Table Editor → profiles gesetzt, damit ein gestohlenes Admin-Konto keine weiteren wie sich selbst anlegen kann.",
+
+  // ---------- Aktiviteti ----------
+  activityTitle: "Aktivität",
+  activitySubtitle: "Im CRM verbrachte Zeit, die letzten Tage.",
+  activityLoadError: "Aktivität konnte nicht geladen werden",
+  activityColUser: "Benutzer",
+  activityColTotal: "Gesamt",
+  activityToday: "Heute",
+  activityLastSeen: "Zuletzt gesehen",
+
+  // ---------- Gabimet e serverit ----------
+  errNoAppointment: "Der zugehörige Termin fehlt.",
+  errEmptyNote: "Die Notiz darf nicht leer sein.",
+  errNoteNotSaved: "Notiz konnte nicht gespeichert werden",
+  errNoteMissing: "Die zu ändernde Notiz fehlt.",
+  errNoteNotFound: "Diese Notiz wurde nicht gefunden.",
+  errNoteNotYours: "Diese Notiz hat jemand anderes geschrieben.",
+  errNoteRejected:
+    "Die Notiz wurde nicht gespeichert: die Datenbank hat den Vorgang abgelehnt.",
+  errNameRequired: "Der Name ist erforderlich.",
+  errBadEmail: "Die E-Mail sieht nicht richtig aus (Beispiel: name@beispiel.com).",
+  errDateRequired: "Datum und Uhrzeit des Termins sind erforderlich.",
+  errPersonsMin: "Es muss mindestens 1 Person sein.",
+  errContractsBad: "Die Anzahl der Verträge ist nicht gültig.",
+  errContractsTooMany: (c: number, p: number) =>
+    `${sasi(c, "Vertrag", "Verträge")} sind bei ${sasi(
+      p,
+      "Person",
+      "Personen"
+    )} nicht möglich.`,
+  errUnknownStatus: "Der gewählte Status ist unbekannt.",
+  errAppointmentNotSaved: "Der Termin konnte nicht gespeichert werden",
+  errAppointmentMissing: "Der zu ändernde Termin fehlt.",
+  errAppointmentNotFound: "Dieser Termin wurde nicht gefunden.",
+  errChangesRejected:
+    "Die Änderungen wurden nicht gespeichert: die Datenbank hat den Vorgang abgelehnt.",
+  errDeleteMissing: "Der zu löschende Termin fehlt.",
+  errDeleteFailed: "Der Termin wurde nicht gelöscht",
+  errDeleteRejected:
+    "Der Termin wurde nicht gelöscht: die Datenbank hat den Vorgang abgelehnt. Möglicherweise wurde supabase/fshirja.sql noch nicht ausgeführt.",
+  errFillBoth: "Bitte E-Mail und Passwort ausfüllen.",
+  errPasswordShort: "Das Passwort muss mindestens 8 Zeichen haben.",
+  errUnknownRole: "Die gewählte Rolle ist unbekannt.",
+  errEmailExists: "Für diese E-Mail gibt es bereits ein Konto.",
+  errAccountNotCreated: "Das Konto wurde nicht angelegt",
+  errRoleNotSet: (m: string) =>
+    `Das Konto wurde angelegt, aber die Rolle nicht gesetzt: ${m}. Bitte die Rolle in der Tabelle profiles ändern.`,
+  okAccountCreated: (email: string, role: string) =>
+    `Konto ${email} wurde als ${role} angelegt. Geben Sie das Passwort weiter; die Person kann es später ändern.`,
+  errAccountMissing: "Das Konto fehlt.",
+  errCannotRemoveSelf: "Sie können sich den Zugang nicht selbst entziehen.",
+  errAccountNotFound: "Dieses Konto wurde nicht gefunden.",
+  errAlreadyNoAccess: "Dieses Konto hat ohnehin keinen Zugang.",
+  errLastAdmin: "Das ist der letzte Admin — er kann nicht entfernt werden.",
+  errAccessNotRemoved: "Der Zugang wurde nicht entzogen",
+  errProfileNotMarked: (m: string) =>
+    `Der Zugang wurde entzogen, aber das Profil nicht als geschlossen markiert: ${m}`,
+  okAccessRemoved: (email: string) =>
+    `${email} kann sich nicht mehr anmelden. Die Daten bleiben erhalten.`,
+};
+
+export type Dict = typeof de;
+
+const sq: Dict = {
+  // ---------- E përbashkët ----------
+  appName: "CRM",
+  appTagline: "Terminet",
+  save: "Ruaj",
+  cancel: "Anulo",
+  delete: "Fshi",
+  yes: "Po",
+  no: "Jo",
+  saving: "Duke ruajtur…",
+  deleting: "Duke fshirë…",
+  noValue: "—",
+  language: "Gjuha",
+
+  navDashboard: "Dashboard",
+  navAppointments: "Terminet",
+  navProfile: "Profili",
+  navUsers: "Përdoruesit",
+  navActivity: "Aktiviteti",
+  signOut: "Dil",
+
+  loginTitle: "Hyr në llogarinë tënde.",
+  loginEmail: "Emaili",
+  loginPassword: "Fjalëkalimi",
+  loginButton: "Hyr",
+  loginWaiting: "Duke pritur…",
+  loginPasswordHint: "të paktën 6 shenja",
+  loginNoSignup:
+    "Nuk ka regjistrim të lirë. Llogarinë ta hap administratori.",
+  loginBadCredentials: "Email ose fjalëkalim i gabuar.",
+  loginNotConfirmed:
+    "Emaili nuk është konfirmuar ende. Kontrollo kutinë postare.",
+  loginFillBoth: "Plotëso emailin dhe fjalëkalimin.",
+
+  roleUser: "Përdorues",
+  roleManager: "Menaxher",
+  roleAdmin: "Admin",
+
+  genderF: "Femër",
+  genderM: "Mashkull",
+
+  statusOpen: "I hapur",
+  statusHeld: "U mbajt",
+  statusCancelled: "I anuluar",
+  statusNotReached: "Nuk u arrit",
+  statusRefused: "S'deshi termin",
+  statusNegative: "Negativ",
+  statusNotHome: "S'ishte në shtëpi",
+  statusAddressNotFound: "Adresa s'u gjet",
+  statusAdvisorFailed: "S'u këshillua dot",
+
+  listTitle: "Terminet",
+  listSummary: (n, held, contracts) =>
+    `${sasi(n, "termin", "termine")} · ${held} ${
+      held === 1 ? "i mbajtur" : "të mbajtura"
+    } · ${sasi(contracts, "kontratë", "kontrata")}`,
+  listAll: "Të gjitha",
+  listMine: "Të mijat",
+  listNewAppointment: "Cakto termin të ri",
+  listEmpty: "Nuk ka termine këtu.",
+  listLoadError: "Nuk u lexuan dot terminet",
+  activeToday: "Aktiv sot",
+  activeTodayTitle: "Koha e kaluar sot brenda CRM-së",
+  colNr: "Nr",
+  colName: "Emri",
+  colDate: "Data e terminit",
+  colInsurance: "Sigurimi",
+  colPersons: "Pers.",
+  colContracts: "Kontr.",
+  colNotes: "Shën.",
+  colStatus: "Statusi",
+  filterStatus: "Statusi",
+  filterAll: "Të gjitha",
+
+  backToList: "← Të gjitha terminet",
+  assignedBy: "Caktuar nga",
+  registeredOn: (kur) => `Regjistruar më ${kur} · ora e Beogradit`,
+  tabPersonalia: "Personalia",
+  tabTechnical: "Të dhëna teknike",
+  tabResult: "Rezultati",
+  tabDetails: "Detaje",
+  tabFeedback: (n) => `Feedback (${n})`,
+  readOnlyHint:
+    "Terminet i cakton dhe i ndryshon vetëm menaxheri. Ti mund të shkruash shënime te skeda «Feedback».",
+
+  fName: "Emri",
+  fCustomerNumber: "Numri i klientit",
+  fGender: "Gjinia",
+  fNationality: "Kombësia",
+  fBirthDate: "Datëlindja",
+  fPhone: "Telefoni",
+  fMobile: "Celulari",
+  fEmail: "Emaili",
+  fStreet: "Rruga",
+  fPostalCode: "Kodi postar",
+  fCity: "Qyteti",
+  fCanton: "Kantoni",
+  fPlace: "Vendi",
+
+  fCallCenter: "Call center",
+  fCurrentInsurance: "Sigurimi aktual",
+  fLanguage: "Gjuha",
+  fCallDate: "Data e telefonatës",
+  fScheduledAt: "Data dhe ora e terminit",
+  fPersonsCount: "Numri i personave",
+  fCreatedAt: "Shtuar më",
+
+  fStatus: "Statusi",
+  fContractsClosed: "Kontrata të mbyllura",
+  fMultiYear: "Kontratë shumëvjeçare",
+  fTreatment: "Trajtim",
+  statusHint:
+    "Vetëm një status njëherësh — kështu raportet nuk bien në kundërshtim.",
+  contractsHint: "Nuk lejohet më shumë se numri i personave.",
+
+  fFamilyDetails: "Detaje familjare",
+  fCurrentTreatment: "Trajtim aktual",
+  fTreatmentType: "Lloji i trajtimit",
+  fMedications: "Medikamente të rregullta",
+  detailsHint:
+    "Të dhënat shëndetësore janë të ndjeshme. Plotësoji vetëm nëse i duhen këshillimit dhe personi është i informuar.",
+
+  createAppointment: "Cakto terminin",
+  saveChanges: "Ruaj ndryshimet",
+  appointmentCreated: "Termini u caktua.",
+  appointmentUpdated: "Termini u përditësua.",
+
+  deleteAppointment: "Fshi terminin",
+  deleteAppointmentAsk: (emri) => `Ta fshij terminin «${emri}»?`,
+  deleteAppointmentNotes: (n) =>
+    `Bashkë me të ${n === 1 ? "fshihet" : "fshihen"} edhe ${sasi(
+      n,
+      "shënim",
+      "shënime"
+    )}. Kjo nuk kthehet mbrapsht.`,
+  deleteAppointmentPlain: "Kjo nuk kthehet mbrapsht.",
+  deleteConfirm: "Po, fshije",
+
+  feedbackTitle: "Feedback i terminit",
+  noteNew: "Shënim i ri",
+  noteAdd: "Shto shënimin",
+  notePlaceholder:
+    "P.sh. Kd sind bei Helsana me VVG, 1000 CHF në muaj. Termini fiks në orën 10:00.",
+  noteColUser: "Përdoruesi",
+  noteColBody: "Shënimi",
+  noteColDate: "Data",
+  noteEmpty: "Ende s'ka shënime për këtë termin.",
+  noteEdit: "Ndrysho",
+  noteChanged: "ndryshuar",
+  noteFooter: (n) =>
+    `${sasi(n, "shënim", "shënime")} · Ctrl+Enter te kutia lart e ruan menjëherë.`,
+  noteLoadError: "Nuk u lexuan dot shënimet",
+  noteUpdated: "Shënimi u ndryshua.",
+
+  dashTitle: "Dashboard",
+  dashSubtitle:
+    "Pamja e përgjithshme e termineve. Numrat llogariten sa herë hapet faqja.",
+  dashTotal: "Termine gjithsej",
+  dashPersons: (n) => sasi(n, "person", "persona"),
+  dashHeld: "U mbajtën",
+  dashOfAll: (p) => `${p}% e të gjithave`,
+  dashContracts: "Kontrata të mbyllura",
+  dashCloseRate: (p) => `${p}% e termineve të mbajtura dhanë kontratë`,
+  dashUpcoming: "Të ardhshme",
+  dashTodayN: (n) => `${n} sot`,
+  dashNoneToday: "asnjë sot",
+  dashByStatus: "Sipas statusit",
+  dashByStatusHint: "Çdo termin ka vetëm një status njëherësh.",
+  dashByDay: "Të regjistruar sipas ditës",
+  dashByDayHint: (n) => `${n} ditët e fundit, sipas orës së Beogradit.`,
+  dashNext: "Terminet e radhës",
+  dashNextHint: "Pesë të parët që vijnë.",
+  dashNoUpcoming: "Asnjë termin i hapur në të ardhmen.",
+  dashByAgent: "Sipas agjentit",
+  dashByAgentHint: "Kush i ka caktuar terminet dhe sa kontrata dolën.",
+  dashContractsLine: "Kontrata",
+  dashNotes: "Shënimet",
+  dashNotesHint: "Feedback-u i shkruar te terminet.",
+  dashNotesMine: (n) => `${n} të shkruara nga ti.`,
+  dashNoAppointments: "Ende s'ka termine.",
+  dashPersShort: "pers.",
+
+  profileTitle: "Profili im",
+  profileActiveToday: "Aktiv sot",
+  profileActiveTodayHint: "koha brenda CRM-së",
+  profileLastDays: (n) => `${n} ditët e fundit`,
+  profileWorkDays: (n) => `${n} ditë pune`,
+  profileAverage: "Mesatarja në ditë",
+  profileAverageHint: "vetëm ditët me punë",
+  profileNotesWritten: "Shënime të shkruara",
+  profileNotesHint: "feedback te terminet",
+  profileTimeChart: "Koha ime, ditë pas dite",
+  profileTimeChartHint: (n) => `Minuta brenda CRM-së, ${n} ditët e fundit.`,
+  profileAccount: "Llogaria",
+  profileEmail: "Emaili",
+  profileRole: "Roli",
+  profileCreatedAt: "Llogaria e hapur më",
+  profileUrl: "Adresa e termineve",
+  profilePasswordNote:
+    "Fjalëkalimi nuk ruhet dot i lexueshëm askund, prandaj as këtu nuk shfaqet. Ndryshohet nga paneli i Supabase-it.",
+  profileMyAppointments: "Terminet e mia",
+  profileMyAppointmentsHint: "Ato që i kam caktuar unë.",
+  profileAppointments: "termine",
+  profileContracts: "kontrata",
+  profileToday: "sot",
+  profileByStatus: "Sipas statusit",
+  profileByStatusHint: "Vetëm terminet e mia.",
+  profileNoAppointments: "Ende s'ke caktuar asnjë termin.",
+  profilePermissions: "Çfarë mund të bësh",
+  profilePermissionsHint:
+    "Këto rregulla i zbaton vetë baza e të dhënave, jo faqja.",
+
+  permReadAll: "Lexon të gjitha terminet e regjistruara",
+  permWriteNotes: "Shkruan feedback te çdo termin",
+  permCreateAppointments: "Cakton termine të reja",
+  permEditAppointments: "Ndryshon çdo termin",
+  permDeleteAppointments: "Fshin termine",
+  permEditAnyNote: "Shkruan dhe ndryshon çdo shënim",
+  permSeeUsers: "Sheh përdoruesit dhe kohën e tyre aktive",
+  permNoCreateAppointments: "Cakton ose ndryshon termine",
+  permNoSeeUsers: "Sheh përdoruesit dhe aktivitetin",
+  permNoChangeRoles: "Ndryshon rolet",
+  permNoChangeRolesAdmin:
+    "Ndryshon rolet — kjo bëhet vetëm nga paneli i Supabase-it",
+
+  usersTitle: "Përdoruesit",
+  usersSubtitle:
+    "Të gjitha llogaritë e sistemit. Vetëm ti hap llogari të reja dhe u heq hyrjen atyre që largohen.",
+  usersLoadError: "Nuk u lexuan dot përdoruesit",
+  usersColEmail: "Emaili",
+  usersColRole: "Roli",
+  usersColActiveToday: "Aktiv sot",
+  usersColAppointments: "Termine",
+  usersColNotes: "Shënime",
+  usersColRegistered: "Regjistruar",
+  usersNoAccess: "pa hyrje",
+  usersActiveNow: "Aktiv tani",
+  usersNotActive: "Jo aktiv",
+  usersYou: "ti",
+  usersRemoveAccess: "Hiqi hyrjen",
+  usersRemoveAsk: (email) => `T'ia heq hyrjen ${email}?`,
+  usersRemoveExplain: (t, n) =>
+    `Nuk hyn më te CRM-ja. Por ${sasi(t, "termini", "terminet")} dhe ${sasi(
+      n,
+      "shënimi",
+      "shënimet"
+    )} e tij ${
+      t + n === 1 ? "mbetet" : "mbeten"
+    }, dhe vazhdojnë të mbajnë emrin e tij.`,
+  usersRemoveConfirm: "Po, hiqia hyrjen",
+  usersRemoving: "Duke e hequr…",
+  usersKeepDataNote:
+    "Kur i heq hyrjen dikujt, llogaria e tij fshihet dhe nuk hyn më — por terminet, shënimet dhe orët e tij mbeten, dhe vazhdojnë të mbajnë emrin e tij. Prandaj rreshti nuk zhduket nga kjo listë; shënohet «pa hyrje».",
+  usersRolesNote:
+    "Rolet ndryshohen vetëm nga paneli i Supabase-it (Table Editor → profiles), që askush të mos e bëjë dot veten admin nga aplikacioni. Vlerat:",
+
+  userNewPanel: "Hap llogari të re",
+  userNewEmail: "Emaili",
+  userNewPassword: "Fjalëkalimi i parë",
+  userNewPasswordHint: "Ia jep vetë njeriut; le ta ndryshojë më pas.",
+  userNewPasswordPlaceholder: "të paktën 8 shenja",
+  userNewRole: "Roli",
+  userNewRoleUser: "Përdorues — vetëm lexon dhe shënon",
+  userNewRoleManager: "Menaxher — cakton termine",
+  userNewButton: "Hap llogarinë",
+  userNewCreating: "Duke hapur…",
+  userNewAdminNote:
+    "Roli admin nuk jepet nga këtu. Një admin i dytë caktohet me dorë te Supabase → Table Editor → profiles, që një llogari admin e vjedhur të mos krijojë dot të tjera si vetja.",
+
+  activityTitle: "Aktiviteti",
+  activitySubtitle: "Koha e kaluar brenda aplikacionit, ditët e fundit.",
+  activityLoadError: "Nuk u lexua dot aktiviteti",
+  activityColUser: "Përdoruesi",
+  activityColTotal: "Gjithsej",
+  activityToday: "Sot",
+  activityLastSeen: "Parë së fundi",
+
+  errNoAppointment: "Mungon termini të cilit i përket shënimi.",
+  errEmptyNote: "Shënimi nuk mund të jetë bosh.",
+  errNoteNotSaved: "Nuk u ruajt dot shënimi",
+  errNoteMissing: "Mungon shënimi që duhet ndryshuar.",
+  errNoteNotFound: "Ky shënim nuk u gjet.",
+  errNoteNotYours: "Këtë shënim e ka shkruar dikush tjetër.",
+  errNoteRejected: "Shënimi nuk u ruajt: baza nuk e lejoi këtë veprim.",
+  errNameRequired: "Emri është i detyrueshëm.",
+  errBadEmail: "Emaili nuk duket i saktë (shembull: emri@shembull.com).",
+  errDateRequired: "Data dhe ora e terminit janë të detyrueshme.",
+  errPersonsMin: "Numri i personave duhet të jetë të paktën 1.",
+  errContractsBad: "Numri i kontratave nuk është i saktë.",
+  errContractsTooMany: (c, p) =>
+    `Nuk mund të ketë ${sasi(c, "kontratë", "kontrata")} për ${sasi(
+      p,
+      "person",
+      "persona"
+    )}.`,
+  errUnknownStatus: "Statusi i zgjedhur nuk njihet.",
+  errAppointmentNotSaved: "Nuk u ruajt dot termini",
+  errAppointmentMissing: "Mungon termini që duhet ndryshuar.",
+  errAppointmentNotFound: "Ky termin nuk u gjet.",
+  errChangesRejected: "Ndryshimet nuk u ruajtën: baza nuk e lejoi këtë veprim.",
+  errDeleteMissing: "Mungon termini që duhet fshirë.",
+  errDeleteFailed: "Termini nuk u fshi",
+  errDeleteRejected:
+    "Termini nuk u fshi: baza nuk e lejoi këtë veprim. Ka gjasë të mos jetë ekzekutuar ende supabase/fshirja.sql.",
+  errFillBoth: "Plotëso emailin dhe fjalëkalimin.",
+  errPasswordShort: "Fjalëkalimi duhet të ketë të paktën 8 shenja.",
+  errUnknownRole: "Roli i zgjedhur nuk njihet.",
+  errEmailExists: "Ky email ka tashmë një llogari.",
+  errAccountNotCreated: "Llogaria nuk u hap",
+  errRoleNotSet: (m) =>
+    `Llogaria u hap, por roli nuk u vendos: ${m}. Ndryshoje rolin te tabela profiles.`,
+  okAccountCreated: (email, role) =>
+    `Llogaria ${email} u hap si ${role}. Jepi fjalëkalimin dhe le ta ndryshojë vetë më pas.`,
+  errAccountMissing: "Mungon llogaria.",
+  errCannotRemoveSelf: "Nuk e heq dot hyrjen tënde.",
+  errAccountNotFound: "Kjo llogari nuk u gjet.",
+  errAlreadyNoAccess: "Kjo llogari s'ka hyrje as tani.",
+  errLastAdmin: "Ky është admini i fundit — nuk hiqet dot.",
+  errAccessNotRemoved: "Hyrja nuk u hoq",
+  errProfileNotMarked: (m) =>
+    `Hyrja u hoq, por profili nuk u shënua si i mbyllur: ${m}`,
+  okAccessRemoved: (email) => `${email} nuk hyn më. Të dhënat e saj mbetën.`,
+};
+
+export const DICTS: Record<Lang, Dict> = { de, sq };

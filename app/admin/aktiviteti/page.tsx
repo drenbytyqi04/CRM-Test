@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
+import { getI18n } from "@/lib/i18n-server";
 import {
   formatDayLabel,
   formatDuration,
@@ -28,6 +29,7 @@ function ditetEFundit(): string[] {
 
 export default async function ActivityPage() {
   // Vetëm admini e hap këtë faqe.
+  const { t, locale } = await getI18n();
   await requireAdmin();
   const supabase = await createClient();
 
@@ -52,7 +54,7 @@ export default async function ActivityPage() {
 
   // Kërkim i shpejtë: "përdoruesi X, dita Y" -> sekondat.
   const perDite = new Map<string, number>();
-  // "Parë së fundi" merret vetëm nga rreshti i sotëm — një rresht i djeshëm
+  // t.activityLastSeen merret vetëm nga rreshti i sotëm — një rresht i djeshëm
   // nuk mund të tregojë se dikush është aktiv tani.
   const iFundit = new Map<string, string>();
   for (const rresht of activity) {
@@ -69,16 +71,16 @@ export default async function ActivityPage() {
     <main className="mx-auto w-full max-w-5xl px-5 py-10">
       <header className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-          Aktiviteti
+          {t.activityTitle}
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          Koha e kaluar brenda aplikacionit, ditët e fundit.
+          {t.activitySubtitle}
         </p>
       </header>
 
       {activityResult.error && (
         <p className="mb-6 rounded-lg bg-red-50 p-4 text-sm text-red-700">
-          Nuk u lexua dot aktiviteti: {activityResult.error.message}
+          {t.activityLoadError}: {activityResult.error.message}
         </p>
       )}
 
@@ -86,7 +88,7 @@ export default async function ActivityPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-slate-200 text-left text-slate-500">
-              <th className="p-4 font-medium">Përdoruesi</th>
+              <th className="p-4 font-medium">{t.activityColUser}</th>
               {dite.map((d) => (
                 <th
                   key={d}
@@ -94,10 +96,10 @@ export default async function ActivityPage() {
                     d === sot ? "text-slate-900" : ""
                   }`}
                 >
-                  {d === sot ? "Sot" : formatDayLabel(d)}
+                  {d === sot ? t.activityToday : formatDayLabel(d, locale)}
                 </th>
               ))}
-              <th className="p-4 text-right font-medium">Gjithsej</th>
+              <th className="p-4 text-right font-medium">{t.activityColTotal}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200">
@@ -116,7 +118,7 @@ export default async function ActivityPage() {
                             ? "bg-emerald-500"
                             : "bg-slate-300"
                         }`}
-                        title={eshteAktiv(profile.id) ? "Aktiv tani" : "Jo aktiv"}
+                        title={eshteAktiv(profile.id) ? t.usersActiveNow : t.usersNotActive}
                       />
                       <span className="text-slate-900">
                         {profile.email ?? "—"}

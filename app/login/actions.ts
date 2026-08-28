@@ -4,16 +4,14 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { FormState } from "@/lib/types";
+import { getDict } from "@/lib/i18n-server";
+import type { Dict } from "@/lib/i18n";
 
-/** Përkthen gabimet e Supabase-it në shqip. */
-function translateError(message: string): string {
+/** Përkthen gabimet e Supabase-it në gjuhën e zgjedhur. */
+function translateError(message: string, t: Dict): string {
   const m = message.toLowerCase();
-  if (m.includes("invalid login credentials")) {
-    return "Email ose fjalëkalim i gabuar.";
-  }
-  if (m.includes("email not confirmed")) {
-    return "Emaili nuk është konfirmuar ende. Kontrollo kutinë postare.";
-  }
+  if (m.includes("invalid login credentials")) return t.loginBadCredentials;
+  if (m.includes("email not confirmed")) return t.loginNotConfirmed;
   return message;
 }
 
@@ -30,13 +28,15 @@ export async function authenticate(
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
 
+  const t = await getDict();
+
   if (!email || !password) {
-    return { error: "Plotëso emailin dhe fjalëkalimin." };
+    return { error: t.loginFillBoth };
   }
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return { error: translateError(error.message) };
+  if (error) return { error: translateError(error.message, t) };
 
   revalidatePath("/", "layout");
   redirect("/");

@@ -7,6 +7,7 @@ import { Tabs, TabPanel } from "./tabs";
 import DeleteButton from "./delete-button";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
+import { getI18n } from "@/lib/i18n-server";
 import {
   APPOINTMENT_COLUMNS,
   APPOINTMENT_STATUS_CLASSES,
@@ -47,6 +48,7 @@ export default async function AppointmentPage({
   nr: string;
   prefiks: RolePrefix;
 }) {
+  const { t, lang, locale } = await getI18n();
   const user = await requireUser();
   const supabase = await createClient();
 
@@ -105,7 +107,7 @@ export default async function AppointmentPage({
             href="/"
             className="text-sm text-slate-500 transition hover:text-slate-900"
           >
-            ← Të gjitha terminet
+            {t.backToList}
           </Link>
           <div className="mt-2 flex flex-wrap items-center gap-3">
             <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
@@ -122,37 +124,38 @@ export default async function AppointmentPage({
                 APPOINTMENT_STATUS_CLASSES.cancelled
               }`}
             >
-              {appointmentStatusLabel(termini.status)}
+              {appointmentStatusLabel(termini.status, t)}
             </span>
             {agjenti && (
               <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600 ring-1 ring-slate-200 ring-inset">
-                Caktuar nga: {agjenti}
+                {t.assignedBy}: {agjenti}
               </span>
             )}
           </div>
           <p className="mt-1 text-sm text-slate-500">
-            {formatBeograd(termini.scheduled_at)}
+            {formatBeograd(termini.scheduled_at, locale)}
           </p>
           {/* Koha e regjistrimit e sheh çdo rol, jo vetëm përdoruesi. */}
           <p className="mt-0.5 text-xs text-slate-400">
-            Regjistruar më {formatDate(termini.created_at)} · ora e Beogradit
+            {t.registeredOn(formatDate(termini.created_at, locale))}
           </p>
         </div>
       </header>
 
       <Tabs
         tabs={[
-          { id: "personalia", label: "Personalia" },
-          { id: "teknike", label: "Të dhëna teknike" },
-          { id: "rezultati", label: "Rezultati" },
-          { id: "detaje", label: "Detaje" },
-          { id: "feedback", label: `Feedback (${notes.length})` },
+          { id: "personalia", label: t.tabPersonalia },
+          { id: "teknike", label: t.tabTechnical },
+          { id: "rezultati", label: t.tabResult },
+          { id: "detaje", label: t.tabDetails },
+          { id: "feedback", label: t.tabFeedback(notes.length) },
         ]}
       >
       {user.isManager ? (
         <AppointmentForm
           appointment={termini}
           scheduledDefault={toBeogradInput(termini.scheduled_at)}
+          lang={lang}
         />
       ) : (
         /* Përdoruesi i thjeshtë e lexon terminin, por nuk e ndryshon. */
@@ -160,24 +163,24 @@ export default async function AppointmentPage({
           <TabPanel id="personalia">
           <section className="rounded-xl border border-slate-200 bg-white p-5">
             <h2 className="mb-4 text-base font-semibold text-slate-900">
-              Personalia
+              {t.tabPersonalia}
             </h2>
             <dl className="grid gap-4 text-sm sm:grid-cols-3">
-              <Fusha etiketa="Numri i klientit" vlera={termini.customer_number} />
-              <Fusha etiketa="Gjinia" vlera={genderLabel(termini.gender)} />
-              <Fusha etiketa="Kombësia" vlera={termini.nationality} />
+              <Fusha etiketa={t.fCustomerNumber} vlera={termini.customer_number} />
+              <Fusha etiketa={t.fGender} vlera={genderLabel(termini.gender, t)} />
+              <Fusha etiketa={t.fNationality} vlera={termini.nationality} />
               <Fusha
-                etiketa="Datëlindja"
+                etiketa={t.fBirthDate}
                 vlera={
-                  termini.birth_date ? formatDateOnly(termini.birth_date) : null
+                  termini.birth_date ? formatDateOnly(termini.birth_date, locale) : null
                 }
               />
-              <Fusha etiketa="Telefoni" vlera={termini.phone} />
-              <Fusha etiketa="Celulari" vlera={termini.mobile} />
-              <Fusha etiketa="Emaili" vlera={termini.email} />
-              <Fusha etiketa="Rruga" vlera={termini.street} />
+              <Fusha etiketa={t.fPhone} vlera={termini.phone} />
+              <Fusha etiketa={t.fMobile} vlera={termini.mobile} />
+              <Fusha etiketa={t.fEmail} vlera={termini.email} />
+              <Fusha etiketa={t.fStreet} vlera={termini.street} />
               <Fusha
-                etiketa="Vendi"
+                etiketa={t.fPlace}
                 vlera={
                   [termini.postal_code, termini.city, termini.canton]
                     .filter(Boolean)
@@ -192,21 +195,21 @@ export default async function AppointmentPage({
           <TabPanel id="teknike">
           <section className="rounded-xl border border-slate-200 bg-white p-5">
             <h2 className="mb-4 text-base font-semibold text-slate-900">
-              Të dhëna teknike
+              {t.tabTechnical}
             </h2>
             <dl className="grid gap-4 text-sm sm:grid-cols-3">
-              <Fusha etiketa="Call center" vlera={termini.call_center} />
-              <Fusha etiketa="Sigurimi aktual" vlera={termini.current_insurance} />
-              <Fusha etiketa="Gjuha" vlera={termini.language} />
+              <Fusha etiketa={t.fCallCenter} vlera={termini.call_center} />
+              <Fusha etiketa={t.fCurrentInsurance} vlera={termini.current_insurance} />
+              <Fusha etiketa={t.fLanguage} vlera={termini.language} />
               <Fusha
-                etiketa="Data e telefonatës"
-                vlera={termini.call_date ? formatDateOnly(termini.call_date) : null}
+                etiketa={t.fCallDate}
+                vlera={termini.call_date ? formatDateOnly(termini.call_date, locale) : null}
               />
               <Fusha
-                etiketa="Numri i personave"
+                etiketa={t.fPersonsCount}
                 vlera={String(termini.persons_count)}
               />
-              <Fusha etiketa="Shtuar më" vlera={formatDate(termini.created_at)} />
+              <Fusha etiketa={t.fCreatedAt} vlera={formatDate(termini.created_at, locale)} />
             </dl>
           </section>
 
@@ -215,20 +218,20 @@ export default async function AppointmentPage({
           <TabPanel id="rezultati">
           <section className="rounded-xl border border-slate-200 bg-white p-5">
             <h2 className="mb-4 text-base font-semibold text-slate-900">
-              Rezultati
+              {t.tabResult}
             </h2>
             <dl className="grid gap-4 text-sm sm:grid-cols-3">
               <Fusha
-                etiketa="Statusi"
-                vlera={appointmentStatusLabel(termini.status)}
+                etiketa={t.fStatus}
+                vlera={appointmentStatusLabel(termini.status, t)}
               />
               <Fusha
-                etiketa="Kontrata të mbyllura"
+                etiketa={t.fContractsClosed}
                 vlera={String(termini.contracts_closed)}
               />
               <Fusha
-                etiketa="Kontratë shumëvjeçare"
-                vlera={termini.multi_year_contract ? "Po" : "Jo"}
+                etiketa={t.fMultiYear}
+                vlera={termini.multi_year_contract ? t.yes : t.noValue}
               />
             </dl>
           </section>
@@ -238,17 +241,16 @@ export default async function AppointmentPage({
           <TabPanel id="detaje">
           <section className="rounded-xl border border-slate-200 bg-white p-5">
             <h2 className="mb-4 text-base font-semibold text-slate-900">
-              Detaje të këshillimit
+              {t.tabDetails}
             </h2>
             <dl className="grid gap-4 text-sm sm:grid-cols-2">
-              <Fusha etiketa="Detaje familjare" vlera={termini.family_details} />
-              <Fusha etiketa="Trajtim aktual" vlera={termini.current_treatment} />
-              <Fusha etiketa="Lloji i trajtimit" vlera={termini.treatment_type} />
-              <Fusha etiketa="Medikamente" vlera={termini.medications} />
+              <Fusha etiketa={t.fFamilyDetails} vlera={termini.family_details} />
+              <Fusha etiketa={t.fCurrentTreatment} vlera={termini.current_treatment} />
+              <Fusha etiketa={t.fTreatmentType} vlera={termini.treatment_type} />
+              <Fusha etiketa={t.fMedications} vlera={termini.medications} />
             </dl>
             <p className="mt-4 text-xs text-slate-500">
-              Terminet i cakton dhe i ndryshon vetëm menaxheri. Ti mund të
-              shkruash shënime te skeda «Feedback».
+              {t.readOnlyHint}
             </p>
           </section>
           </TabPanel>
@@ -259,12 +261,12 @@ export default async function AppointmentPage({
       <TabPanel id="feedback">
       <section>
         <div className="mb-4">
-          <NoteForm appointmentId={termini.id} />
+          <NoteForm appointmentId={termini.id} lang={lang} />
         </div>
 
         {notesResult.error && (
           <p className="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-700">
-            Nuk u lexuan dot shënimet: {notesResult.error.message}
+            {t.noteLoadError}: {notesResult.error.message}
           </p>
         )}
 
@@ -272,9 +274,9 @@ export default async function AppointmentPage({
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-left text-slate-500">
-                <th className="p-4 font-medium whitespace-nowrap">Përdoruesi</th>
-                <th className="p-4 font-medium">Shënimi</th>
-                <th className="p-4 font-medium whitespace-nowrap">Data</th>
+                <th className="p-4 font-medium whitespace-nowrap">{t.noteColUser}</th>
+                <th className="p-4 font-medium">{t.noteColBody}</th>
+                <th className="p-4 font-medium whitespace-nowrap">{t.noteColDate}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
@@ -284,7 +286,7 @@ export default async function AppointmentPage({
                     colSpan={3}
                     className="p-8 text-center text-sm text-slate-500"
                   >
-                    Ende s&apos;ka shënime për këtë termin.
+                    {t.noteEmpty}
                   </td>
                 </tr>
               ) : (
@@ -294,9 +296,10 @@ export default async function AppointmentPage({
                     note={note}
                     autori={autorLabel(note.user_id)}
                     canEdit={user.isAdmin || note.user_id === user.id}
-                    createdLabel={formatDate(note.created_at)}
+                    createdLabel={formatDate(note.created_at, locale)}
+                    lang={lang}
                     updatedLabel={
-                      note.updated_at ? formatDate(note.updated_at) : null
+                      note.updated_at ? formatDate(note.updated_at, locale) : null
                     }
                   />
                 ))
@@ -306,7 +309,7 @@ export default async function AppointmentPage({
         </div>
 
         <p className="mt-2 text-xs text-slate-500">
-          {notes.length} shënime · Ctrl+Enter te kutia lart e ruan menjëherë.
+          {t.noteFooter(notes.length)}
         </p>
       </section>
       </TabPanel>
@@ -318,6 +321,7 @@ export default async function AppointmentPage({
           appointmentId={termini.id}
           emri={termini.name}
           numriIShenimeve={notes.length}
+          lang={lang}
         />
       )}
     </main>
