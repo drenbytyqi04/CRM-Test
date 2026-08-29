@@ -73,6 +73,7 @@ export default function UserForm({ lang }: { lang: Lang }) {
             <select name="role" defaultValue="user" className={input}>
               <option value="user">{t.userNewRoleUser}</option>
               <option value="manager">{t.userNewRoleManager}</option>
+              <option value="expert">{t.userNewRoleExpert}</option>
             </select>
           </label>
         </div>

@@ -45,6 +45,12 @@ function lejet(role: string, t: Dict): { po: string[]; jo: string[] } {
       jo: [t.permNoSeeUsers, t.permNoChangeRoles],
     };
   }
+  if (role === "expert") {
+    return {
+      po: [t.permReadAssigned, t.permWriteNotes],
+      jo: [t.permNoReadAll, t.permNoCreateAppointments, t.permNoSeeUsers],
+    };
+  }
   return {
     po: [t.permReadAll, t.permWriteNotes],
     jo: [t.permNoCreateAppointments, t.permNoSeeUsers],

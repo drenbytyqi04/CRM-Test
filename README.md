@@ -243,18 +243,38 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
 
 ### Kush çfarë mundet
 
-| Veprimi | Përdorues | Menaxher | Admin |
-| --- | :---: | :---: | :---: |
-| Lexon terminet e regjistruara | ✅ | ✅ | ✅ |
-| Shkruan shënime | ✅ | ✅ | ✅ |
-| Cakton dhe ndryshon termine | ❌ | ✅ | ✅ |
-| Fshin termine | ❌ | ✅ | ✅ |
-| Hap llogari dhe heq hyrjen | ❌ | ❌ | ✅ |
-| Faqja *Përdoruesit* dhe *Aktiviteti* | ❌ | ❌ | ✅ |
+| Veprimi | Ekspert | Përdorues | Menaxher | Admin |
+| --- | :---: | :---: | :---: | :---: |
+| Lexon **të gjitha** terminet | ❌ | ✅ | ✅ | ✅ |
+| Lexon terminet **që i janë caktuar** | ✅ | ✅ | ✅ | ✅ |
+| Shkruan shënime | ✅\* | ✅ | ✅ | ✅ |
+| Cakton dhe ndryshon termine | ❌ | ❌ | ✅ | ✅ |
+| Fshin termine | ❌ | ❌ | ✅ | ✅ |
+| Jep akses ekspertëve | ❌ | ❌ | ❌ | ✅ |
+| Hap llogari dhe heq hyrjen | ❌ | ❌ | ❌ | ✅ |
+| Faqja *Përdoruesit* dhe *Aktiviteti* | ❌ | ❌ | ❌ | ✅ |
+
+\* Eksperti shkruan shënime vetëm te terminet që i janë caktuar.
 
 Përdoruesi i thjeshtë e hap çdo termin dhe e lexon të plotë — personalinë, të
 dhënat teknike, rezultatin dhe detajet — por si tekst, pa formularë. Puna e tij
 regjistrohet përmes shënimeve.
+
+**Eksperti** e bën të njëjtën gjë, por **vetëm te terminet që ia jep admini**.
+Për të, ato që s'i janë dhënë nuk ekzistojnë fare: nuk dalin te lista, nuk
+numërohen te përmbledhja, dhe adresa e drejtpërdrejtë kthen 404 — jo një
+mesazh «nuk ke leje», që as vetë numri i terminit të mos tregojë nëse ekziston.
+
+Ky kufi rri te **baza**, jo te faqja. Deri para pak, rregulli i leximit thoshte
+`using (true)` — çdo i kyçur i shihte të gjitha. Ai rregull tani është i
+vetëdijshëm për rolin (`supabase/eksperti.sql`): për tri rolet e para asgjë
+nuk ndryshoi; për ekspertin ngushtohet te lista e aksesit. E njëjta vlen edhe
+për **shënimet** — ndryshe eksperti do të mos e shihte terminin e huaj te
+lista, por do t'i lexonte shënimet e tij përmes API-së.
+
+Një termin mund t'u jepet **disa ekspertëve** njëherësh. Aksesin e jep vetëm
+admini, te skeda *Ekspertët me akses* brenda terminit. Kur i hiqet aksesi,
+shënimet që ka shkruar **mbeten** — si te heqja e një llogarie.
 
 Administratori ka edhe:
 
@@ -306,11 +326,14 @@ app/
     appointment-page.tsx    Faqja e një termini (e përbashkët për tri rolet)
     tabs.tsx                Skedat e faqes së terminit
     delete-button.tsx       Fshirja e terminit, me konfirmim në dy hapa
+    experts.tsx             Paneli i adminit: kush e sheh këtë termin
+    expert-actions.ts       Dhënia dhe heqja e aksesit
     appointment-form.tsx    Formulari i terminit (caktim dhe ndryshim)
     note-form.tsx           Kutia e shpejtë për të shtuar shënim
     note-row.tsx            Një rresht i tabelës, me ndryshim brenda rreshtit
     [nr]/page.tsx           Adresa e vjetër pa prefiks -> te ajo e rolit
   admin/terminet/[nr]/page.tsx     Termini siç e sheh admini
+  ekspert/terminet/[nr]/page.tsx   Termini siç e sheh eksperti
   menager/terminet/[nr]/page.tsx   Termini siç e sheh menaxheri
   user/terminet/[nr]/page.tsx      Termini siç e sheh përdoruesi
 lib/
@@ -331,6 +354,7 @@ supabase/
   llogari-pa-humbje.sql     Të dhënat mbijetojnë fshirjen e një llogarie
   faqosja.sql               Numrat e përmbledhjes + indekset e listës
   kategorite.sql            Tri kategoritë + arsyeja brenda tyre
+  eksperti.sql              Roli i katërt dhe kufiri i leximit
   rls-shpejtesi.sql         Rregullat: një llogaritje për kërkesë, jo për rresht
   mbetur.sql                Të dyja migrimet e fundit, në një skedë
   activity.sql              Përcjellja e kohës

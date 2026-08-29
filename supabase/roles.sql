@@ -17,6 +17,9 @@
 -- VINI RE: leximi është i përbashkët — çdo i kyçur i sheh të gjitha terminet
 -- e regjistruara. Shkrimi mbetet i mbyllur: terminet i prek vetëm menaxheri.
 --
+-- ROLI I KATËRT: `supabase/eksperti.sql` shton `expert` dhe e ngushton
+-- rregullin e leximit vetëm për të. Për këto tri role asgjë nuk ndryshon.
+--
 -- STATUSI: kjo skedë është ZBATUAR TASHMË në projektin "crm-test".
 --
 -- SI PËRDORET (për një projekt të ri):

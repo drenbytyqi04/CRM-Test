@@ -81,6 +81,7 @@ const de = {
   roleUser: "Benutzer",
   roleManager: "Manager",
   roleAdmin: "Admin",
+  roleExpert: "Experte",
 
   // ---------- Gjinia ----------
   genderF: "Weiblich",
@@ -219,6 +220,29 @@ const de = {
   deleteAppointmentPlain: "Das lässt sich nicht rückgängig machen.",
   deleteConfirm: "Ja, löschen",
 
+  // ---------- Ekspertët ----------
+  expertsTitle: "Experten mit Zugriff",
+  expertsHint:
+    "Nur diese Experten sehen diesen Termin. Zugriff vergibt ausschließlich der Administrator.",
+  expertsNone: "Noch kein Experte hat Zugriff auf diesen Termin.",
+  expertsAdd: "Zugriff geben",
+  expertsAdding: "Wird hinzugefügt…",
+  expertsRemove: "Zugriff entziehen",
+  expertsPick: "Experte wählen",
+  expertsNoAccounts:
+    "Es gibt noch keine Experten-Konten. Legen Sie eines unter «Benutzer» an.",
+  expertsGranted: (email: string) => `${email} sieht diesen Termin jetzt.`,
+  expertsRevoked: (email: string) => `${email} sieht diesen Termin nicht mehr.`,
+  expertsCount: (n: number) => sasi(n, "Experte", "Experten"),
+  expertsGrantedBy: "hinzugefügt von",
+  errExpertsAdminOnly: "Nur der Administrator vergibt Zugriff.",
+  errExpertMissing: "Bitte einen Experten wählen.",
+  errExpertNotExpert: "Dieses Konto ist kein Experte.",
+  errExpertAlready: "Diese Person hat bereits Zugriff.",
+  errExpertFailed: "Der Zugriff konnte nicht geändert werden",
+  expertNoAppointments:
+    "Ihnen wurde noch kein Termin zugewiesen. Der Administrator gibt Ihnen Zugriff.",
+
   // ---------- Feedback ----------
   feedbackTitle: "Feedback zum Termin",
   noteNew: "Neue Notiz",
@@ -308,6 +332,8 @@ const de = {
   permEditAnyNote: "Jede Notiz schreiben und ändern",
   permSeeUsers: "Benutzer und deren Arbeitszeit sehen",
   permNoCreateAppointments: "Termine anlegen oder ändern",
+  permReadAssigned: "Nur die zugewiesenen Termine lesen",
+  permNoReadAll: "Alle Termine sehen",
   permNoSeeUsers: "Benutzer und Aktivität sehen",
   permNoChangeRoles: "Rollen ändern",
   permNoChangeRolesAdmin:
@@ -357,6 +383,7 @@ const de = {
   userNewRole: "Rolle",
   userNewRoleUser: "Benutzer — liest nur und schreibt Notizen",
   userNewRoleManager: "Manager — legt Termine an",
+  userNewRoleExpert: "Experte — sieht nur zugewiesene Termine",
   userNewButton: "Konto anlegen",
   userNewCreating: "Wird angelegt…",
   userNewAdminNote:
@@ -465,6 +492,7 @@ const sq: Dict = {
   roleUser: "Përdorues",
   roleManager: "Menaxher",
   roleAdmin: "Admin",
+  roleExpert: "Ekspert",
 
   genderF: "Femër",
   genderM: "Mashkull",
@@ -584,6 +612,28 @@ const sq: Dict = {
   deleteAppointmentPlain: "Kjo nuk kthehet mbrapsht.",
   deleteConfirm: "Po, fshije",
 
+  expertsTitle: "Ekspertët me akses",
+  expertsHint:
+    "Vetëm këta ekspertë e shohin këtë termin. Aksesin e jep vetëm administratori.",
+  expertsNone: "Asnjë ekspert nuk e sheh ende këtë termin.",
+  expertsAdd: "Jepi akses",
+  expertsAdding: "Duke shtuar…",
+  expertsRemove: "Hiqi aksesin",
+  expertsPick: "Zgjidh ekspertin",
+  expertsNoAccounts:
+    "S'ka ende llogari ekspertësh. Hape një te faqja «Përdoruesit».",
+  expertsGranted: (email) => `${email} e sheh tani këtë termin.`,
+  expertsRevoked: (email) => `${email} nuk e sheh më këtë termin.`,
+  expertsCount: (n) => sasi(n, "ekspert", "ekspertë"),
+  expertsGrantedBy: "shtuar nga",
+  errExpertsAdminOnly: "Aksesin e jep vetëm administratori.",
+  errExpertMissing: "Zgjidh një ekspert.",
+  errExpertNotExpert: "Kjo llogari nuk është ekspert.",
+  errExpertAlready: "Ky person e ka tashmë aksesin.",
+  errExpertFailed: "Nuk u ndryshua dot aksesi",
+  expertNoAppointments:
+    "Ende nuk të është caktuar asnjë termin. Aksesin ta jep administratori.",
+
   feedbackTitle: "Feedback i terminit",
   noteNew: "Shënim i ri",
   noteAdd: "Shto shënimin",
@@ -668,6 +718,8 @@ const sq: Dict = {
   permEditAnyNote: "Shkruan dhe ndryshon çdo shënim",
   permSeeUsers: "Sheh përdoruesit dhe kohën e tyre aktive",
   permNoCreateAppointments: "Cakton ose ndryshon termine",
+  permReadAssigned: "Lexon vetëm terminet që i janë caktuar",
+  permNoReadAll: "Sheh të gjitha terminet",
   permNoSeeUsers: "Sheh përdoruesit dhe aktivitetin",
   permNoChangeRoles: "Ndryshon rolet",
   permNoChangeRolesAdmin:
@@ -712,6 +764,7 @@ const sq: Dict = {
   userNewRole: "Roli",
   userNewRoleUser: "Përdorues — vetëm lexon dhe shënon",
   userNewRoleManager: "Menaxher — cakton termine",
+  userNewRoleExpert: "Ekspert — sheh vetëm terminet e caktuara",
   userNewButton: "Hap llogarinë",
   userNewCreating: "Duke hapur…",
   userNewAdminNote:

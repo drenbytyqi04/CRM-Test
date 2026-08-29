@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 /** Rolet e mundshme. Duhet të përputhen me `supabase/roles.sql`. */
-export type Role = "user" | "manager" | "admin";
+export type Role = "user" | "manager" | "admin" | "expert";
 
 export type CurrentUser = {
   id: string;
@@ -16,6 +16,12 @@ export type CurrentUser = {
    * Përdoruesi i thjeshtë vetëm i lexon ato dhe shkruan shënime.
    */
   isManager: boolean;
+  /**
+   * Eksperti: sheh VETËM terminet që ia jep admini, dhe mbi to lexon e
+   * shkruan shënime. Kufiri i vërtetë rri te baza (`supabase/eksperti.sql`);
+   * kjo shenjë shërben vetëm që faqja të mos i tregojë butona që s'i hapen.
+   */
+  isExpert: boolean;
 };
 
 /**
@@ -51,7 +57,9 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
       ? "admin"
       : profile?.role === "manager"
         ? "manager"
-        : "user";
+        : profile?.role === "expert"
+          ? "expert"
+          : "user";
 
   return {
     id,
@@ -59,6 +67,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
     role,
     isAdmin: role === "admin",
     isManager: role === "admin" || role === "manager",
+    isExpert: role === "expert",
   };
 });
 

@@ -5,6 +5,7 @@ import NoteForm from "./note-form";
 import NoteRow from "./note-row";
 import { Tabs, TabPanel } from "./tabs";
 import DeleteButton from "./delete-button";
+import Experts, { type ExpertAccess } from "./experts";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n-server";
@@ -74,7 +75,7 @@ export default async function AppointmentPage({
   const adresaEDrejte = appointmentPath(termini, user.role);
   if (`/${prefiks}/terminet/${nr}` !== adresaEDrejte) redirect(adresaEDrejte);
 
-  const [notesResult, profilesResult] = await Promise.all([
+  const [notesResult, profilesResult, ekspertetResult] = await Promise.all([
     supabase
       .from("notes")
       .select("id, appointment_id, user_id, body, created_at, updated_at")
@@ -83,8 +84,17 @@ export default async function AppointmentPage({
       .returns<Note[]>(),
     supabase
       .from("profiles")
-      .select("id, email")
-      .returns<{ id: string; email: string | null }[]>(),
+      .select("id, email, role")
+      .returns<{ id: string; email: string | null; role: string }[]>(),
+    // Kush e sheh këtë termin. E lexon edhe menaxheri (rregullat e bazës e
+    // lejojnë), por paneli i ndryshimit del vetëm për adminin.
+    user.isManager
+      ? supabase
+          .from("appointment_experts")
+          .select("expert_id, granted_by")
+          .eq("appointment_id", termini.id)
+          .returns<{ expert_id: string; granted_by: string | null }[]>()
+      : Promise.resolve({ data: [], error: null }),
   ]);
 
   const notes = notesResult.data ?? [];
@@ -99,6 +109,18 @@ export default async function AppointmentPage({
 
   const agjenti =
     termini.user_id === user.id ? null : (emailet.get(termini.user_id) ?? null);
+
+  // Ekspertët: ata që e shohin tashmë, dhe llogaritë që mund të shtohen.
+  const meAkses = ekspertetResult.data ?? [];
+  const ekspertetAktuale: ExpertAccess[] = meAkses.map((e) => ({
+    expert_id: e.expert_id,
+    email: emailet.get(e.expert_id) ?? "—",
+    granted_by_email: e.granted_by ? (emailet.get(e.granted_by) ?? null) : null,
+  }));
+  const kaAkses = new Set(meAkses.map((e) => e.expert_id));
+  const ekspertetELira = (profilesResult.data ?? [])
+    .filter((p) => p.role === "expert" && !kaAkses.has(p.id))
+    .map((p) => ({ id: p.id, email: p.email ?? "—" }));
 
   return (
     <main className="mx-auto w-full max-w-4xl px-5 py-10">
@@ -154,6 +176,15 @@ export default async function AppointmentPage({
           { id: "rezultati", label: t.tabResult },
           { id: "detaje", label: t.tabDetails },
           { id: "feedback", label: t.tabFeedback(notes.length) },
+          // Skeda e ekspertëve rri vetëm te admini: vetëm ai e ndryshon.
+          ...(user.isAdmin
+            ? [
+                {
+                  id: "eksperte",
+                  label: `${t.expertsTitle} (${ekspertetAktuale.length})`,
+                },
+              ]
+            : []),
         ]}
       >
       {user.isManager ? (
@@ -322,6 +353,16 @@ export default async function AppointmentPage({
         </p>
       </section>
       </TabPanel>
+      {user.isAdmin && (
+        <TabPanel id="eksperte">
+          <Experts
+            appointmentId={termini.id}
+            aktualet={ekspertetAktuale}
+            teLira={ekspertetELira}
+            lang={lang}
+          />
+        </TabPanel>
+      )}
       </Tabs>
 
       {/* Fshirja rri jashtë skedave dhe në fund: veprim i rrallë, i pakthyeshëm. */}

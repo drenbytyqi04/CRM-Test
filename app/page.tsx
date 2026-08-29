@@ -269,7 +269,11 @@ export default async function Page({ searchParams }: PageProps<"/">) {
 
       {terminet.length === 0 && !terminetResult.error ? (
         <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">
-          {kerkimi ? t.searchNoResult(kerkimi) : t.listEmpty}
+          {kerkimi
+            ? t.searchNoResult(kerkimi)
+            : user.isExpert
+              ? t.expertNoAppointments
+              : t.listEmpty}
         </p>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">

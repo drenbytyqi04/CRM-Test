@@ -8,7 +8,7 @@ import type { FormState } from "@/lib/types";
 import { getDict } from "@/lib/i18n-server";
 
 /** Rolet që mund të jepen nga aplikacioni. */
-const ROLET_E_LEJUARA = ["user", "manager"] as const;
+const ROLET_E_LEJUARA = ["user", "manager", "expert"] as const;
 
 function looksLikeEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -92,7 +92,11 @@ export async function createUserAccount(
     ok: true,
     message: t.okAccountCreated(
       email,
-      role === "manager" ? t.roleManager : t.roleUser
+      role === "manager"
+        ? t.roleManager
+        : role === "expert"
+          ? t.roleExpert
+          : t.roleUser
     ),
   };
 }
