@@ -330,6 +330,7 @@ supabase/
   fshirja.sql               Lejon fshirjen e termineve (menaxher + admin)
   llogari-pa-humbje.sql     Të dhënat mbijetojnë fshirjen e një llogarie
   faqosja.sql               Numrat e përmbledhjes + indekset e listës
+  kategorite.sql            Tri kategoritë + arsyeja brenda tyre
   rls-shpejtesi.sql         Rregullat: një llogaritje për kërkesë, jo për rresht
   mbetur.sql                Të dyja migrimet e fundit, në një skedë
   activity.sql              Përcjellja e kohës
@@ -433,10 +434,32 @@ ashtu siç ishte atë ditë. Nëse i njëjti person takohet sërish pas gjashtë
 muajsh, caktohet një termin i ri me të dhënat e reja, dhe historiku i të parit
 mbetet i paprekur.
 
-**Statusi është një i vetëm, jo disa kuti.** Me kuti të pavarura mund të
-shënohej njëkohësisht "u mbajt" dhe "i anuluar", dhe atëherë asnjë raport nuk do
-të ishte i besueshëm. Dy shenjat e pavarura që mbeten — *kontratë shumëvjeçare*
-dhe *trajtim* — mund të shoqërojnë çdo status.
+**Rezultati: tri kategori, jo nëntë statuse.** Çdo termin bie në njërën nga
+tri:
+
+| | Kuptimi |
+|---|---|
+| 🟢 **E suksesshme** | U mbajt **dhe** u nënshkrua kontratë |
+| 🟡 **Në bisedim** | Puna vazhdon; mund të provohet sërish |
+| 🔴 **E dështuar** | Mbaroi pa gjë |
+
+Kategoria e ngjyros tërë rreshtin te lista, dhe kjo numërohet te raportet.
+Nëntë ngjyra nuk lexohen dot me bisht të syrit; tri po.
+
+**Arsyeja rri brenda kategorisë.** Hollësia nuk humbi — thjesht zbriti një
+shkallë: *E dështuar → S'deshi termin*, *Në bisedim → S'ishte në shtëpi*.
+Secila arsye i përket vetëm një kategorie, dhe atë lidhje e ruan vetë baza
+(`supabase/kategorite.sql`): «e suksesshme + i anuluar» nuk hyn dot as me një
+kërkesë të drejtpërdrejtë te API-ja, jo vetëm përmes formularit.
+
+**Suksesi kërkon kontratë.** Ky s'është vetëm rregull i formularit: baza e
+refuzon një termin të suksesshëm me zero kontrata. Pa këtë, «e suksesshme» do
+të ishte thjesht një ngjyrë që kushdo mund ta vendoste.
+
+**Vetëm një rezultat njëherësh.** Me kuti të pavarura mund të shënohej
+njëkohësisht «e suksesshme» dhe «e dështuar», dhe atëherë asnjë raport nuk do
+të ishte i besueshëm. Dy shenjat e pavarura që mbeten — *kontratë
+shumëvjeçare* dhe *trajtim* — mund të shoqërojnë çdo rezultat.
 
 **Kontratat nuk fryhen dot:** baza refuzon një numër më të madh se numri i
 personave të terminit.

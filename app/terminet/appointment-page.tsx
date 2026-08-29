@@ -10,7 +10,8 @@ import { requireUser } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n-server";
 import {
   APPOINTMENT_COLUMNS,
-  APPOINTMENT_STATUS_CLASSES,
+  appointmentCategoryLabel,
+  categoryStyle,
   appointmentStatusLabel,
   appointmentPath,
   formatDate,
@@ -118,12 +119,16 @@ export default async function AppointmentPage({
               )}
               {termini.name}
             </h1>
+            {/* Rezultati i madh, arsyeja e vogël pas tij: kategoria është
+                ajo që numërohet, arsyeja thotë vetëm pse. */}
             <span
               className={`rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${
-                APPOINTMENT_STATUS_CLASSES[termini.status] ??
-                APPOINTMENT_STATUS_CLASSES.cancelled
+                categoryStyle(termini.category).shenje
               }`}
             >
+              {appointmentCategoryLabel(termini.category, t)}
+            </span>
+            <span className="text-xs text-slate-500">
               {appointmentStatusLabel(termini.status, t)}
             </span>
             {agjenti && (
@@ -221,6 +226,10 @@ export default async function AppointmentPage({
               {t.tabResult}
             </h2>
             <dl className="grid gap-4 text-sm sm:grid-cols-3">
+              <Fusha
+                etiketa={t.fCategory}
+                vlera={appointmentCategoryLabel(termini.category, t)}
+              />
               <Fusha
                 etiketa={t.fStatus}
                 vlera={appointmentStatusLabel(termini.status, t)}

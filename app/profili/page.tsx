@@ -4,9 +4,10 @@ import { requireUser } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n-server";
 import type { Dict } from "@/lib/i18n";
 import {
-  APPOINTMENT_STATUS_CLASSES,
+  APPOINTMENT_CATEGORIES,
+  appointmentCategoryLabel,
+  categoryStyle,
   ROLE_CLASSES,
-  appointmentStatusLabel,
   beogradDay,
   ditetEFundit,
   formatDate,
@@ -107,9 +108,11 @@ export default async function ProfilePage() {
 
   // ---------- Puna ime ----------
   const kontrata = terminet.reduce((s, t) => s + t.contracts_closed, 0);
-  const sipasStatusit = [
-    ...terminet.reduce((m, t) => m.set(t.status, (m.get(t.status) ?? 0) + 1), new Map<string, number>()),
-  ].sort((a, b) => b[1] - a[1]);
+  // Ndarja sipas rezultatit: tri kategoritë, në radhë fikse.
+  const sipasStatusit = APPOINTMENT_CATEGORIES.map(
+    (c) =>
+      [c.value, terminet.filter((t) => t.category === c.value).length] as const
+  ).filter(([, sa]) => sa > 0);
   const terminetSot = terminet.filter(
     (t) => beogradDay(t.scheduled_at) === sot
   ).length;
@@ -232,15 +235,14 @@ export default async function ProfilePage() {
               </p>
             ) : (
               <ul className="flex flex-wrap gap-2">
-                {sipasStatusit.map(([status, sa]) => (
+                {sipasStatusit.map(([kategoria, sa]) => (
                   <li
-                    key={status}
+                    key={kategoria}
                     className={`rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${
-                      APPOINTMENT_STATUS_CLASSES[status] ??
-                      APPOINTMENT_STATUS_CLASSES.cancelled
+                      categoryStyle(kategoria).shenje
                     }`}
                   >
-                    {appointmentStatusLabel(status, t)} · {sa}
+                    {appointmentCategoryLabel(kategoria, t)} · {sa}
                   </li>
                 ))}
               </ul>

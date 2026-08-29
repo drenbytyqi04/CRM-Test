@@ -12,21 +12,55 @@ export function genderLabel(value: string | null, t: Dict): string {
 }
 
 /**
- * Statuset e një termini. Vetëm NJË prej tyre vlen njëherësh.
+ * Terminet ndahen në TRE kategori. Kaq sheh njeriu te lista, dhe kaq e
+ * ngjyros rreshtin:
+ *
+ *   🟢 e suksesshme — u mbajt DHE u nënshkrua kontratë
+ *   🟡 në bisedim   — puna vazhdon; mund të provohet sërish
+ *   🔴 e dështuar   — mbaroi pa gjë
+ *
+ * Kategoria është ajo që numërohet te raportet. Arsyeja (më poshtë) thotë
+ * PSE, dhe rri brenda kategorisë.
+ */
+export const APPOINTMENT_CATEGORIES = [
+  { value: "success", key: "catSuccess" },
+  { value: "talking", key: "catTalking" },
+  { value: "failed", key: "catFailed" },
+] as const;
+
+export type AppointmentCategory =
+  (typeof APPOINTMENT_CATEGORIES)[number]["value"];
+
+export function appointmentCategoryLabel(value: string, t: Dict): string {
+  const c = APPOINTMENT_CATEGORIES.find((x) => x.value === value);
+  return c ? t[c.key] : value;
+}
+
+/**
+ * Arsyeja — pse termini përfundoi në atë kategori.
+ *
+ * Secila arsye i përket një kategorie të vetme, prandaj kategoria dhe
+ * arsyeja nuk bien dot në kundërshtim. E njëjta lidhje ruhet edhe te baza
+ * (`supabase/kategorite.sql`), që as një kërkesë e drejtpërdrejtë të mos
+ * fusë një çift të pamundur.
  *
  * Këtu rrinë vetëm vlerat që shkojnë te baza. Emrat e lexueshëm janë te
  * `lib/i18n.ts`, sepse ndryshojnë me gjuhën.
  */
 export const APPOINTMENT_STATUSES = [
-  { value: "open", key: "statusOpen" },
-  { value: "held", key: "statusHeld" },
-  { value: "cancelled", key: "statusCancelled" },
-  { value: "not_reached", key: "statusNotReached" },
-  { value: "refused", key: "statusRefused" },
-  { value: "negative", key: "statusNegative" },
-  { value: "not_home", key: "statusNotHome" },
-  { value: "address_not_found", key: "statusAddressNotFound" },
-  { value: "advisor_failed", key: "statusAdvisorFailed" },
+  // E suksesshme
+  { value: "contract_signed", key: "statusContractSigned", category: "success" },
+  // Në bisedim
+  { value: "open", key: "statusOpen", category: "talking" },
+  { value: "held_thinking", key: "statusHeldThinking", category: "talking" },
+  { value: "not_reached", key: "statusNotReached", category: "talking" },
+  { value: "not_home", key: "statusNotHome", category: "talking" },
+  { value: "address_not_found", key: "statusAddressNotFound", category: "talking" },
+  // E dështuar
+  { value: "cancelled", key: "statusCancelled", category: "failed" },
+  { value: "refused", key: "statusRefused", category: "failed" },
+  { value: "negative", key: "statusNegative", category: "failed" },
+  { value: "advisor_failed", key: "statusAdvisorFailed", category: "failed" },
 ] as const;
 
 export type AppointmentStatus = (typeof APPOINTMENT_STATUSES)[number]["value"];
@@ -36,18 +70,48 @@ export function appointmentStatusLabel(value: string, t: Dict): string {
   return s ? t[s.key] : value;
 }
 
-/** Ngjyrat e etiketës për statusin e terminit. */
-export const APPOINTMENT_STATUS_CLASSES: Record<string, string> = {
-  open: "bg-sky-100 text-sky-800 ring-sky-200",
-  held: "bg-emerald-100 text-emerald-800 ring-emerald-200",
-  cancelled: "bg-slate-100 text-slate-600 ring-slate-200",
-  not_reached: "bg-amber-100 text-amber-800 ring-amber-200",
-  refused: "bg-rose-100 text-rose-800 ring-rose-200",
-  negative: "bg-rose-100 text-rose-800 ring-rose-200",
-  not_home: "bg-amber-100 text-amber-800 ring-amber-200",
-  address_not_found: "bg-amber-100 text-amber-800 ring-amber-200",
-  advisor_failed: "bg-slate-100 text-slate-600 ring-slate-200",
+/** Arsyet e një kategorie, në radhën e menysë. */
+export function reasonsForCategory(category: string) {
+  return APPOINTMENT_STATUSES.filter((s) => s.category === category);
+}
+
+/** Kategoria së cilës i përket një arsye. `null` nëse arsyeja s'njihet. */
+export function categoryOfStatus(status: string): AppointmentCategory | null {
+  return APPOINTMENT_STATUSES.find((s) => s.value === status)?.category ?? null;
+}
+
+/**
+ * Ngjyrat e tri kategorive.
+ *
+ * `rresht` ngjyros tërë rreshtin e listës, dhe `shirit` vizaton vijën me
+ * ngjyrë majtas. Ngjyra e rreshtit është e lehtë me qëllim: me 50 rreshta
+ * në faqe, një e gjelbër e fortë e lodh syrin dhe teksti dytësor humbet.
+ * Shiriti e mban dallimin të dukshëm pa e rënduar faqen.
+ */
+export const CATEGORY_STYLES: Record<
+  string,
+  { rresht: string; shirit: string; shenje: string }
+> = {
+  success: {
+    rresht: "bg-emerald-50 hover:bg-emerald-100/80",
+    shirit: "bg-emerald-500",
+    shenje: "bg-emerald-100 text-emerald-800 ring-emerald-200",
+  },
+  talking: {
+    rresht: "bg-amber-50 hover:bg-amber-100/80",
+    shirit: "bg-amber-500",
+    shenje: "bg-amber-100 text-amber-800 ring-amber-200",
+  },
+  failed: {
+    rresht: "bg-rose-50 hover:bg-rose-100/80",
+    shirit: "bg-rose-500",
+    shenje: "bg-rose-100 text-rose-800 ring-rose-200",
+  },
 };
+
+export function categoryStyle(category: string | null) {
+  return CATEGORY_STYLES[category ?? ""] ?? CATEGORY_STYLES.talking;
+}
 
 /** Një rresht i tabelës `appointments`. */
 export type Appointment = {
@@ -84,6 +148,8 @@ export type Appointment = {
   language: string | null;
   persons_count: number;
   status: AppointmentStatus;
+  /** Njëra nga tri kategoritë. E ngjyros rreshtin dhe numërohet te raportet. */
+  category: AppointmentCategory;
   multi_year_contract: boolean;
   treatment: boolean;
   contracts_closed: number;

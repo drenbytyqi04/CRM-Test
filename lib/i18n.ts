@@ -86,21 +86,27 @@ const de = {
   genderF: "Weiblich",
   genderM: "Männlich",
 
-  // ---------- Statuset ----------
-  statusOpen: "Offen",
-  statusHeld: "Stattgefunden",
-  statusCancelled: "Storniert",
+  // ---------- Tri kategoritë ----------
+  catSuccess: "Erfolgreich",
+  catTalking: "In Gespräch",
+  catFailed: "Gescheitert",
+
+  // ---------- Arsyet, brenda kategorive ----------
+  statusContractSigned: "Vertrag abgeschlossen",
+  statusOpen: "Termin steht noch aus",
+  statusHeldThinking: "Stattgefunden — überlegt noch",
   statusNotReached: "Nicht erreicht",
-  statusRefused: "Kein Termin gewünscht",
-  statusNegative: "Negativ",
   statusNotHome: "Nicht angetroffen",
   statusAddressNotFound: "Adresse nicht gefunden",
+  statusCancelled: "Storniert",
+  statusRefused: "Kein Termin gewünscht",
+  statusNegative: "Negativ",
   statusAdvisorFailed: "Keine Beratung möglich",
 
   // ---------- Lista e termineve ----------
   listTitle: "Termine",
   listSummary: (n: number, held: number, contracts: number) =>
-    `${sasi(n, "Termin", "Termine")} · ${held} stattgefunden · ${sasi(
+    `${sasi(n, "Termin", "Termine")} · ${held} erfolgreich · ${sasi(
       contracts,
       "Vertrag",
       "Verträge"
@@ -121,8 +127,8 @@ const de = {
   colPersons: "Pers.",
   colContracts: "Vertr.",
   colNotes: "Notiz.",
-  colStatus: "Status",
-  filterStatus: "Status",
+  colStatus: "Ergebnis",
+  filterStatus: "Ergebnis",
   filterAll: "Alle",
 
   // ---------- Kërkimi dhe faqet ----------
@@ -177,12 +183,14 @@ const de = {
   fCreatedAt: "Angelegt am",
 
   // Rezultati
-  fStatus: "Status",
+  fCategory: "Ergebnis",
+  fStatus: "Grund",
+  categoryHint: "Erfolgreich heißt: stattgefunden UND Vertrag abgeschlossen.",
+  reasonHint:
+    "Warum dieses Ergebnis. Die Auswahl richtet sich nach dem Ergebnis oben.",
   fContractsClosed: "Abgeschlossene Verträge",
   fMultiYear: "Mehrjahresvertrag",
   fTreatment: "Behandlung",
-  statusHint:
-    "Nur ein Status gleichzeitig — so widersprechen sich die Auswertungen nicht.",
   contractsHint: "Nicht mehr als die Anzahl der Personen.",
 
   // Detaje
@@ -234,16 +242,19 @@ const de = {
     "Überblick über die Termine. Die Zahlen werden bei jedem Aufruf neu berechnet.",
   dashTotal: "Termine gesamt",
   dashPersons: (n: number) => sasi(n, "Person", "Personen"),
-  dashHeld: "Stattgefunden",
+  dashHeld: "Erfolgreich",
   dashOfAll: (p: number) => `${p} % aller Termine`,
   dashContracts: "Abgeschlossene Verträge",
   dashCloseRate: (p: number) =>
-    `${p} % der stattgefundenen Termine ergaben einen Vertrag`,
+    `${p} % der abgeschlossenen Termine waren erfolgreich`,
   dashUpcoming: "Bevorstehend",
   dashTodayN: (n: number) => `${n} heute`,
   dashNoneToday: "keine heute",
-  dashByStatus: "Nach Status",
-  dashByStatusHint: "Jeder Termin hat immer nur einen Status.",
+  dashByStatus: "Nach Ergebnis",
+  dashByStatusHint:
+    "Jeder Termin gehört immer zu genau einer der drei Kategorien.",
+  dashByReason: "Gründe im Detail",
+  dashByReasonHint: "Warum die Termine so ausgegangen sind.",
   dashByDay: "Angelegt nach Tag",
   dashByDayHint: (n: number) => `Die letzten ${n} Tage, Belgrader Zeit.`,
   dashNext: "Nächste Termine",
@@ -380,7 +391,11 @@ const de = {
       "Person",
       "Personen"
     )} nicht möglich.`,
-  errUnknownStatus: "Der gewählte Status ist unbekannt.",
+  errUnknownCategory: "Dieses Ergebnis gibt es nicht.",
+  errReasonNotInCategory: "Der Grund passt nicht zum gewählten Ergebnis.",
+  errSuccessNeedsContract:
+    "«Erfolgreich» setzt mindestens einen abgeschlossenen Vertrag voraus.",
+  errUnknownStatus: "Der gewählte Grund ist unbekannt.",
   errAppointmentNotSaved: "Der Termin konnte nicht gespeichert werden",
   errAppointmentMissing: "Der zu ändernde Termin fehlt.",
   errAppointmentNotFound: "Dieser Termin wurde nicht gefunden.",
@@ -454,8 +469,13 @@ const sq: Dict = {
   genderF: "Femër",
   genderM: "Mashkull",
 
-  statusOpen: "I hapur",
-  statusHeld: "U mbajt",
+  catSuccess: "E suksesshme",
+  catTalking: "Në bisedim",
+  catFailed: "E dështuar",
+
+  statusContractSigned: "Kontratë e nënshkruar",
+  statusOpen: "Termini ende s'është mbajtur",
+  statusHeldThinking: "U mbajt — po mendohet",
   statusCancelled: "I anuluar",
   statusNotReached: "Nuk u arrit",
   statusRefused: "S'deshi termin",
@@ -467,7 +487,7 @@ const sq: Dict = {
   listTitle: "Terminet",
   listSummary: (n, held, contracts) =>
     `${sasi(n, "termin", "termine")} · ${held} ${
-      held === 1 ? "i mbajtur" : "të mbajtura"
+      held === 1 ? "i suksesshëm" : "të suksesshme"
     } · ${sasi(contracts, "kontratë", "kontrata")}`,
   listSummaryShort: (n) => sasi(n, "termin", "termine"),
   listAll: "Të gjitha",
@@ -484,8 +504,8 @@ const sq: Dict = {
   colPersons: "Pers.",
   colContracts: "Kontr.",
   colNotes: "Shën.",
-  colStatus: "Statusi",
-  filterStatus: "Statusi",
+  colStatus: "Rezultati",
+  filterStatus: "Rezultati",
   filterAll: "Të gjitha",
 
   searchLabel: "Kërko",
@@ -532,12 +552,13 @@ const sq: Dict = {
   fPersonsCount: "Numri i personave",
   fCreatedAt: "Shtuar më",
 
-  fStatus: "Statusi",
+  fCategory: "Rezultati",
+  fStatus: "Arsyeja",
+  categoryHint: "E suksesshme do të thotë: u mbajt DHE u nënshkrua kontratë.",
+  reasonHint: "Pse doli kështu. Zgjedhjet varen nga rezultati lart.",
   fContractsClosed: "Kontrata të mbyllura",
   fMultiYear: "Kontratë shumëvjeçare",
   fTreatment: "Trajtim",
-  statusHint:
-    "Vetëm një status njëherësh — kështu raportet nuk bien në kundërshtim.",
   contractsHint: "Nuk lejohet më shumë se numri i personave.",
 
   fFamilyDetails: "Detaje familjare",
@@ -584,15 +605,17 @@ const sq: Dict = {
     "Pamja e përgjithshme e termineve. Numrat llogariten sa herë hapet faqja.",
   dashTotal: "Termine gjithsej",
   dashPersons: (n) => sasi(n, "person", "persona"),
-  dashHeld: "U mbajtën",
+  dashHeld: "Të suksesshme",
   dashOfAll: (p) => `${p}% e të gjithave`,
   dashContracts: "Kontrata të mbyllura",
-  dashCloseRate: (p) => `${p}% e termineve të mbajtura dhanë kontratë`,
+  dashCloseRate: (p) => `${p}% e termineve të mbyllura dolën të suksesshme`,
   dashUpcoming: "Të ardhshme",
   dashTodayN: (n) => `${n} sot`,
   dashNoneToday: "asnjë sot",
-  dashByStatus: "Sipas statusit",
-  dashByStatusHint: "Çdo termin ka vetëm një status njëherësh.",
+  dashByStatus: "Sipas rezultatit",
+  dashByStatusHint: "Çdo termin i përket vetëm njërës nga tri kategoritë.",
+  dashByReason: "Arsyet me hollësi",
+  dashByReasonHint: "Pse dolën kështu terminet.",
   dashByDay: "Të regjistruar sipas ditës",
   dashByDayHint: (n) => `${n} ditët e fundit, sipas orës së Beogradit.`,
   dashNext: "Terminet e radhës",
@@ -720,7 +743,11 @@ const sq: Dict = {
       "person",
       "persona"
     )}.`,
-  errUnknownStatus: "Statusi i zgjedhur nuk njihet.",
+  errUnknownCategory: "Ky rezultat nuk ekziston.",
+  errReasonNotInCategory: "Arsyeja nuk i përket rezultatit të zgjedhur.",
+  errSuccessNeedsContract:
+    "«E suksesshme» kërkon të paktën një kontratë të mbyllur.",
+  errUnknownStatus: "Arsyeja e zgjedhur nuk njihet.",
   errAppointmentNotSaved: "Nuk u ruajt dot termini",
   errAppointmentMissing: "Mungon termini që duhet ndryshuar.",
   errAppointmentNotFound: "Ky termin nuk u gjet.",

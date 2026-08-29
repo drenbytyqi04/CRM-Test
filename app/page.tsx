@@ -9,10 +9,10 @@ import { requireUser } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n-server";
 import {
   APPOINTMENT_COLUMNS,
-  APPOINTMENT_STATUSES,
-  APPOINTMENT_STATUS_CLASSES,
+  APPOINTMENT_CATEGORIES,
+  appointmentCategoryLabel,
   appointmentPath,
-  appointmentStatusLabel,
+  categoryStyle,
   defaultAppointmentSlot,
   formatDuration,
   formatBeograd,
@@ -66,7 +66,7 @@ export default async function Page({ searchParams }: PageProps<"/">) {
 
   // Radha: i fundit i regjistruar rri lart. Kështu termini që sapo u shtua
   // gjendet menjëherë, pa varur nga data për të cilën është caktuar.
-  const statusIVlefshem = APPOINTMENT_STATUSES.some((s) => s.value === filtri);
+  const kategoriaIVlefshme = APPOINTMENT_CATEGORIES.some((c) => c.value === filtri);
 
   // `count: "exact"` e bën bazën ta numërojë tërë grupin, edhe pse kthen
   // vetëm një faqe. Pa të nuk dihet sa faqe ka — dhe përmbledhja lart do të
@@ -83,7 +83,7 @@ export default async function Page({ searchParams }: PageProps<"/">) {
     .order("nr", { ascending: false });
 
   if (!showAll) query = query.eq("user_id", user.id);
-  if (statusIVlefshem) query = query.eq("status", filtri);
+  if (kategoriaIVlefshme) query = query.eq("category", filtri);
   if (kerkimi) {
     // Emri kudo brenda tekstit, ose numri i shkurtër i saktë (#1234).
     const siNumer = /^#?\d+$/.test(kerkimi) ? Number(kerkimi.replace("#", "")) : null;
@@ -157,7 +157,7 @@ export default async function Page({ searchParams }: PageProps<"/">) {
     supabase
       .rpc("appointments_summary", {
         p_user: showAll ? null : user.id,
-        p_status: statusIVlefshem ? filtri : null,
+        p_category: kategoriaIVlefshme ? filtri : null,
         p_search: kerkimi || null,
       })
       .maybeSingle<{ total: number; held: number; contracts: number }>(),
@@ -287,9 +287,17 @@ export default async function Page({ searchParams }: PageProps<"/">) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {terminet.map((termini) => (
-                <tr key={termini.id} className="transition hover:bg-slate-50">
-                  <td className="p-3 pl-4 whitespace-nowrap text-slate-400 tabular-nums">
+              {terminet.map((termini) => {
+                const ngj = categoryStyle(termini.category);
+                return (
+                <tr key={termini.id} className={`transition ${ngj.rresht}`}>
+                  {/* Shiriti me ngjyrë majtas: dallimi kapet edhe me bisht
+                      të syrit, pa e ngarkuar rreshtin me ngjyrë të fortë. */}
+                  <td className="relative p-3 pl-4 whitespace-nowrap text-slate-500 tabular-nums">
+                    <span
+                      aria-hidden
+                      className={`absolute inset-y-0 left-0 w-1 ${ngj.shirit}`}
+                    />
                     {termini.nr != null ? `#${termini.nr}` : "—"}
                   </td>
                   <td className="p-3">
@@ -332,16 +340,14 @@ export default async function Page({ searchParams }: PageProps<"/">) {
                   </td>
                   <td className="p-3 pr-4 whitespace-nowrap">
                     <span
-                      className={`rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${
-                        APPOINTMENT_STATUS_CLASSES[termini.status] ??
-                        APPOINTMENT_STATUS_CLASSES.cancelled
-                      }`}
+                      className={`rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${ngj.shenje}`}
                     >
-                      {appointmentStatusLabel(termini.status, t)}
+                      {appointmentCategoryLabel(termini.category, t)}
                     </span>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

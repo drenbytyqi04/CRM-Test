@@ -7,7 +7,8 @@ import { getCurrentUser, requireManager, requireUser } from "@/lib/auth";
 import { getDict } from "@/lib/i18n-server";
 import type { Dict } from "@/lib/i18n";
 import {
-  APPOINTMENT_STATUSES,
+  APPOINTMENT_CATEGORIES,
+  categoryOfStatus,
   fromBeogradInput,
   type FormState,
 } from "@/lib/types";
@@ -155,12 +156,14 @@ function readAppointmentFields(formData: FormData) {
   const persons = Number(formData.get("personsCount") ?? 1);
   const contracts = Number(formData.get("contractsClosed") ?? 0);
   const status = String(formData.get("status") ?? "open");
+  const category = String(formData.get("category") ?? "talking");
 
   return {
     scheduled,
     persons,
     contracts,
     status,
+    category,
     values: {
       // Personalia e personit që takohet
       name: textOrNull(formData.get("name")),
@@ -196,6 +199,7 @@ function validateAppointment(
   persons: number,
   contracts: number,
   status: string,
+  category: string,
   name: string | null,
   email: string | null,
   t: Dict
@@ -206,8 +210,20 @@ function validateAppointment(
   if (!Number.isInteger(persons) || persons < 1) return t.errPersonsMin;
   if (!Number.isInteger(contracts) || contracts < 0) return t.errContractsBad;
   if (contracts > persons) return t.errContractsTooMany(contracts, persons);
-  if (!APPOINTMENT_STATUSES.some((s) => s.value === status)) {
-    return t.errUnknownStatus;
+
+  if (!APPOINTMENT_CATEGORIES.some((c) => c.value === category)) {
+    return t.errUnknownCategory;
+  }
+  // Arsyeja i përket një kategorie të vetme. Nëse s'njihet, ose i përket një
+  // tjetre, kërkesa nuk vjen nga formulari ynë — dhe nuk pranohet.
+  const eArsyes = categoryOfStatus(status);
+  if (!eArsyes) return t.errUnknownStatus;
+  if (eArsyes !== category) return t.errReasonNotInCategory;
+
+  // Rregulli që e vendos vetë kuptimi i fjalës: i suksesshëm do të thotë se
+  // doli kontratë. Pa këtë, «e suksesshme» do të bëhej thjesht një ngjyrë.
+  if (category === "success" && contracts < 1) {
+    return t.errSuccessNeedsContract;
   }
   return null;
 }
@@ -219,7 +235,7 @@ export async function createAppointment(
 ): Promise<FormState> {
   const user = await requireManager();
   const t = await getDict();
-  const { scheduled, persons, contracts, status, values } =
+  const { scheduled, persons, contracts, status, category, values } =
     readAppointmentFields(formData);
 
   const gabim = validateAppointment(
@@ -227,6 +243,7 @@ export async function createAppointment(
     persons,
     contracts,
     status,
+    category,
     values.name,
     values.email,
     t
@@ -241,6 +258,7 @@ export async function createAppointment(
     persons_count: persons,
     contracts_closed: contracts,
     status,
+    category,
   });
 
   if (error) {
@@ -259,7 +277,7 @@ export async function updateAppointment(
   await requireManager();
   const t = await getDict();
   const id = String(formData.get("appointmentId") ?? "");
-  const { scheduled, persons, contracts, status, values } =
+  const { scheduled, persons, contracts, status, category, values } =
     readAppointmentFields(formData);
 
   if (!id) return { error: t.errAppointmentMissing };
@@ -269,6 +287,7 @@ export async function updateAppointment(
     persons,
     contracts,
     status,
+    category,
     values.name,
     values.email,
     t
@@ -294,6 +313,7 @@ export async function updateAppointment(
       persons_count: persons,
       contracts_closed: contracts,
       status,
+      category,
       updated_at: new Date().toISOString(),
     })
     .eq("id", id)

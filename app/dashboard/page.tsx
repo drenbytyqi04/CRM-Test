@@ -5,7 +5,8 @@ import { requireUser } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n-server";
 import {
   APPOINTMENT_STATUSES,
-  APPOINTMENT_STATUS_CLASSES,
+  APPOINTMENT_CATEGORIES,
+  categoryStyle,
   appointmentPath,
   beogradDay,
   ditetEFundit,
@@ -52,30 +53,41 @@ export default async function DashboardPage() {
   // ---------- Numrat kryesorë ----------
   const persona = terminet.reduce((s, t) => s + t.persons_count, 0);
   const kontrata = terminet.reduce((s, t) => s + t.contracts_closed, 0);
-  const uMbajten = terminet.filter((t) => t.status === "held").length;
+  // Të suksesshme: u mbajtën DHE dhanë kontratë. Kategoria e mban vetë atë
+  // kusht, prandaj mjafton ta numërosh atë.
+  const uMbajten = terminet.filter((t) => t.category === "success").length;
 
-  // Sa nga terminet e mbajtura dhanë të paktën një kontratë. Kjo tregon
+  // Sa nga terminet që s'janë më në bisedim përfunduan me sukses. Kjo tregon
   // cilësinë e punës më mirë se numri i thatë i kontratave.
-  const meKontrate = terminet.filter((t) => t.contracts_closed > 0).length;
+  const teMbyllura = terminet.filter((t) => t.category !== "talking").length;
   const normaMbylljes =
-    uMbajten > 0 ? Math.round((meKontrate / uMbajten) * 100) : 0;
+    teMbyllura > 0 ? Math.round((uMbajten / teMbyllura) * 100) : 0;
 
   const tani = new Date().toISOString();
   const teArdhshme = terminet.filter(
-    (t) => t.scheduled_at > tani && t.status === "open"
+    (t) => t.scheduled_at > tani && t.category === "talking"
   );
   const sotTermine = terminet.filter(
     (t) => beogradDay(t.scheduled_at) === sot
   ).length;
 
-  // ---------- Ndarja sipas statusit ----------
-  const sipasStatusit = APPOINTMENT_STATUSES.map((s) => ({
+  // ---------- Ndarja sipas rezultatit (tri kategoritë) ----------
+  // Radha mbetet ajo e kategorive, jo sipas sasisë: tri shtylla që hidhen
+  // sa herë ndryshojnë numrat lexohen më keq se tri shtylla që rrinë fiks.
+  const sipasStatusit = APPOINTMENT_CATEGORIES.map((c) => ({
+    ...c,
+    sa: terminet.filter((t) => t.category === c.value).length,
+  }));
+  const maksStatus = Math.max(1, ...sipasStatusit.map((s) => s.sa));
+
+  // ---------- Arsyet, brenda kategorive ----------
+  const sipasArsyes = APPOINTMENT_STATUSES.map((s) => ({
     ...s,
     sa: terminet.filter((t) => t.status === s.value).length,
   }))
     .filter((s) => s.sa > 0)
     .sort((a, b) => b.sa - a.sa);
-  const maksStatus = Math.max(1, ...sipasStatusit.map((s) => s.sa));
+  const maksArsye = Math.max(1, ...sipasArsyes.map((s) => s.sa));
 
   // ---------- Të regjistruar ditë pas dite ----------
   const perDite = dite.map((dita) => ({
@@ -161,9 +173,34 @@ export default async function DashboardPage() {
                   perqindje={Math.round((s.sa / terminet.length) * 100)}
                   shenja={
                     <span
-                      className={`h-2.5 w-2.5 shrink-0 rounded-full ring-1 ring-inset ${
-                        APPOINTMENT_STATUS_CLASSES[s.value] ??
-                        APPOINTMENT_STATUS_CLASSES.cancelled
+                      className={`h-2.5 w-2.5 shrink-0 rounded-full ${
+                        categoryStyle(s.value).shirit
+                      }`}
+                    />
+                  }
+                />
+              ))}
+            </div>
+          )}
+        </Card>
+
+        {/* ---------- Arsyet, brenda kategorive ---------- */}
+        <Card titull={t.dashByReason} nen={t.dashByReasonHint}>
+          {sipasArsyes.length === 0 ? (
+            <p className="text-sm text-slate-500">{t.dashNoAppointments}</p>
+          ) : (
+            <div>
+              {sipasArsyes.map((s) => (
+                <BarRow
+                  key={s.value}
+                  etiketa={t[s.key]}
+                  vlera={s.sa}
+                  maks={maksArsye}
+                  perqindje={Math.round((s.sa / terminet.length) * 100)}
+                  shenja={
+                    <span
+                      className={`h-2.5 w-2.5 shrink-0 rounded-full ${
+                        categoryStyle(s.category).shirit
                       }`}
                     />
                   }

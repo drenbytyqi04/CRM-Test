@@ -1,10 +1,12 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { createAppointment, updateAppointment } from "@/app/actions";
 import {
-  APPOINTMENT_STATUSES,
+  APPOINTMENT_CATEGORIES,
   GENDERS,
+  categoryStyle,
+  reasonsForCategory,
   type Appointment,
   type FormState,
 } from "@/lib/types";
@@ -38,6 +40,19 @@ export default function AppointmentForm({
   const t = DICTS[lang];
   const formRef = useRef<HTMLFormElement>(null);
   const duke = Boolean(appointment);
+
+  // Rezultati mbahet këtu, jo vetëm te fusha, sepse menyja e dytë varet nga
+  // ai: arsyet e «E dështuar» s'kanë punë te «E suksesshme».
+  const [kategoria, setKategoria] = useState<string>(
+    appointment?.category ?? "talking"
+  );
+  const arsyet = reasonsForCategory(kategoria);
+  // Kur ndërrohet rezultati, arsyeja e mëparshme mund të mos i përkasë më.
+  // Atëherë bie te e para e kategorisë së re.
+  const arsyeja =
+    appointment && arsyet.some((a) => a.value === appointment.status)
+      ? appointment.status
+      : arsyet[0]?.value;
 
   const [state, action, pending] = useActionState<FormState, FormData>(
     duke ? updateAppointment : createAppointment,
@@ -270,20 +285,53 @@ export default function AppointmentForm({
         </h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block">
+            <span className={label}>{t.fCategory}</span>
+            <div className="flex gap-2">
+              {APPOINTMENT_CATEGORIES.map((c) => {
+                const zgjedhur = kategoria === c.value;
+                const ngj = categoryStyle(c.value);
+                return (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => setKategoria(c.value)}
+                    aria-pressed={zgjedhur}
+                    className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                      zgjedhur
+                        ? `${ngj.shenje} border-transparent ring-1 ring-inset`
+                        : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    {t[c.key]}
+                  </button>
+                );
+              })}
+            </div>
+            {/* Vlera që dërgohet vërtet. Butonat lart janë vetëm pamja. */}
+            <input type="hidden" name="category" value={kategoria} />
+            <span className="mt-1 block text-xs text-slate-500">
+              {t.categoryHint}
+            </span>
+          </label>
+
+          <label className="block">
             <span className={label}>{t.fStatus}</span>
             <select
               name="status"
-              defaultValue={appointment?.status ?? "open"}
+              // `key` e detyron menynë të rifillojë kur ndërron kategoria,
+              // që të mos mbetet e zgjedhur një arsye e kategorisë së vjetër.
+              key={kategoria}
+              defaultValue={arsyeja}
               className={`${input} bg-white`}
             >
-              {APPOINTMENT_STATUSES.map((s) => (
+              {arsyet.map((s) => (
                 <option key={s.value} value={s.value}>
                   {t[s.key]}
                 </option>
               ))}
             </select>
             <span className="mt-1 block text-xs text-slate-500">
-              {t.statusHint}
+              {t.reasonHint}
             </span>
           </label>
           <label className="block">

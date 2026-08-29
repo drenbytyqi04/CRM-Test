@@ -1,14 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { APPOINTMENT_STATUSES } from "@/lib/types";
+import { APPOINTMENT_CATEGORIES } from "@/lib/types";
 import { DICTS, type Lang } from "@/lib/i18n";
 
 /**
- * Filtri i statusit si një menu e vetme.
+ * Filtri i rezultatit: tri kategoritë.
  *
- * Më parë ishin nëntë butona që mbështilleshin në dy rreshta. Menyja i mban
- * të njëjtat mundësi, por zë një rresht të vetëm.
+ * Më parë ishin nëntë statuse. Tani lista ndahet në tri kategori, dhe arsyeja
+ * e hollësishme rri brenda terminit.
  *
  * Pamja "Të mijat" ruhet: ndryshimi i statusit nuk të kthen te të gjitha.
  */
@@ -47,9 +47,9 @@ export default function StatusFilter({
         className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-slate-900 outline-none focus:border-slate-900"
       >
         <option value="">{t.filterAll}</option>
-        {APPOINTMENT_STATUSES.map((s) => (
-          <option key={s.value} value={s.value}>
-            {t[s.key]}
+        {APPOINTMENT_CATEGORIES.map((c) => (
+          <option key={c.value} value={c.value}>
+            {t[c.key]}
           </option>
         ))}
       </select>
