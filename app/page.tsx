@@ -2,6 +2,8 @@ import Link from "next/link";
 import AppointmentForm from "./terminet/appointment-form";
 import SetupNotice from "./setup-notice";
 import StatusFilter from "./status-filter";
+import Pagination from "./pagination";
+import SearchBox from "./search-box";
 import { createClient, hasSupabaseConfig } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n-server";
@@ -21,6 +23,19 @@ import {
 // I thotë Next.js-it ta ndërtojë faqen sa herë hapet, që lista të jetë e freskët.
 export const dynamic = "force-dynamic";
 
+/**
+ * Sa termine në një faqe.
+ *
+ * Më parë lista i merrte të gjitha. Me 2000 termine faqja dilte 1.6 MB dhe
+ * 90 000 piksela e gjatë — rreth 100 ekrane scroll. Kolona e shënimeve
+ * prishej fare: adresa e kërkesës arrinte 72 KB dhe serveri e kthente me
+ * gabimin 431, prandaj çdo rresht tregonte 0 shënime edhe kur kishte.
+ *
+ * 50 është aq sa mbush një ekran e ca: sheh menjëherë ku je, dhe faqja
+ * mbetet nën 100 KB.
+ */
+const FAQE_MADHESIA = 50;
+
 export default async function Page({ searchParams }: PageProps<"/">) {
   const { t, lang, locale } = await getI18n();
 
@@ -38,8 +53,12 @@ export default async function Page({ searchParams }: PageProps<"/">) {
   const user = await requireUser();
   const supabase = await createClient();
 
-  const { status, view } = await searchParams;
+  const { status, view, kerko, faqe } = await searchParams;
   const filtri = typeof status === "string" ? status : "";
+  const kerkimi = typeof kerko === "string" ? kerko.trim() : "";
+  // Faqja vjen nga adresa dhe mund të jetë çfarëdo: «abc», «-3», «99999».
+  // Prandaj kthehet në numër dhe kufizohet më poshtë, pasi dimë sa faqe ka.
+  const faqjaEKerkuar = Math.max(1, Number(faqe) || 1);
   // Terminet e regjistruara i sheh çdo i kyçur. Menaxheri mund t'i ngushtojë
   // te "Të mijat".
   const showAll = view !== "mine";
@@ -47,20 +66,70 @@ export default async function Page({ searchParams }: PageProps<"/">) {
 
   // Radha: i fundit i regjistruar rri lart. Kështu termini që sapo u shtua
   // gjendet menjëherë, pa varur nga data për të cilën është caktuar.
+  const statusIVlefshem = APPOINTMENT_STATUSES.some((s) => s.value === filtri);
+
+  // `count: "exact"` e bën bazën ta numërojë tërë grupin, edhe pse kthen
+  // vetëm një faqe. Pa të nuk dihet sa faqe ka — dhe përmbledhja lart do të
+  // tregonte 50 në vend të 2000.
   let query = supabase
     .from("appointments")
-    .select(APPOINTMENT_COLUMNS)
-    .order("created_at", { ascending: false });
+    .select(APPOINTMENT_COLUMNS, { count: "exact" })
+    .order("created_at", { ascending: false })
+    // Ndarës i dytë, i detyrueshëm sapo lista u nda në faqe. Dy termine të
+    // regjistruar brenda të njëjtit çast kanë të njëjtën `created_at`, dhe
+    // atëherë radha mes tyre s'është e përcaktuar: baza mund t'i kthejë
+    // ndryshe sa herë. Me faqe kjo do të thoshte se i njëjti termin del në
+    // dy faqe, ose nuk del në asnjërën. `nr` është unik, prandaj e mbyll.
+    .order("nr", { ascending: false });
 
   if (!showAll) query = query.eq("user_id", user.id);
-  if (APPOINTMENT_STATUSES.some((s) => s.value === filtri)) {
-    query = query.eq("status", filtri);
+  if (statusIVlefshem) query = query.eq("status", filtri);
+  if (kerkimi) {
+    // Emri kudo brenda tekstit, ose numri i shkurtër i saktë (#1234).
+    const siNumer = /^#?\d+$/.test(kerkimi) ? Number(kerkimi.replace("#", "")) : null;
+    query = siNumer
+      ? query.or(`name.ilike.%${kerkimi}%,nr.eq.${siNumer}`)
+      : query.ilike("name", `%${kerkimi}%`);
   }
 
-  const terminetResult = await query.returns<Appointment[]>();
-  const terminet = terminetResult.data ?? [];
+  // Faqja e parë merret gjithmonë; nëse numri i kërkuar del jashtë, faqja
+  // rregullohet pasi dimë sa rreshta ka gjithsej.
+  const nga = (faqjaEKerkuar - 1) * FAQE_MADHESIA;
+  const terminetResult = await query
+    .range(nga, nga + FAQE_MADHESIA - 1)
+    .returns<Appointment[]>();
 
-  const [notesResult, agjentetResult, aktivitetiIm] = await Promise.all([
+  const terminet = terminetResult.data ?? [];
+  const sagjithsej = terminetResult.count ?? terminet.length;
+  const faqeGjithsej = Math.max(1, Math.ceil(sagjithsej / FAQE_MADHESIA));
+  const faqja = Math.min(faqjaEKerkuar, faqeGjithsej);
+
+  /**
+   * Adresa e listës me këto zgjedhje.
+   *
+   * Çdo lidhje e listës — «Të gjitha», «Të mijat», butonat e faqeve — e
+   * ndërton adresën këtu, që asnjëra të mos harrojë ndonjë parametër. Kur
+   * ndryshon filtri ose pamja, `faqe` bie qëllimisht: rezultatet janë të
+   * tjera, prandaj faqja 7 e mëparshme s'ka kuptim.
+   */
+  const adresaEListes = (o: {
+    view?: "mine" | "all";
+    faqe?: number;
+  } = {}) => {
+    const p = new URLSearchParams();
+    const vetemTeMijat = o.view ? o.view === "mine" : !showAll;
+    if (vetemTeMijat) p.set("view", "mine");
+    if (filtri) p.set("status", filtri);
+    if (kerkimi) p.set("kerko", kerkimi);
+    if (o.faqe && o.faqe > 1) p.set("faqe", String(o.faqe));
+    const q = p.toString();
+    return q ? `/?${q}` : "/";
+  };
+
+  const [notesResult, agjentetResult, aktivitetiIm, permbledhja] = await Promise.all([
+    // Shënimet vetëm për terminet e KËSAJ faqeje. Me të gjitha id-të, adresa
+    // e kërkesës arrinte 72 KB dhe serveri e kthente me 431 — pa gabim të
+    // dukshëm, thjesht çdo rresht tregonte 0 shënime.
     terminet.length > 0
       ? supabase
           .from("notes")
@@ -82,6 +151,16 @@ export default async function Page({ searchParams }: PageProps<"/">) {
       .eq("user_id", user.id)
       .eq("day", sot)
       .maybeSingle<{ active_seconds: number }>(),
+    // Numrat e përmbledhjes janë të TËRË grupit, jo të faqes që sheh.
+    // Prandaj i llogarit baza (`supabase/faqosja.sql`) dhe kthen tre numra
+    // në vend të mijëra rreshtave.
+    supabase
+      .rpc("appointments_summary", {
+        p_user: showAll ? null : user.id,
+        p_status: statusIVlefshem ? filtri : null,
+        p_search: kerkimi || null,
+      })
+      .maybeSingle<{ total: number; held: number; contracts: number }>(),
   ]);
 
   const noteCounts = new Map<string, number>();
@@ -92,8 +171,12 @@ export default async function Page({ searchParams }: PageProps<"/">) {
     (agjentetResult.data ?? []).map((p) => [p.id, p.email ?? "—"])
   );
 
-  const kontrata = terminet.reduce((s, t) => s + t.contracts_closed, 0);
-  const uMbajten = terminet.filter((t) => t.status === "held").length;
+  // Nëse `supabase/faqosja.sql` s'është ngritur ende, funksioni mungon.
+  // Atëherë tregohet vetëm numri i termineve — i saktë gjithsesi, sepse vjen
+  // nga `count`. Më mirë një numër më pak se tre numra të gabuar.
+  const numrat = permbledhja.data;
+  const uMbajten = numrat?.held ?? null;
+  const kontrata = numrat?.contracts ?? null;
 
   return (
     <main className="mx-auto w-full max-w-5xl px-5 py-10">
@@ -103,7 +186,15 @@ export default async function Page({ searchParams }: PageProps<"/">) {
             {t.listTitle}
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            {t.listSummary(terminet.length, uMbajten, kontrata)}
+            {uMbajten != null && kontrata != null
+              ? t.listSummary(sagjithsej, uMbajten, kontrata)
+              : t.listSummaryShort(sagjithsej)}
+            {faqeGjithsej > 1 && (
+              <span className="text-slate-400">
+                {" · "}
+                {t.pageOf(faqja, faqeGjithsej)}
+              </span>
+            )}
           </p>
         </div>
 
@@ -120,7 +211,7 @@ export default async function Page({ searchParams }: PageProps<"/">) {
         <>
           <nav className="mb-4 flex gap-2 text-sm">
             <Link
-              href={filtri ? `/?status=${filtri}` : "/"}
+              href={adresaEListes({ view: "all" })}
               className={`rounded-lg px-3 py-1.5 transition ${
                 showAll
                   ? "bg-slate-900 text-white"
@@ -130,7 +221,7 @@ export default async function Page({ searchParams }: PageProps<"/">) {
               {t.listAll}
             </Link>
             <Link
-              href={`/?view=mine${filtri ? `&status=${filtri}` : ""}`}
+              href={adresaEListes({ view: "mine" })}
               className={`rounded-lg px-3 py-1.5 transition ${
                 showAll
                   ? "border border-slate-300 text-slate-600 hover:bg-white"
@@ -155,8 +246,19 @@ export default async function Page({ searchParams }: PageProps<"/">) {
         </>
       )}
 
-      <div className="mb-4">
-        <StatusFilter vlera={filtri} vetemTeMijat={!showAll} lang={lang} />
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <StatusFilter
+          vlera={filtri}
+          vetemTeMijat={!showAll}
+          kerkimi={kerkimi}
+          lang={lang}
+        />
+        <SearchBox
+          vlera={kerkimi}
+          status={filtri}
+          vetemTeMijat={!showAll}
+          t={t}
+        />
       </div>
 
       {terminetResult.error && (
@@ -167,7 +269,7 @@ export default async function Page({ searchParams }: PageProps<"/">) {
 
       {terminet.length === 0 && !terminetResult.error ? (
         <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">
-          {t.listEmpty}
+          {kerkimi ? t.searchNoResult(kerkimi) : t.listEmpty}
         </p>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
@@ -244,6 +346,15 @@ export default async function Page({ searchParams }: PageProps<"/">) {
           </table>
         </div>
       )}
+
+      {/* Butonat e faqeve. Filtri, pamja dhe kërkimi udhëtojnë bashkë me
+          numrin e faqes, që të mos humbin sa herë shtyp «Para». */}
+      <Pagination
+        faqja={faqja}
+        gjithsej={faqeGjithsej}
+        t={t}
+        adresa={(n) => adresaEListes({ faqe: n })}
+      />
     </main>
   );
 }

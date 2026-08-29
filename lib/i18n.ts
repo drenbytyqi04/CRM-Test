@@ -105,6 +105,8 @@ const de = {
       "Vertrag",
       "Verträge"
     )}`,
+  /** Kur numrat e plotë s'merren dot (funksioni i bazës mungon ende). */
+  listSummaryShort: (n: number) => sasi(n, "Termin", "Termine"),
   listAll: "Alle",
   listMine: "Meine",
   listNewAppointment: "Neuen Termin anlegen",
@@ -122,6 +124,21 @@ const de = {
   colStatus: "Status",
   filterStatus: "Status",
   filterAll: "Alle",
+
+  // ---------- Kërkimi dhe faqet ----------
+  searchLabel: "Suche",
+  searchPlaceholder: "Name oder Nr.",
+  searchButton: "Suchen",
+  searchClear: "Zurücksetzen",
+  searchNoResult: (q: string) => `Kein Termin gefunden für «${q}».`,
+  searchFound: (n: number, q: string) =>
+    `${sasi(n, "Treffer", "Treffer")} für «${q}»`,
+  pagePrev: "Zurück",
+  pageNext: "Weiter",
+  pageOf: (faqja: number, gjithsej: number) =>
+    `Seite ${faqja} von ${gjithsej}`,
+  pageRange: (nga: number, deri: number, gjithsej: number) =>
+    `${nga}–${deri} von ${gjithsej}`,
 
   // ---------- Faqja e terminit ----------
   backToList: "← Alle Termine",
@@ -452,6 +469,7 @@ const sq: Dict = {
     `${sasi(n, "termin", "termine")} · ${held} ${
       held === 1 ? "i mbajtur" : "të mbajtura"
     } · ${sasi(contracts, "kontratë", "kontrata")}`,
+  listSummaryShort: (n) => sasi(n, "termin", "termine"),
   listAll: "Të gjitha",
   listMine: "Të mijat",
   listNewAppointment: "Cakto termin të ri",
@@ -469,6 +487,17 @@ const sq: Dict = {
   colStatus: "Statusi",
   filterStatus: "Statusi",
   filterAll: "Të gjitha",
+
+  searchLabel: "Kërko",
+  searchPlaceholder: "Emri ose nr.",
+  searchButton: "Kërko",
+  searchClear: "Pastro",
+  searchNoResult: (q) => `Nuk u gjet asnjë termin për «${q}».`,
+  searchFound: (n, q) => `${sasi(n, "përputhje", "përputhje")} për «${q}»`,
+  pagePrev: "Mbrapa",
+  pageNext: "Para",
+  pageOf: (faqja, gjithsej) => `Faqja ${faqja} nga ${gjithsej}`,
+  pageRange: (nga, deri, gjithsej) => `${nga}–${deri} nga ${gjithsej}`,
 
   backToList: "← Të gjitha terminet",
   assignedBy: "Caktuar nga",

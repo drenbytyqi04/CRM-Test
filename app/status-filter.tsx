@@ -15,10 +15,13 @@ import { DICTS, type Lang } from "@/lib/i18n";
 export default function StatusFilter({
   vlera,
   vetemTeMijat,
+  kerkimi,
   lang,
 }: {
   vlera: string;
   vetemTeMijat: boolean;
+  /** Teksti i kërkuar, që ndërrimi i statusit të mos e humbasë. */
+  kerkimi: string;
   lang: Lang;
 }) {
   // Fjalori merret këtu: funksionet e tij nuk kalojnë dot nga serveri.
@@ -32,11 +35,14 @@ export default function StatusFilter({
         data-testid="status-filter"
         value={vlera}
         onChange={(e) => {
-          const params = [
-            e.target.value ? `status=${e.target.value}` : "",
-            vetemTeMijat ? "view=mine" : "",
-          ].filter(Boolean);
-          router.push(params.length > 0 ? `/?${params.join("&")}` : "/");
+          // Statusi i ri nis nga faqja e parë: rezultatet janë të tjera,
+          // prandaj `faqe` bie qëllimisht.
+          const params = new URLSearchParams();
+          if (e.target.value) params.set("status", e.target.value);
+          if (vetemTeMijat) params.set("view", "mine");
+          if (kerkimi) params.set("kerko", kerkimi);
+          const q = params.toString();
+          router.push(q ? `/?${q}` : "/");
         }}
         className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-slate-900 outline-none focus:border-slate-900"
       >

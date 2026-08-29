@@ -197,7 +197,14 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
   ndryshon gjithë faqen menjëherë. Zgjedhja ruhet te shfletuesi dhe mbetet
   edhe pas daljes.
 - **Filtro:** menyja *Statusi* lart. Përmbledhja tregon sa termine, sa u
-  mbajtën dhe sa kontrata u mbyllën.
+  mbajtën dhe sa kontrata u mbyllën — për **tërë bazën**, jo vetëm për faqen
+  që sheh.
+- **Faqet:** lista jep 50 termine për faqe, me butonat ‹ 1 2 … 40 › poshtë.
+  Numri i faqes rri te adresa (`/?faqe=7`), prandaj lidhja mund të dërgohet
+  ose të ruhet, dhe kthimi nga një termin të lë aty ku ishe.
+- **Kërko:** kutia djathtas filtrit gjen sipas emrit (kudo brenda tekstit)
+  ose sipas numrit të shkurtër (`2998`). Kërkimi, filtri dhe pamja *Të mijat*
+  udhëtojnë bashkë.
 - **Hap një termin:** kliko mbi emrin. Faqja ndahet në pesë skeda —
   *Personalia*, *Të dhëna teknike*, *Rezultati*, *Detaje*, *Feedback* — dhe
   duket vetëm njëra njëherësh, që të mos zbresësh gjatë. Butoni *Ruaj
@@ -289,6 +296,8 @@ app/
   profili/page.tsx          Profili im: koha, puna dhe lejet
   stats.tsx                 Kutitë e numrave dhe grafikët (HTML i thjeshtë)
   status-filter.tsx         Menyja e filtrit sipas statusit
+  pagination.tsx            Butonat e faqeve: ‹ 1 2 … 40 ›
+  search-box.tsx            Kutia e kërkimit mbi listë
   sidebar.tsx               Menyja anash: lidhjet, roli dhe "Dil"
   sidebar-link.tsx          Një lidhje e menysë, që ndriçon te faqja e vet
   language-switcher.tsx     Çelësi Deutsch / Shqip
@@ -320,6 +329,7 @@ supabase/
   nr.sql                    Numri i shkurtër i terminit (#1000)
   fshirja.sql               Lejon fshirjen e termineve (menaxher + admin)
   llogari-pa-humbje.sql     Të dhënat mbijetojnë fshirjen e një llogarie
+  faqosja.sql               Numrat e përmbledhjes + indekset e listës
   mbetur.sql                Të dyja migrimet e fundit, në një skedë
   activity.sql              Përcjellja e kohës
 ```
@@ -430,7 +440,54 @@ dhe *trajtim* — mund të shoqërojnë çdo status.
 **Kontratat nuk fryhen dot:** baza refuzon një numër më të madh se numri i
 personave të terminit.
 
-## Pjesa 8 — Dy gjuhët
+## Pjesa 8 — Lista me shumë termine
+
+Deri para pak, lista i merrte **të gjitha** terminet sa herë hapej. Me pak
+dhjetëra kjo s'duket. Me 2000 prishet, dhe u mat me 2000 të vërtetë:
+
+| | Më parë | Tani |
+|---|---|---|
+| Rreshta në faqe | 2000 | 50 |
+| Pesha e faqes | 1706 KB | 65 KB |
+| Gjatësia | 90 392 px (~100 ekrane) | 2694 px |
+| Nyje HTML | 24 198 | 810 |
+| Kolona *Shën.* | **0 kudo, gabim** | e saktë |
+
+Gabimi i fundit ishte më i keqi, sepse nuk dukej fare. Shënimet e listës
+merreshin me një kërkesë të vetme që i numëronte të gjitha id-të njëherësh.
+Me 2000 id, adresa e asaj kërkese arrinte **72 080 shkronja** — serveri e
+kthente me `431 Request Header Fields Too Large`. Faqja nuk shfaqte asnjë
+gabim; thjesht çdo rresht tregonte `0` shënime, edhe kur kishte tri.
+
+**Zgjidhja.** Lista merr një faqe, 50 rreshta. Shënimet merren vetëm për ato
+50. Numrat e përmbledhjes lart nuk dalin më nga rreshtat e ngarkuar, por i
+llogarit baza me funksionin `appointments_summary` (te `supabase/faqosja.sql`),
+që kthen tre numra në vend të mijëra rreshtave.
+
+**Pse faqe e jo scroll i pafund.** Numri i faqes rri te adresa. Prandaj
+lidhja dërgohet e ruhet, dhe kthimi nga një termin të lë aty ku ishe. Scroll-i
+i pafund i humb të treja, dhe s'arrin dot kurrë te fundi.
+
+**Siguria e funksionit.** Është `security invoker`, jo `definer` — pra
+rregullat e leximit vlejnë njësoj si te çdo kërkesë tjetër. Po ta bënim
+`definer`, numri lart do të numëronte edhe termine që përdoruesi s'i sheh
+dot te lista poshtë. Kjo është provuar: kur RLS-ja i fsheh rreshtat,
+funksioni kthen 0.
+
+**Indekset.** `faqosja.sql` shton indeksin e radhës (`created_at desc`), atë
+të menaxherit, të numrit të shkurtër, të shënimeve, dhe një indeks `pg_trgm`
+për kërkimin sipas emrit. Të matura me **50 000** termine: faqja e parë
+0.06 ms, faqja e 1000-të 5.5 ms, kërkimi 0.6 ms, përmbledhja 11.6 ms.
+
+> **Mbetet për t'u bërë:** *Dashboard-i*, *Profili* dhe faqja e *Përdoruesve*
+> i lexojnë ende të gjitha terminet për të llogaritur numrat e tyre. Nën 1000
+> termine punojnë saktë; mbi atë kufi Supabase i pret rreshtat në heshtje dhe
+> numrat dalin më të vegjël se e vërteta. Rregullimi është i njëjti: numrat
+> t'i llogarisë baza.
+
+---
+
+## Pjesa 9 — Dy gjuhët
 
 Çdo tekst që sheh njeriu rri te `lib/i18n.ts`, jo nëpër faqe. Aty janë dy
 fjalorë: `de` (gjermanisht) dhe `sq` (shqip).
@@ -461,7 +518,7 @@ vetë me `DICTS[lang]`.
 
 ---
 
-## Pjesa 9 — Kur diçka nuk shkon
+## Pjesa 10 — Kur diçka nuk shkon
 
 | Problemi | Zgjidhja |
 | --- | --- |
