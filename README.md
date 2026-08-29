@@ -330,6 +330,7 @@ supabase/
   fshirja.sql               Lejon fshirjen e termineve (menaxher + admin)
   llogari-pa-humbje.sql     Të dhënat mbijetojnë fshirjen e një llogarie
   faqosja.sql               Numrat e përmbledhjes + indekset e listës
+  rls-shpejtesi.sql         Rregullat: një llogaritje për kërkesë, jo për rresht
   mbetur.sql                Të dyja migrimet e fundit, në një skedë
   activity.sql              Përcjellja e kohës
 ```
@@ -474,10 +475,23 @@ rregullat e leximit vlejnë njësoj si te çdo kërkesë tjetër. Po ta bënim
 dot te lista poshtë. Kjo është provuar: kur RLS-ja i fsheh rreshtat,
 funksioni kthen 0.
 
-**Indekset.** `faqosja.sql` shton indeksin e radhës (`created_at desc`), atë
-të menaxherit, të numrit të shkurtër, të shënimeve, dhe një indeks `pg_trgm`
-për kërkimin sipas emrit. Të matura me **50 000** termine: faqja e parë
-0.06 ms, faqja e 1000-të 5.5 ms, kërkimi 0.6 ms, përmbledhja 11.6 ms.
+**Indekset.** `faqosja.sql` shton indekset e listës dhe një `pg_trgm` për
+kërkimin sipas emrit. Të matura me **50 000** termine: faqja e parë 0.06 ms,
+faqja e 1000-të 4.3 ms, kërkimi 0.6 ms, përmbledhja 11.6 ms.
+
+Një kurth që u kap vetëm duke e matur: indeksi duhet të përputhet me **radhën
+e plotë**, jo vetëm me kolonën e parë. Me indeks mbi `created_at desc` dhe
+renditje `created_at desc, nr desc`, baza e lë indeksin dhe skanon gjithçka —
+**125 ms** në vend të 0.06 ms. Indeksi tani i mban të dyja kolonat.
+
+**Rregullat e leximit.** `rls-shpejtesi.sql` i rishkruan rregullat e RLS-së
+që `auth.uid()` dhe `is_admin()`/`is_manager()` të llogariten **një herë për
+kërkesë**, jo një herë për çdo rresht. Kuptimi mbetet fiks i njëjti — të tri
+funksionet janë `stable` dhe pa argumente. Meqë këto janë rregulla sigurie,
+matrica e lejeve (kush lexon, cakton, ndryshon, fshin — për të tre rolet) u
+shënua para ndryshimit dhe u krahasua pas tij: doli identike, rresht për
+rresht. E njëjta u ripërsërit edhe te baza e vërtetë, me të shtatë llogaritë,
+brenda një transaksioni që u përmbys.
 
 > **Mbetet për t'u bërë:** *Dashboard-i*, *Profili* dhe faqja e *Përdoruesve*
 > i lexojnë ende të gjitha terminet për të llogaritur numrat e tyre. Nën 1000
