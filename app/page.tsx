@@ -293,7 +293,7 @@ export default async function Page({ searchParams }: PageProps<"/">) {
                 <tr key={termini.id} className={`transition ${ngj.rresht}`}>
                   {/* Shiriti me ngjyrë majtas: dallimi kapet edhe me bisht
                       të syrit, pa e ngarkuar rreshtin me ngjyrë të fortë. */}
-                  <td className="relative p-3 pl-4 whitespace-nowrap text-slate-500 tabular-nums">
+                  <td className="relative p-3 pl-4 whitespace-nowrap text-slate-600 tabular-nums">
                     <span
                       aria-hidden
                       className={`absolute inset-y-0 left-0 w-1 ${ngj.shirit}`}
@@ -310,7 +310,7 @@ export default async function Page({ searchParams }: PageProps<"/">) {
                       {termini.name}
                     </Link>
                     {termini.user_id !== user.id && (
-                      <span className="block truncate text-xs text-slate-500">
+                      <span className="block truncate text-xs text-slate-600">
                         {agjentet.get(termini.user_id) ?? "—"}
                       </span>
                     )}
@@ -329,13 +329,13 @@ export default async function Page({ searchParams }: PageProps<"/">) {
                       className={
                         termini.contracts_closed > 0
                           ? "font-medium text-slate-900"
-                          : "text-slate-300"
+                          : "text-slate-400"
                       }
                     >
                       {termini.contracts_closed}
                     </span>
                   </td>
-                  <td className="hidden p-3 text-right text-slate-500 tabular-nums md:table-cell">
+                  <td className="hidden p-3 text-right text-slate-600 tabular-nums md:table-cell">
                     {noteCounts.get(termini.id) ?? 0}
                   </td>
                   <td className="p-3 pr-4 whitespace-nowrap">

@@ -97,9 +97,9 @@ export const CATEGORY_STYLES: Record<
   { rresht: string; shirit: string; shenje: string }
 > = {
   success: {
-    rresht: "bg-emerald-100 hover:bg-emerald-200/70",
+    rresht: "bg-emerald-200 hover:bg-emerald-300/80",
     shirit: "bg-emerald-600",
-    shenje: "bg-emerald-200 text-emerald-900 ring-emerald-300",
+    shenje: "bg-emerald-600 text-white ring-emerald-700",
   },
   talking: {
     rresht: "bg-amber-50 hover:bg-amber-100/80",
@@ -107,9 +107,9 @@ export const CATEGORY_STYLES: Record<
     shenje: "bg-amber-100 text-amber-800 ring-amber-200",
   },
   failed: {
-    rresht: "bg-rose-100 hover:bg-rose-200/70",
+    rresht: "bg-rose-200 hover:bg-rose-300/80",
     shirit: "bg-rose-600",
-    shenje: "bg-rose-200 text-rose-900 ring-rose-300",
+    shenje: "bg-rose-600 text-white ring-rose-700",
   },
 };
 
