@@ -84,18 +84,22 @@ export function categoryOfStatus(status: string): AppointmentCategory | null {
  * Ngjyrat e tri kategorive.
  *
  * `rresht` ngjyros tërë rreshtin e listës, dhe `shirit` vizaton vijën me
- * ngjyrë majtas. Ngjyra e rreshtit është e lehtë me qëllim: me 50 rreshta
- * në faqe, një e gjelbër e fortë e lodh syrin dhe teksti dytësor humbet.
- * Shiriti e mban dallimin të dukshëm pa e rënduar faqen.
+ * ngjyrë majtas.
+ *
+ * E gjelbra dhe e kuqja janë të plota: ato janë përfundimet, dhe syri duhet
+ * t'i kapë menjëherë. E verdha mbetet e lehtë me qëllim — «në bisedim» është
+ * gjendja e zakonshme dhe zë shumicën e rreshtave. Po ta forconim edhe atë,
+ * faqja do të dilte e verdhë nga fillimi në fund, dhe atëherë asnjë ngjyrë
+ * nuk do të thoshte më gjë.
  */
 export const CATEGORY_STYLES: Record<
   string,
   { rresht: string; shirit: string; shenje: string }
 > = {
   success: {
-    rresht: "bg-emerald-50 hover:bg-emerald-100/80",
-    shirit: "bg-emerald-500",
-    shenje: "bg-emerald-100 text-emerald-800 ring-emerald-200",
+    rresht: "bg-emerald-100 hover:bg-emerald-200/70",
+    shirit: "bg-emerald-600",
+    shenje: "bg-emerald-200 text-emerald-900 ring-emerald-300",
   },
   talking: {
     rresht: "bg-amber-50 hover:bg-amber-100/80",
@@ -103,9 +107,9 @@ export const CATEGORY_STYLES: Record<
     shenje: "bg-amber-100 text-amber-800 ring-amber-200",
   },
   failed: {
-    rresht: "bg-rose-50 hover:bg-rose-100/80",
-    shirit: "bg-rose-500",
-    shenje: "bg-rose-100 text-rose-800 ring-rose-200",
+    rresht: "bg-rose-100 hover:bg-rose-200/70",
+    shirit: "bg-rose-600",
+    shenje: "bg-rose-200 text-rose-900 ring-rose-300",
   },
 };
 

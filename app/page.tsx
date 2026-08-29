@@ -310,7 +310,7 @@ export default async function Page({ searchParams }: PageProps<"/">) {
                       {termini.name}
                     </Link>
                     {termini.user_id !== user.id && (
-                      <span className="block truncate text-xs text-slate-400">
+                      <span className="block truncate text-xs text-slate-500">
                         {agjentet.get(termini.user_id) ?? "—"}
                       </span>
                     )}
@@ -335,7 +335,7 @@ export default async function Page({ searchParams }: PageProps<"/">) {
                       {termini.contracts_closed}
                     </span>
                   </td>
-                  <td className="hidden p-3 text-right text-slate-400 tabular-nums md:table-cell">
+                  <td className="hidden p-3 text-right text-slate-500 tabular-nums md:table-cell">
                     {noteCounts.get(termini.id) ?? 0}
                   </td>
                   <td className="p-3 pr-4 whitespace-nowrap">
