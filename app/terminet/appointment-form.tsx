@@ -6,6 +6,7 @@ import {
   APPOINTMENT_CATEGORIES,
   GENDERS,
   categoryStyle,
+  eDetyrueshme,
   reasonsForCategory,
   type Appointment,
   type FormState,
@@ -40,6 +41,37 @@ export default function AppointmentForm({
   const t = DICTS[lang];
   const formRef = useRef<HTMLFormElement>(null);
   const duke = Boolean(appointment);
+
+  /**
+   * A kërkohet kjo fushë tani?
+   *
+   * I njëjti rregull si te serveri (`lib/types.ts`): te termini i ri
+   * kërkohen të gjitha, te një i vjetër vetëm ato që i ka pasur. Shfletuesi
+   * e ndalon bosh menjëherë, por vendimi i vërtetë mbetet te serveri —
+   * `required` hiqet me një klikim te mjetet e zhvilluesit.
+   */
+  const kerkohet = (fusha: Parameters<typeof eDetyrueshme>[0]) =>
+    eDetyrueshme(fusha, appointment ?? null);
+
+  /** Ylli i kuq pas etiketës, kur fusha është e detyrueshme. */
+  const ylli = (fusha: Parameters<typeof eDetyrueshme>[0]) =>
+    kerkohet(fusha) ? <span className="text-red-600"> *</span> : null;
+
+  /**
+   * Vlera fillestare e një fushe.
+   *
+   * Nëse dërgimi i fundit u refuzua, merret ajo që u shkrua; përndryshe ajo
+   * e terminit. React-i e zbraz formularin sapo veprimi mbaron, edhe kur ai
+   * ktheu gabim — dhe zbrazja e kthen te kjo vlerë. Pra pikërisht kjo është
+   * ajo që e ruan punën e shkruar. Pa të, një gabim shtypi te kantoni do të
+   * fshinte edhe emrin, adresën dhe gjithçka tjetër.
+   */
+  const nis = (emri: string, eTerminit?: string | number | null) =>
+    state.values?.[emri] ?? eTerminit ?? "";
+
+  /** E njëjta gjë për kutizat po/jo. */
+  const nisKutine = (emri: string, eTerminit: boolean) =>
+    state.values ? state.values[emri] === "on" : eTerminit;
 
   // Rezultati mbahet këtu, jo vetëm te fusha, sepse menyja e dytë varet nga
   // ai: arsyet e «E dështuar» s'kanë punë te «E suksesshme».
@@ -90,12 +122,13 @@ export default function AppointmentForm({
         <div className="grid gap-4 sm:grid-cols-3">
           <label className="block sm:col-span-2">
             <span className={label}>
-              {t.fName} <span className="text-red-600">*</span>
+              {t.fName}
+              {ylli("name")}
             </span>
             <input
               name="name"
-              required
-              defaultValue={appointment?.name ?? ""}
+              required={kerkohet("name")}
+              defaultValue={nis("name", appointment?.name)}
               placeholder="Arben Krasniqi"
               className={input}
             />
@@ -104,7 +137,7 @@ export default function AppointmentForm({
             <span className={label}>{t.fCustomerNumber}</span>
             <input
               name="customerNumber"
-              defaultValue={appointment?.customer_number ?? ""}
+              defaultValue={nis("customerNumber", appointment?.customer_number)}
               className={input}
             />
           </label>
@@ -113,7 +146,7 @@ export default function AppointmentForm({
             <span className={label}>{t.fGender}</span>
             <select
               name="gender"
-              defaultValue={appointment?.gender ?? ""}
+              defaultValue={nis("gender", appointment?.gender)}
               className={`${input} bg-white`}
             >
               <option value="">—</option>
@@ -128,7 +161,7 @@ export default function AppointmentForm({
             <span className={label}>{t.fNationality}</span>
             <input
               name="nationality"
-              defaultValue={appointment?.nationality ?? ""}
+              defaultValue={nis("nationality", appointment?.nationality)}
               className={input}
             />
           </label>
@@ -137,17 +170,21 @@ export default function AppointmentForm({
             <input
               name="birthDate"
               type="date"
-              defaultValue={appointment?.birth_date ?? ""}
+              defaultValue={nis("birthDate", appointment?.birth_date)}
               className={input}
             />
           </label>
 
           <label className="block">
-            <span className={label}>{t.fPhone}</span>
+            <span className={label}>
+              {t.fPhone}
+              {ylli("phone")}
+            </span>
             <input
               name="phone"
               type="tel"
-              defaultValue={appointment?.phone ?? ""}
+              required={kerkohet("phone")}
+              defaultValue={nis("phone", appointment?.phone)}
               className={input}
             />
           </label>
@@ -156,7 +193,7 @@ export default function AppointmentForm({
             <input
               name="mobile"
               type="tel"
-              defaultValue={appointment?.mobile ?? ""}
+              defaultValue={nis("mobile", appointment?.mobile)}
               className={input}
             />
           </label>
@@ -165,40 +202,56 @@ export default function AppointmentForm({
             <input
               name="email"
               type="email"
-              defaultValue={appointment?.email ?? ""}
+              defaultValue={nis("email", appointment?.email)}
               className={input}
             />
           </label>
 
           <label className="block">
-            <span className={label}>{t.fStreet}</span>
+            <span className={label}>
+              {t.fStreet}
+              {ylli("street")}
+            </span>
             <input
               name="street"
-              defaultValue={appointment?.street ?? ""}
+              required={kerkohet("street")}
+              defaultValue={nis("street", appointment?.street)}
               className={input}
             />
           </label>
           <label className="block">
-            <span className={label}>{t.fPostalCode}</span>
+            <span className={label}>
+              {t.fPostalCode}
+              {ylli("postal_code")}
+            </span>
             <input
               name="postalCode"
-              defaultValue={appointment?.postal_code ?? ""}
+              required={kerkohet("postal_code")}
+              defaultValue={nis("postalCode", appointment?.postal_code)}
               className={input}
             />
           </label>
           <label className="block">
-            <span className={label}>{t.fCity}</span>
+            <span className={label}>
+              {t.fCity}
+              {ylli("city")}
+            </span>
             <input
               name="city"
-              defaultValue={appointment?.city ?? ""}
+              required={kerkohet("city")}
+              defaultValue={nis("city", appointment?.city)}
               className={input}
             />
           </label>
           <label className="block">
-            <span className={label}>{t.fCanton}</span>
+            <span className={label}>
+              {t.fCanton}
+              {ylli("canton")}
+            </span>
             <input
               name="canton"
-              defaultValue={appointment?.canton ?? ""}
+              required={kerkohet("canton")}
+              defaultValue={nis("canton", appointment?.canton)}
               className={input}
             />
           </label>
@@ -218,7 +271,7 @@ export default function AppointmentForm({
             <span className={label}>{t.fCallCenter}</span>
             <input
               name="callCenter"
-              defaultValue={appointment?.call_center ?? ""}
+              defaultValue={nis("callCenter", appointment?.call_center)}
               placeholder="I&M Call"
               className={input}
             />
@@ -227,7 +280,7 @@ export default function AppointmentForm({
             <span className={label}>{t.fCurrentInsurance}</span>
             <input
               name="currentInsurance"
-              defaultValue={appointment?.current_insurance ?? ""}
+              defaultValue={nis("currentInsurance", appointment?.current_insurance)}
               placeholder="Helsana"
               className={input}
             />
@@ -236,7 +289,7 @@ export default function AppointmentForm({
             <span className={label}>{t.fLanguage}</span>
             <input
               name="language"
-              defaultValue={appointment?.language ?? ""}
+              defaultValue={nis("language", appointment?.language)}
               placeholder="Gjermanisht"
               className={input}
             />
@@ -246,7 +299,7 @@ export default function AppointmentForm({
             <input
               name="callDate"
               type="date"
-              defaultValue={appointment?.call_date ?? ""}
+              defaultValue={nis("callDate", appointment?.call_date)}
               className={input}
             />
           </label>
@@ -258,7 +311,7 @@ export default function AppointmentForm({
               name="scheduledAt"
               type="datetime-local"
               required
-              defaultValue={scheduledDefault}
+              defaultValue={nis("scheduledAt", scheduledDefault)}
               className={input}
             />
           </label>
@@ -268,7 +321,7 @@ export default function AppointmentForm({
               name="personsCount"
               type="number"
               min={1}
-              defaultValue={appointment?.persons_count ?? 1}
+              defaultValue={nis("personsCount", appointment?.persons_count ?? 1)}
               className={input}
             />
           </label>
@@ -321,7 +374,7 @@ export default function AppointmentForm({
               // `key` e detyron menynë të rifillojë kur ndërron kategoria,
               // që të mos mbetet e zgjedhur një arsye e kategorisë së vjetër.
               key={kategoria}
-              defaultValue={arsyeja}
+              defaultValue={nis("status", arsyeja)}
               className={`${input} bg-white`}
             >
               {arsyet.map((s) => (
@@ -340,7 +393,7 @@ export default function AppointmentForm({
               name="contractsClosed"
               type="number"
               min={0}
-              defaultValue={appointment?.contracts_closed ?? 0}
+              defaultValue={nis("contractsClosed", appointment?.contracts_closed ?? 0)}
               className={input}
             />
             <span className="mt-1 block text-xs text-slate-500">
@@ -354,7 +407,7 @@ export default function AppointmentForm({
             <input
               type="checkbox"
               name="multiYearContract"
-              defaultChecked={appointment?.multi_year_contract ?? false}
+              defaultChecked={nisKutine("multiYearContract", appointment?.multi_year_contract ?? false)}
               className="h-4 w-4"
             />
             {t.fMultiYear}
@@ -363,7 +416,7 @@ export default function AppointmentForm({
             <input
               type="checkbox"
               name="treatment"
-              defaultChecked={appointment?.treatment ?? false}
+              defaultChecked={nisKutine("treatment", appointment?.treatment ?? false)}
               className="h-4 w-4"
             />
             {t.fTreatment}
@@ -388,7 +441,7 @@ export default function AppointmentForm({
             <span className={label}>{t.fFamilyDetails}</span>
             <input
               name="familyDetails"
-              defaultValue={appointment?.family_details ?? ""}
+              defaultValue={nis("familyDetails", appointment?.family_details)}
               placeholder="Burri: 1986, fëmijët: 2020, 2023"
               className={input}
             />
@@ -398,7 +451,7 @@ export default function AppointmentForm({
               <span className={label}>{t.fCurrentTreatment}</span>
               <select
                 name="currentTreatment"
-                defaultValue={appointment?.current_treatment ?? ""}
+                defaultValue={nis("currentTreatment", appointment?.current_treatment)}
                 className={`${input} bg-white`}
               >
                 <option value="">—</option>
@@ -410,7 +463,7 @@ export default function AppointmentForm({
               <span className={label}>{t.fTreatmentType}</span>
               <input
                 name="treatmentType"
-                defaultValue={appointment?.treatment_type ?? ""}
+                defaultValue={nis("treatmentType", appointment?.treatment_type)}
                 className={input}
               />
             </label>
@@ -419,7 +472,7 @@ export default function AppointmentForm({
             <span className={label}>{t.fMedications}</span>
             <input
               name="medications"
-              defaultValue={appointment?.medications ?? ""}
+              defaultValue={nis("medications", appointment?.medications)}
               className={input}
             />
           </label>

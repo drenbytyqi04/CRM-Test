@@ -160,7 +160,7 @@ const de = {
     "Diesen Termin hat Ihnen der Admin zugewiesen. Ändern können ihn nur die Person, die ihn angelegt hat, und der Manager — Ihr Feedback schreiben Sie im Tab «Feedback».",
 
   // Personalia
-  fName: "Name",
+  fName: "Vor- und Nachname",
   fCustomerNumber: "Kundennummer",
   fGender: "Geschlecht",
   fNationality: "Nationalität",
@@ -432,7 +432,12 @@ const de = {
   errNoteNotYours: "Diese Notiz hat jemand anderes geschrieben.",
   errNoteRejected:
     "Die Notiz wurde nicht gespeichert: die Datenbank hat den Vorgang abgelehnt.",
-  errNameRequired: "Der Name ist erforderlich.",
+  errNameRequired: "Vor- und Nachname sind erforderlich.",
+  errPhoneRequired: "Die Telefonnummer ist erforderlich.",
+  errStreetRequired: "Die Straße ist erforderlich.",
+  errPostalRequired: "Die PLZ ist erforderlich.",
+  errCityRequired: "Der Ort ist erforderlich.",
+  errCantonRequired: "Der Kanton ist erforderlich.",
   errBadEmail: "Die E-Mail sieht nicht richtig aus (Beispiel: name@beispiel.com).",
   errDateRequired: "Datum und Uhrzeit des Termins sind erforderlich.",
   errPersonsMin: "Es muss mindestens 1 Person sein.",
@@ -585,7 +590,7 @@ const sq: Dict = {
   readOnlyHint:
     "Këtë termin ta ka dhënë admini. E ndryshon ai që e ka caktuar dhe menaxheri — ti shkruan feedback te skeda «Feedback».",
 
-  fName: "Emri",
+  fName: "Emri dhe mbiemri",
   fCustomerNumber: "Numri i klientit",
   fGender: "Gjinia",
   fNationality: "Kombësia",
@@ -837,7 +842,12 @@ const sq: Dict = {
   errNoteNotFound: "Ky shënim nuk u gjet.",
   errNoteNotYours: "Këtë shënim e ka shkruar dikush tjetër.",
   errNoteRejected: "Shënimi nuk u ruajt: baza nuk e lejoi këtë veprim.",
-  errNameRequired: "Emri është i detyrueshëm.",
+  errNameRequired: "Emri dhe mbiemri janë të detyrueshëm.",
+  errPhoneRequired: "Numri i telefonit është i detyrueshëm.",
+  errStreetRequired: "Rruga është e detyrueshme.",
+  errPostalRequired: "Kodi postar është i detyrueshëm.",
+  errCityRequired: "Qyteti është i detyrueshëm.",
+  errCantonRequired: "Kantoni është i detyrueshëm.",
   errBadEmail: "Emaili nuk duket i saktë (shembull: emri@shembull.com).",
   errDateRequired: "Data dhe ora e terminit janë të detyrueshme.",
   errPersonsMin: "Numri i personave duhet të jetë të paktën 1.",

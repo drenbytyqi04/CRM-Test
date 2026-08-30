@@ -13,9 +13,12 @@ import { getDict } from "@/lib/i18n-server";
 import type { Dict } from "@/lib/i18n";
 import {
   APPOINTMENT_CATEGORIES,
+  FUSHAT_E_DETYRUESHME,
   categoryOfStatus,
+  eDetyrueshme,
   fromBeogradInput,
   type FormState,
+  type VleraTeVjetra,
 } from "@/lib/types";
 
 /**
@@ -31,6 +34,20 @@ import {
 function textOrNull(value: FormDataEntryValue | null): string | null {
   const text = String(value ?? "").trim();
   return text.length > 0 ? text : null;
+}
+
+/**
+ * Ç'ka u shkrua te formulari, si tekst i thjeshtë.
+ *
+ * Kthehet bashkë me gabimin, që formulari të mos zbrazet. Shih koment te
+ * `FormState.values`.
+ */
+function eDerguara(formData: FormData): Record<string, string> {
+  const o: Record<string, string> = {};
+  for (const [celes, vlera] of formData.entries()) {
+    if (typeof vlera === "string") o[celes] = vlera;
+  }
+  return o;
 }
 
 /** Kontroll shumë i thjeshtë i formatit të emailit: diçka@diçka.diçka */
@@ -198,6 +215,31 @@ function readAppointmentFields(formData: FormData) {
   };
 }
 
+/** Vlerat e lexuara nga formulari. */
+type Vlerat = ReturnType<typeof readAppointmentFields>["values"];
+
+/**
+ * Fusha e parë e detyrueshme që ka mbetur bosh, ose `null`.
+ *
+ * Te termini i ri kërkohen të gjashta. Te një termin ekzistues kërkohet
+ * vetëm ajo që e ka pasur tashmë: terminet e vjetra u regjistruan para se ky
+ * rregull të ekzistonte, dhe kush do vetëm të ndërrojë rezultatin e njërit
+ * prej tyre nuk duhet bllokuar te një kanton që s'e di. Por ajo që është
+ * plotësuar një herë nuk zbrazet dot.
+ */
+function fushaQeMungon(
+  values: Vlerat,
+  iVjetri: VleraTeVjetra | null,
+  t: Dict
+): string | null {
+  for (const { fusha, gabimi } of FUSHAT_E_DETYRUESHME) {
+    if (values[fusha]) continue;
+    if (!eDetyrueshme(fusha, iVjetri)) continue;
+    return t[gabimi];
+  }
+  return null;
+}
+
 /** Kontrollet e përbashkëta. Kthen tekstin e gabimit, ose `null`. */
 function validateAppointment(
   scheduled: string | null,
@@ -205,12 +247,13 @@ function validateAppointment(
   contracts: number,
   status: string,
   category: string,
-  name: string | null,
-  email: string | null,
+  values: Vlerat,
+  iVjetri: VleraTeVjetra | null,
   t: Dict
 ): string | null {
-  if (!name) return t.errNameRequired;
-  if (email && !looksLikeEmail(email)) return t.errBadEmail;
+  const mungon = fushaQeMungon(values, iVjetri, t);
+  if (mungon) return mungon;
+  if (values.email && !looksLikeEmail(values.email)) return t.errBadEmail;
   if (!scheduled) return t.errDateRequired;
   if (!Number.isInteger(persons) || persons < 1) return t.errPersonsMin;
   if (!Number.isInteger(contracts) || contracts < 0) return t.errContractsBad;
@@ -252,17 +295,18 @@ export async function createAppointment(
   const { scheduled, persons, contracts, status, category, values } =
     readAppointmentFields(formData);
 
+  // Termin i ri: `null` do të thotë «kërkohen të gjitha fushat».
   const gabim = validateAppointment(
     scheduled,
     persons,
     contracts,
     status,
     category,
-    values.name,
-    values.email,
+    values,
+    null,
     t
   );
-  if (gabim) return { error: gabim };
+  if (gabim) return { error: gabim, values: eDerguara(formData) };
 
   const supabase = await createClient();
   const { error } = await supabase.from("appointments").insert({
@@ -276,7 +320,10 @@ export async function createAppointment(
   });
 
   if (error) {
-    return { error: `${t.errAppointmentNotSaved}: ${error.message}` };
+    return {
+      error: `${t.errAppointmentNotSaved}: ${error.message}`,
+      values: eDerguara(formData),
+    };
   }
 
   freskoTerminet();
@@ -302,31 +349,33 @@ export async function updateAppointment(
 
   if (!id) return { error: t.errAppointmentMissing };
 
+  const supabase = await createClient();
+
+  // Termini lexohet PARA kontrolleve: duhet edhe për lejet, edhe për të
+  // ditur cilat fusha i ka pasur tashmë. Terminet e vjetra u regjistruan pa
+  // adresë e kanton, dhe rregulli i ri nuk kthehet mbrapa mbi to.
+  const { data: termini } = await supabase
+    .from("appointments")
+    .select("id, user_id, name, phone, street, postal_code, city, canton")
+    .eq("id", id)
+    .maybeSingle<{ id: string; user_id: string } & VleraTeVjetra>();
+
+  if (!termini) return { error: t.errAppointmentNotFound };
+  if (!user.isManager && termini.user_id !== user.id) {
+    return { error: t.errAppointmentNotYours };
+  }
+
   const gabim = validateAppointment(
     scheduled,
     persons,
     contracts,
     status,
     category,
-    values.name,
-    values.email,
+    values,
+    termini,
     t
   );
-  if (gabim) return { error: gabim };
-
-  const supabase = await createClient();
-
-  // Kontrolli i lejeve edhe këtu, jo vetëm te rregullat e bazës.
-  const { data: termini } = await supabase
-    .from("appointments")
-    .select("id, user_id")
-    .eq("id", id)
-    .maybeSingle<{ id: string; user_id: string }>();
-
-  if (!termini) return { error: t.errAppointmentNotFound };
-  if (!user.isManager && termini.user_id !== user.id) {
-    return { error: t.errAppointmentNotYours };
-  }
+  if (gabim) return { error: gabim, values: eDerguara(formData) };
 
   const { data, error } = await supabase
     .from("appointments")
@@ -343,10 +392,13 @@ export async function updateAppointment(
     .select("id");
 
   if (error) {
-    return { error: `${t.errAppointmentNotSaved}: ${error.message}` };
+    return {
+      error: `${t.errAppointmentNotSaved}: ${error.message}`,
+      values: eDerguara(formData),
+    };
   }
   if (!data || data.length === 0) {
-    return { error: t.errChangesRejected };
+    return { error: t.errChangesRejected, values: eDerguara(formData) };
   }
 
   freskoTerminet();

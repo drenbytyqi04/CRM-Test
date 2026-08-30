@@ -12,6 +12,50 @@ export function genderLabel(value: string | null, t: Dict): string {
 }
 
 /**
+ * Fushat pa të cilat një termin i ri nuk ka kuptim.
+ *
+ * Një termin është një takim me një person te një adresë. Pa emrin, pa një
+ * numër ku të merret, dhe pa adresën e plotë, agjenti nuk shkon dot atje —
+ * prandaj këto gjashtë kërkohen kur caktohet termini.
+ *
+ * `phone` është i vetmi numër i detyrueshëm; celulari mbetet i lirë.
+ *
+ * KUJDES — rregulli vlen vetëm për terminet e reja. Nga 17 terminet e vjetra,
+ * 6 s'kanë kanton dhe 4 s'kanë adresë; po t'i kërkonim edhe atyre, kush do
+ * vetëm të ndërrojë rezultatin e një termini të vjetër do të bllokohej te një
+ * fushë që s'e di. Prandaj shih `fushaQeMungon()`: te një termin ekzistues
+ * kërkohet vetëm ajo që e ka pasur tashmë — ç'ka është bosh mbetet bosh, por
+ * ç'ka është plot nuk zbrazet dot.
+ */
+export const FUSHAT_E_DETYRUESHME = [
+  { fusha: "name", gabimi: "errNameRequired" },
+  { fusha: "phone", gabimi: "errPhoneRequired" },
+  { fusha: "street", gabimi: "errStreetRequired" },
+  { fusha: "postal_code", gabimi: "errPostalRequired" },
+  { fusha: "city", gabimi: "errCityRequired" },
+  { fusha: "canton", gabimi: "errCantonRequired" },
+] as const;
+
+/** Vlerat e vjetra që na duhen për të ditur se çfarë kishte termini. */
+export type VleraTeVjetra = Partial<
+  Record<(typeof FUSHAT_E_DETYRUESHME)[number]["fusha"], string | null>
+>;
+
+/**
+ * A duhet plotësuar kjo fushë tani?
+ *
+ * Te termini i ri: gjithmonë. Te një termin ekzistues: vetëm nëse e ka
+ * pasur — që rregulli i ri të mos i bllokojë terminet e vjetra, por as të
+ * mos lejojë zbrazjen e atyre që janë plotësuar.
+ */
+export function eDetyrueshme(
+  fusha: (typeof FUSHAT_E_DETYRUESHME)[number]["fusha"],
+  iVjetri: VleraTeVjetra | null
+): boolean {
+  return !iVjetri || Boolean(iVjetri[fusha]);
+}
+
+/**
  * Terminet ndahen në TRE kategori. Kaq sheh njeriu te lista, dhe kaq e
  * ngjyros rreshtin:
  *
@@ -349,6 +393,16 @@ export type FormState = {
   error?: string;
   /** Njoftim pozitiv për përdoruesin, p.sh. "kontrollo emailin". */
   message?: string;
+  /**
+   * Ç'ka u shkrua te formulari, kur kërkesa u refuzua.
+   *
+   * React-i e zbraz formularin vetvetiu sapo veprimi mbaron — edhe kur ai
+   * ktheu gabim. Me një fushë të detyrueshme kjo mezi vihej re; me gjashtë
+   * do të thoshte humbje e tërë punës për një gabim shtypi. Prandaj veprimi
+   * i kthen fjalët mbrapsht, dhe formulari i rivendos si vlera fillestare —
+   * pra edhe zbrazja e React-it i gjen ato aty.
+   */
+  values?: Record<string, string>;
 };
 
 /** Një rresht i tabelës `activity_days` (aktiviteti i një dite). */

@@ -181,8 +181,11 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
 
 ## Pjesa 3 — Si përdoret
 
-- **Cakto termin:** paneli *Cakto termin të ri* në faqen kryesore. Plotëso emrin
-  (i detyrueshëm), personalinë, të dhënat teknike dhe datën e terminit.
+- **Cakto termin:** paneli *Cakto termin të ri* në faqen kryesore. Gjashtë
+  fusha janë të detyrueshme dhe shënohen me yll të kuq: **Emri dhe mbiemri**,
+  **Telefoni**, **Rruga**, **Kodi postar**, **Qyteti**, **Kantoni**. Pa to
+  agjenti nuk shkon dot te takimi. Celulari, emaili dhe të tjerat mbeten të
+  lira. Shih **Pjesa 10**.
 - **Radha e listës:** termini i regjistruar i fundit rri lart, pavarësisht se
   për cilën datë është caktuar. Kështu ai që sapo u shtua gjendet menjëherë.
 - **Ora:** të gjitha datat dhe orët shfaqen me **orën e Beogradit**
@@ -634,7 +637,53 @@ shkruan feedback — dhe nuk ia dorëzon dot dikujt tjetër.
 
 ---
 
-## Pjesa 10 — Lista me shumë termine
+## Pjesa 10 — Fushat e detyrueshme
+
+Një termin është një takim me një person te një adresë. Pa emrin, pa një numër
+ku të merret, dhe pa adresën e plotë, agjenti nuk shkon dot atje. Prandaj
+gjashtë fusha kërkohen kur caktohet një termin i ri:
+
+**Emri dhe mbiemri · Telefoni · Rruga · Kodi postar · Qyteti · Kantoni**
+
+Te formulari ato mbajnë një yll të kuq. **Celulari** mbetet i lirë me qëllim:
+telefoni është numri i kërkuar, dhe kush ka vetëm njërin nuk duhet detyruar
+ta shkruajë dy herë.
+
+Rregulli qëndron në tri shtresa, dhe secila kap diçka që tjetra nuk e kap:
+
+1. **Ylli te etiketa** — që të dihet përpara, jo pasi të jetë shtypur *Ruaj*.
+2. **Ndalesa e shfletuesit** (`required`) — nuk të lë ta dërgosh bosh.
+3. **Kontrolli te serveri** — ai që mban vërtet. `required` hiqet me një
+   klikim te mjetet e zhvilluesit; prandaj i njëjti rregull ripërsëritet te
+   `app/actions.ts`, dhe provat e verifikojnë pikërisht ashtu: duke ia hequr
+   formularit ndalesën dhe duke e dërguar gjithsesi.
+
+### Terminet e vjetra nuk bllokohen
+
+Nga 17 terminet që ekzistonin kur u vendos ky rregull, 6 s'kishin kanton dhe 4
+s'kishin adresë. Po t'u kërkonim edhe atyre, kushdo që do vetëm të ndërronte
+rezultatin e njërit prej tyre do të bllokohej te një fushë që s'e di.
+
+Prandaj rregulli lexon kështu: **te një termin ekzistues kërkohet vetëm ajo që
+e ka pasur tashmë.** Ç'ka është bosh mbetet bosh — por ç'ka është plotësuar
+një herë nuk zbrazet dot. Te ata terminet, ylli te fushat bosh as nuk shfaqet.
+
+### E meta që doli bashkë me këtë
+
+Duke provuar rregullin u zbulua diçka më e rëndë: **pas çdo refuzimi,
+formulari zbrazej i tëri.** React-i e zbraz vetvetiu një formular sapo veprimi
+mbaron — edhe kur ai veprim ktheu gabim. Me një fushë të vetme të detyrueshme
+kjo mezi vihej re; me gjashtë do të thoshte se një gabim shtypi te kantoni
+fshin edhe emrin, edhe adresën, edhe datën.
+
+Zgjidhja: kur kërkesa refuzohet, serveri i kthen mbrapsht fjalët e shkruara
+(`FormState.values`), dhe formulari i vë ato si vlera fillestare. Kështu edhe
+zbrazja e React-it i gjen ato aty, dhe puna nuk humbet. Pas një ruajtjeje të
+suksesshme formulari zbrazet si më parë, gati për terminin tjetër.
+
+---
+
+## Pjesa 11 — Lista me shumë termine
 
 Deri para pak, lista i merrte **të gjitha** terminet sa herë hapej. Me pak
 dhjetëra kjo s'duket. Me 2000 prishet, dhe u mat me 2000 të vërtetë:
@@ -694,7 +743,7 @@ brenda një transaksioni që u përmbys.
 
 ---
 
-## Pjesa 11 — Dy gjuhët
+## Pjesa 12 — Dy gjuhët
 
 Çdo tekst që sheh njeriu rri te `lib/i18n.ts`, jo nëpër faqe. Aty janë dy
 fjalorë: `de` (gjermanisht) dhe `sq` (shqip).
@@ -725,7 +774,7 @@ vetë me `DICTS[lang]`.
 
 ---
 
-## Pjesa 12 — Kur diçka nuk shkon
+## Pjesa 13 — Kur diçka nuk shkon
 
 | Problemi | Zgjidhja |
 | --- | --- |
