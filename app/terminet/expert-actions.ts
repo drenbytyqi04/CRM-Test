@@ -73,6 +73,78 @@ export async function grantExpert(
   return { ok: true, message: t.expertsGranted(profili.email ?? "") };
 }
 
+/**
+ * I njëjti akses, por për shumë termine njëherësh.
+ *
+ * Kur admini cakton punën e një dite, zgjedh 12 termine te lista dhe ia jep
+ * ekspertit me një klikim, në vend që të hapë 12 faqe.
+ *
+ * Ato që eksperti i ka tashmë NUK janë gabim: thjesht nuk shtohen dy herë,
+ * dhe mesazhi e thotë sa u shtuan vërtet. Ndryshe një zgjedhje e gjerë do të
+ * dështonte tërësisht sapo njëri prej tyre të ishte dhënë më parë.
+ */
+export async function grantExpertBulk(
+  _prevState: FormState,
+  formData: FormData
+): Promise<FormState> {
+  const user = await requireUser();
+  const t = await getDict();
+
+  if (!user.isAdmin) return { error: t.errExpertsAdminOnly };
+
+  const expertId = String(formData.get("expertId") ?? "");
+  if (!expertId) return { error: t.errExpertMissing };
+
+  // Kutizat e shënuara vijnë të gjitha me të njëjtin emër.
+  const idet = formData
+    .getAll("appointmentIds")
+    .map((v) => String(v))
+    .filter(Boolean);
+  if (idet.length === 0) return { error: t.errBulkNoneSelected };
+
+  const supabase = await createClient();
+
+  const { data: profili } = await supabase
+    .from("profiles")
+    .select("id, email, role")
+    .eq("id", expertId)
+    .maybeSingle<{ id: string; email: string | null; role: string }>();
+
+  if (!profili) return { error: t.errExpertMissing };
+  if (profili.role !== "expert") return { error: t.errExpertNotExpert };
+
+  // Cilat i ka tashmë. Pa këtë, çelësi kryesor do ta rrëzonte tërë shtimin.
+  const { data: ekzistueset } = await supabase
+    .from("appointment_experts")
+    .select("appointment_id")
+    .eq("expert_id", expertId)
+    .in("appointment_id", idet)
+    .returns<{ appointment_id: string }[]>();
+
+  const kishte = new Set((ekzistueset ?? []).map((r) => r.appointment_id));
+  const teReja = idet.filter((id) => !kishte.has(id));
+
+  if (teReja.length === 0) {
+    return { ok: true, message: t.bulkAllAlready(idet.length) };
+  }
+
+  const { error } = await supabase.from("appointment_experts").insert(
+    teReja.map((id) => ({
+      appointment_id: id,
+      expert_id: expertId,
+      granted_by: user.id,
+    }))
+  );
+
+  if (error) return { error: `${t.errExpertFailed}: ${error.message}` };
+
+  fresko();
+  return {
+    ok: true,
+    message: t.bulkGranted(teReja.length, profili.email ?? "", kishte.size),
+  };
+}
+
 export async function revokeExpert(
   _prevState: FormState,
   formData: FormData

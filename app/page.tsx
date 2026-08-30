@@ -4,6 +4,7 @@ import SetupNotice from "./setup-notice";
 import StatusFilter from "./status-filter";
 import Pagination from "./pagination";
 import SearchBox from "./search-box";
+import BulkAssign from "./bulk-assign";
 import { createClient, hasSupabaseConfig } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n-server";
@@ -142,8 +143,8 @@ export default async function Page({ searchParams }: PageProps<"/">) {
       : Promise.resolve({ data: [], error: null }),
     supabase
       .from("profiles")
-      .select("id, email")
-      .returns<{ id: string; email: string | null }[]>(),
+      .select("id, email, role")
+      .returns<{ id: string; email: string | null; role: string }[]>(),
     // Koha ime e sotme — çdo përdorues e sheh numrin e vet.
     supabase
       .from("activity_days")
@@ -170,6 +171,15 @@ export default async function Page({ searchParams }: PageProps<"/">) {
   const agjentet = new Map(
     (agjentetResult.data ?? []).map((p) => [p.id, p.email ?? "—"])
   );
+
+  // Shiriti i zgjedhjes duket vetëm për adminin, dhe vetëm nëse ka të kujt
+  // t'ia japë. Kufiri i vërtetë rri te baza; kjo është thjesht pamje.
+  const eksperte = user.isAdmin
+    ? (agjentetResult.data ?? [])
+        .filter((p) => p.role === "expert")
+        .map((p) => ({ id: p.id, email: p.email ?? "—" }))
+    : [];
+  const meZgjedhje = user.isAdmin && eksperte.length > 0;
 
   // Nëse `supabase/faqosja.sql` s'është ngritur ende, funksioni mungon.
   // Atëherë tregohet vetëm numri i termineve — i saktë gjithsesi, sepse vjen
@@ -276,10 +286,12 @@ export default async function Page({ searchParams }: PageProps<"/">) {
               : t.listEmpty}
         </p>
       ) : (
+        <BulkAssign eksperte={eksperte} lang={lang} vetemFemijet={!meZgjedhje}>
         <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-left text-slate-500">
+                {meZgjedhje && <th className="w-10 p-3 pl-4" />}
                 <th className="p-3 pl-4 font-medium whitespace-nowrap">{t.colNr}</th>
                 <th className="p-3 font-medium">{t.colName}</th>
                 <th className="p-3 font-medium whitespace-nowrap">{t.colDate}</th>
@@ -295,13 +307,30 @@ export default async function Page({ searchParams }: PageProps<"/">) {
                 const ngj = categoryStyle(termini.category);
                 return (
                 <tr key={termini.id} className={`transition ${ngj.rresht}`}>
+                  {meZgjedhje && (
+                    <td className="relative w-10 p-3 pl-4">
+                      <span
+                        aria-hidden
+                        className={`absolute inset-y-0 left-0 w-1 ${ngj.shirit}`}
+                      />
+                      <input
+                        type="checkbox"
+                        name="appointmentIds"
+                        value={termini.id}
+                        aria-label={termini.name}
+                        className="h-4 w-4 rounded border-slate-400"
+                      />
+                    </td>
+                  )}
                   {/* Shiriti me ngjyrë majtas: dallimi kapet edhe me bisht
                       të syrit, pa e ngarkuar rreshtin me ngjyrë të fortë. */}
                   <td className="relative p-3 pl-4 whitespace-nowrap text-slate-600 tabular-nums">
-                    <span
-                      aria-hidden
-                      className={`absolute inset-y-0 left-0 w-1 ${ngj.shirit}`}
-                    />
+                    {!meZgjedhje && (
+                      <span
+                        aria-hidden
+                        className={`absolute inset-y-0 left-0 w-1 ${ngj.shirit}`}
+                      />
+                    )}
                     {termini.nr != null ? `#${termini.nr}` : "—"}
                   </td>
                   <td className="p-3">
@@ -355,6 +384,7 @@ export default async function Page({ searchParams }: PageProps<"/">) {
             </tbody>
           </table>
         </div>
+        </BulkAssign>
       )}
 
       {/* Butonat e faqeve. Filtri, pamja dhe kërkimi udhëtojnë bashkë me

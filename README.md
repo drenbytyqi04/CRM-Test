@@ -273,8 +273,22 @@ për **shënimet** — ndryshe eksperti do të mos e shihte terminin e huaj te
 lista, por do t'i lexonte shënimet e tij përmes API-së.
 
 Një termin mund t'u jepet **disa ekspertëve** njëherësh. Aksesin e jep vetëm
-admini, te skeda *Ekspertët me akses* brenda terminit. Kur i hiqet aksesi,
-shënimet që ka shkruar **mbeten** — si te heqja e një llogarie.
+admini, në dy mënyra:
+
+- **Nga lista, disa njëherësh.** Admini sheh kutiza majtas çdo rreshti. Zgjedh
+  sa termine të dojë — ose të gjitha me një klikim — zgjedh ekspertin nga
+  menyja lart, dhe ia jep me një klikim. Kështu caktohet puna e një dite pa u
+  hapur çdo termin veç.
+- **Një nga një**, te skeda *Ekspertët me akses* brenda terminit. Aty duket
+  edhe kush ia dha aksesin, dhe butoni për ta hequr.
+
+Nëse mes të zgjedhurve ka ndonjë që eksperti e ka tashmë, ai **nuk është
+gabim**: thjesht nuk shtohet dy herë, dhe mesazhi thotë sa u shtuan vërtet.
+Ndryshe një zgjedhje e gjerë do të dështonte tërësisht sapo njëri prej tyre të
+ishte dhënë më parë.
+
+Kur ekspertit i hiqet aksesi, shënimet që ka shkruar **mbeten** — si te heqja
+e një llogarie.
 
 Administratori ka edhe:
 
@@ -318,6 +332,7 @@ app/
   status-filter.tsx         Menyja e filtrit sipas statusit
   pagination.tsx            Butonat e faqeve: ‹ 1 2 … 40 ›
   search-box.tsx            Kutia e kërkimit mbi listë
+  bulk-assign.tsx           Zgjedhja e disa termineve dhe dhënia te një ekspert
   sidebar.tsx               Menyja anash: lidhjet, roli dhe "Dil"
   sidebar-link.tsx          Një lidhje e menysë, që ndriçon te faqja e vet
   language-switcher.tsx     Çelësi Deutsch / Shqip

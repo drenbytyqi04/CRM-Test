@@ -236,6 +236,16 @@ const de = {
   expertsCount: (n: number) => sasi(n, "Experte", "Experten"),
   expertsGrantedBy: "hinzugefügt von",
   errExpertsAdminOnly: "Nur der Administrator vergibt Zugriff.",
+  errBulkNoneSelected: "Bitte mindestens einen Termin auswählen.",
+  bulkSelected: (n: number) => `${sasi(n, "Termin", "Termine")} ausgewählt`,
+  bulkAssign: "Einem Experten zuweisen",
+  bulkSelectAll: "Alle auf dieser Seite auswählen",
+  bulkGranted: (n: number, email: string, kishte: number) =>
+    kishte > 0
+      ? `${sasi(n, "Termin", "Termine")} an ${email} vergeben. ${kishte} hatte er bereits.`
+      : `${sasi(n, "Termin", "Termine")} an ${email} vergeben.`,
+  bulkAllAlready: (n: number) =>
+    `${sasi(n, "Termin", "Termine")} — der Zugriff bestand bereits.`,
   errExpertMissing: "Bitte einen Experten wählen.",
   errExpertNotExpert: "Dieses Konto ist kein Experte.",
   errExpertAlready: "Diese Person hat bereits Zugriff.",
@@ -627,6 +637,16 @@ const sq: Dict = {
   expertsCount: (n) => sasi(n, "ekspert", "ekspertë"),
   expertsGrantedBy: "shtuar nga",
   errExpertsAdminOnly: "Aksesin e jep vetëm administratori.",
+  errBulkNoneSelected: "Zgjidh të paktën një termin.",
+  bulkSelected: (n) => `${sasi(n, "termin", "termine")} të zgjedhur`,
+  bulkAssign: "Jepja një eksperti",
+  bulkSelectAll: "Zgjidh të gjitha në këtë faqe",
+  bulkGranted: (n, email, kishte) =>
+    kishte > 0
+      ? `${sasi(n, "termin", "termine")} iu dhanë ${email}. ${kishte} i kishte tashmë.`
+      : `${sasi(n, "termin", "termine")} iu dhanë ${email}.`,
+  bulkAllAlready: (n) =>
+    `${sasi(n, "termin", "termine")} — aksesi ekzistonte tashmë.`,
   errExpertMissing: "Zgjidh një ekspert.",
   errExpertNotExpert: "Kjo llogari nuk është ekspert.",
   errExpertAlready: "Ky person e ka tashmë aksesin.",
