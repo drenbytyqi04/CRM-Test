@@ -74,6 +74,11 @@ comment on table public.appointment_experts is
 create index if not exists appointment_experts_expert_idx
   on public.appointment_experts (expert_id);
 
+-- `granted_by` tregon një profil. Pa indeks, fshirja e një llogarie do të
+-- skanonte tërë tabelën për të gjetur rreshtat që e përmendin.
+create index if not exists appointment_experts_granted_by_idx
+  on public.appointment_experts (granted_by);
+
 alter table public.appointment_experts enable row level security;
 
 -- Eksperti i sheh rreshtat e vet (që të dijë ç'i është dhënë). Admini dhe
