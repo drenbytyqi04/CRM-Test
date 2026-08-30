@@ -244,6 +244,8 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
   *Shto shënimin*). Shënimin tënd e ndryshon me *Ndrysho* pa dalë nga tabela;
   te kolona *Data* shfaqet edhe "ndryshuar më".
 - **Aktiv sot:** lart djathtas, koha që ke kaluar sot brenda CRM-së.
+- **Kopja e të dhënave:** vetëm admini, te menyja anash. Shkarkon gjithçka në
+  një skedë të vetme, ose tabelat veç për Excel. Shih **Pjesa 12**.
 
 ### Kush çfarë mundet
 
@@ -347,6 +349,8 @@ app/
   admin/user-form.tsx       Paneli "Hap llogari të re"
   admin/delete-user.tsx     Heqja e hyrjes së një llogarie
   admin/aktiviteti/page.tsx Koha e secilit përdorues, ditë pas dite
+  admin/kopja/page.tsx      Kopja e të dhënave: numrat dhe butonat e shkarkimit
+  admin/kopja/shkarko/route.ts  Vetë skeda (JSON ose CSV), me rolin e kontrolluar
   dashboard/page.tsx        Dashboard-i: puna e një muaji, numrat dhe grafikët
   dashboard/month-filter.tsx  Zgjedhja e muajit
   profili/page.tsx          Profili im: koha, puna dhe lejet
@@ -378,6 +382,7 @@ lib/
   supabase/proxy.ts         Mban sesionin e freskët në çdo kërkesë
   supabase/admin.ts         Lidhja me çelësin sekret — vetëm për hapjen e llogarive
   auth.ts                   "Kush është i kyçur?" dhe "çfarë roli ka?"
+  backup.ts                 Leximi i plotë faqe-pas-faqeje, dhe shkrimi i CSV-së
   types.ts                  Tipat, statuset dhe ndihmësit e vegjël
   i18n.ts                   Fjalori: çdo tekst, gjermanisht dhe shqip
   i18n-server.ts            Lexon gjuhën e zgjedhur nga cookie-ja
@@ -743,7 +748,74 @@ brenda një transaksioni që u përmbys.
 
 ---
 
-## Pjesa 12 — Dy gjuhët
+## Pjesa 12 — Kopja e të dhënave
+
+> **Kjo është pjesa që të shpëton kur diçka shkon keq.** Kodi rishkruhet;
+> terminet e një viti jo.
+
+### Butoni: `/admin/kopja`
+
+Vetëm admini. Jep dy gjëra:
+
+- **Kopja e plotë (JSON)** — një skedë me të pesë tabelat: llogaritë, terminet,
+  feedback-un, aksesin e ekspertëve dhe orët e punës. Prej saj të dhënat
+  kthehen të plota. Kjo është ajo që ruhet.
+- **Tabelat veç (CSV)** — për t'i hapur me Excel, për t'i parë e llogaritur.
+  Jo për kthim mbrapsht.
+
+Faqja tregon **sa rreshta ka secila tabelë para se të shkarkosh**. Kjo nuk
+është zbukurim: nëse skeda e shkarkuar ka më pak, diçka ka shkuar keq — dhe pa
+ata numra askush s'do ta vinte re pa hapur skedën.
+
+### Kurthi që e bën një kopje të gënjejë
+
+PostgREST-i i Supabase-it i pret rreshtat te një kufi i vetin (`max-rows`,
+zakonisht **1000**) DHE NUK JEP ASNJË GABIM. Një kërkesë e thjeshtë
+`select("*")` mbi 5000 termine kthen 1000, me statusin 200, dhe skeda del e
+plotë në dukje. E ke kopjen; thjesht i mungojnë katër të pestat.
+
+Prandaj kopja lexohet **faqe pas faqeje**, dhe numri i rreshtave të marrë
+krahasohet me numrin e vërtetë te baza. Nëse s'përputhen, kopja **nuk jepet
+fare** — më mirë asnjë kopje sesa një kopje që gënjen.
+
+Kjo provohet, nuk supozohet: te provat mbushen 1200 termine dhe verifikohet se
+skeda i ka të 1200-tët, jo 1000. Edhe serveri i provës u bë ta presë te 1000
+si Supabase — përndryshe prova s'do të provonte asgjë.
+
+### Detaje të vogla që kushtojnë kur mungojnë
+
+- **CSV-ja nis me shenjën UTF-8** (BOM). Pa këto tre bajte, Excel-i te
+  Windows-i i lexon shkronjat me kodimin e vet: «Zürich» → «ZÃ¼rich».
+- **Vlerat mbështillen me thonjëza dhe thonjëzat brenda dyfishohen.** Te
+  terminet ka adresa me presje dhe shënime me rreshta të rinj; pa këtë një
+  shënim i vetëm i zhvendos tërë kolonat.
+- **Adresa e shkarkimit e kontrollon vetë rolin.** Kush s'është admin merr
+  404, jo «nuk ke leje» — as vetë ekzistenca e saj nuk tregohet.
+
+### Kjo NUK mjafton vetëm
+
+Butoni është kopja që bën njeriu. Mbrojtja e plotë ka tri shtresa:
+
+| Shtresa | Kundër çfarë | Ku qëndron |
+| --- | --- | --- |
+| Kopja e Supabase-it | fshirje aksidentale, prishje e bazës | te Supabase, sipas planit |
+| Kopja e shkarkuar | humbje e vetë projektit Supabase | te disku yt |
+| Vendi i dytë | djegie, vjedhje, disk i prishur | disk i jashtëm ose dosje në internet |
+
+**Plani i Supabase-it ka rëndësi.** Te plani falas **nuk ka kopje automatike**:
+nëse projekti fshihet ose prishet, s'ka ku të kthehesh. Kontrollohet te
+Supabase → **Database → Backups**. Nëse aty s'ka asgjë, e vetmja mbrojtje është
+skeda që shkarkon vetë.
+
+**Kurrë te një depo publike.** Skeda përmban emra, numra telefoni, adresa dhe
+të dhëna shëndetësore (mjekime, trajtime). Depoja `CRM-Test` te GitHub-i është
+**publike**; një kopje e futur atje do të ishte e lexueshme nga kushdo në
+botë. Kodi nuk përmban çelësa — ata rrinë te `.env.local`, i cili nuk dërgohet
+kurrë — por të dhënat janë punë tjetër.
+
+---
+
+## Pjesa 13 — Dy gjuhët
 
 Çdo tekst që sheh njeriu rri te `lib/i18n.ts`, jo nëpër faqe. Aty janë dy
 fjalorë: `de` (gjermanisht) dhe `sq` (shqip).
@@ -774,7 +846,7 @@ vetë me `DICTS[lang]`.
 
 ---
 
-## Pjesa 13 — Kur diçka nuk shkon
+## Pjesa 14 — Kur diçka nuk shkon
 
 | Problemi | Zgjidhja |
 | --- | --- |

@@ -36,6 +36,7 @@ export default async function Sidebar({ user }: { user: CurrentUser }) {
             <>
               <SidebarLink href="/admin" label={t.navUsers} exact />
               <SidebarLink href="/admin/aktiviteti" label={t.navActivity} />
+              <SidebarLink href="/admin/kopja" label={t.navBackup} />
             </>
           )}
         </nav>

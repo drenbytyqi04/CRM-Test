@@ -61,7 +61,34 @@ const de = {
   navProfile: "Profil",
   navUsers: "Benutzer",
   navActivity: "Aktivität",
+  navBackup: "Datensicherung",
+
   signOut: "Abmelden",
+  // ---------- Datensicherung ----------
+  backupTitle: "Datensicherung",
+  backupIntro:
+    "Eine vollständige Kopie aller Daten — zum Herunterladen und Aufbewahren, unabhängig von Supabase und von dieser App.",
+  backupFullTitle: "Vollständige Kopie",
+  backupFullHint:
+    "Eine einzige Datei mit allem. Aus ihr lassen sich die Daten vollständig wiederherstellen. Bewahren Sie sie dort auf, wo Sie auch Ihre Verträge aufbewahren.",
+  backupTotal: "Zeilen insgesamt",
+  backupDownloadFull: "Vollständige Kopie herunterladen (JSON)",
+  backupToday: (data: string) => `Stand: ${data}`,
+  backupCsvTitle: "Einzelne Tabellen für Excel",
+  backupCsvHint:
+    "Zum Ansehen und Auswerten. Zum Wiederherstellen ist die vollständige Kopie oben gedacht.",
+  backupWhereTitle: "Wo aufbewahren, und wie oft",
+  backupWhere1:
+    "Nicht nur auf dem Rechner, auf dem Sie arbeiten: eine Kopie gehört an einen zweiten Ort (externe Festplatte, Cloud-Ordner).",
+  backupWhere2:
+    "Die Datei enthält Namen, Telefonnummern, Adressen und Gesundheitsangaben. Sie gehört nicht in einen öffentlichen Ordner und nicht in ein öffentliches Repository.",
+  backupWhere3:
+    "Einmal pro Woche genügt bei diesem Umfang; nach einem arbeitsreichen Tag lieber gleich.",
+  bkTblProfiles: "Konten",
+  bkTblAppointments: "Termine",
+  bkTblNotes: "Feedback",
+  bkTblExperts: "Experten-Zugriffe",
+  bkTblActivity: "Arbeitszeiten",
 
   // ---------- Hyrja ----------
   loginTitle: "Anmelden",
@@ -506,6 +533,33 @@ const sq: Dict = {
   navProfile: "Profili",
   navUsers: "Përdoruesit",
   navActivity: "Aktiviteti",
+  navBackup: "Kopja e të dhënave",
+
+  // ---------- Kopja e të dhënave ----------
+  backupTitle: "Kopja e të dhënave",
+  backupIntro:
+    "Një kopje e plotë e gjithçkaje — për ta shkarkuar dhe për ta mbajtur, e pavarur nga Supabase dhe nga kjo faqe.",
+  backupFullTitle: "Kopja e plotë",
+  backupFullHint:
+    "Një skedë e vetme me gjithçka. Prej saj të dhënat kthehen të plota. Mbaje aty ku mban edhe kontratat.",
+  backupTotal: "Rreshta gjithsej",
+  backupDownloadFull: "Shkarko kopjen e plotë (JSON)",
+  backupToday: (data: string) => `Gjendja: ${data}`,
+  backupCsvTitle: "Tabelat veç, për Excel",
+  backupCsvHint:
+    "Për t'i parë dhe për t'i llogaritur. Për kthimin mbrapsht shërben kopja e plotë sipër.",
+  backupWhereTitle: "Ku të mbahet, dhe sa shpesh",
+  backupWhere1:
+    "Jo vetëm te kompjuteri ku punon: një kopje duhet të rrijë në një vend të dytë (disk i jashtëm, dosje në internet).",
+  backupWhere2:
+    "Skeda përmban emra, numra telefoni, adresa dhe të dhëna shëndetësore. Nuk shkon te një dosje e hapur, as te një depo publike te GitHub-i.",
+  backupWhere3:
+    "Një herë në javë mjafton për këtë vëllim; pas një dite me shumë punë, më mirë menjëherë.",
+  bkTblProfiles: "Llogaritë",
+  bkTblAppointments: "Terminet",
+  bkTblNotes: "Feedback-u",
+  bkTblExperts: "Aksesi i ekspertëve",
+  bkTblActivity: "Orët e punës",
   signOut: "Dil",
 
   loginTitle: "Hyr në llogarinë tënde.",
