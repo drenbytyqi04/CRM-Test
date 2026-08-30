@@ -577,6 +577,11 @@ terminet e regjistruara, por nuk caktonte dot asnjë. Puna e tij ishte vetëm
 feedback-u. Tani është agjent i vogël — cakton terminet e veta, dhe sheh
 vetëm ato.
 
+> **E ZBATUAR ✅** — `supabase/useri.sql` u ekzekutua më 30 gusht 2026 mbi
+> bazën e vërtetë. Matrica e lejeve u mat aty, me llogaritë reale, dhe doli
+> siç pritej; provat u kthyen mbrapsht, baza mbeti me 16 termine e 22 shënime.
+> Këshilluesi i Supabase-it nuk shtoi asnjë paralajmërim të ri.
+
 Ndryshimi është një skedë e vetme te baza, `supabase/useri.sql`, dhe prek
 katër rregulla:
 
@@ -611,15 +616,21 @@ numërohen rreshtat e prekur, jo gabimet: një ndryshim që rregullat nuk e
 lejojnë **nuk jep gabim** — thjesht nuk prek asnjë rresht. Po të kishim matur
 gabimet, "useri ndryshon terminin e menaxherit" do të dukej i lejuar.
 
-Rezultati pas skedës, i shkurtuar:
+E njëjta matje u përsërit edhe mbi bazën e vërtetë, me llogaritë e vërteta.
+Rezultati:
 
 ```
-admin    sheh=3  cakton=po  ndryshon të tjetrit=po  fshin=po
-menaxher sheh=3  cakton=po  ndryshon të tjetrit=po  fshin=po
-user A   sheh=1  cakton=po  ndryshon të tjetrit=JO  fshin=JO   dorëzon=JO
-user B   sheh=1  cakton=po  ndryshon të tjetrit=JO  fshin=JO   dorëzon=JO
-ekspert  sheh=1  cakton=JO  ndryshon të tjetrit=JO  fshin=JO
+roli      sheh  shënime | cakton  në emër të tjetrit | ndryshon  fshin | shënim te termini i huaj
+admin      16     22    |   po           JO         |    po      po   |   po
+menaxher   16     22    |   po           JO         |    po      po   |   po
+ekspert     5      6    |   JO           JO         |    JO      JO   |   JO (po te i dhëni)
+user        0      0    |   po           JO         |    JO      JO   |   JO
 ```
+
+Të dy userat e sotëm kanë 0 termine, prandaj lista e tyre do të dalë bosh
+derisa të caktojnë vetë. Një provë e plotë, e kthyer mbrapsht, tregoi se
+useri e cakton terminin, e sheh menjëherë (0 → 1), e mbyll me kontratë, i
+shkruan feedback — dhe nuk ia dorëzon dot dikujt tjetër.
 
 ---
 
