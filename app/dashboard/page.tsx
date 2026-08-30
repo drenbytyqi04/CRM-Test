@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BarRow, Card, DayBars, StatTile } from "@/app/stats";
 import MonthFilter from "./month-filter";
 import { createClient } from "@/lib/supabase/server";
+import { merrTeGjitha } from "@/lib/faqet";
 import { requireUser } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n-server";
 import {
@@ -68,30 +69,43 @@ export default async function DashboardPage({
   const ngaISO = new Date(Date.UTC(vitiM, muajiM - 1, 1, -36)).toISOString();
   const deriISO = new Date(Date.UTC(vitiM, muajiM, 1, 36)).toISOString();
 
-  let kerkesa = supabase
-    .from("appointments")
-    .select("*")
-    .gte("scheduled_at", ngaISO)
-    .lt("scheduled_at", deriISO)
-    .order("scheduled_at", { ascending: true });
-  if (vetemTeMijat) kerkesa = kerkesa.eq("user_id", user.id);
+  /** Terminet e muajit — një faqe, me kufijtë e dhënë. */
+  const faqjaETermineve = (nga: number, deri: number) => {
+    let k = supabase
+      .from("appointments")
+      .select("*", { count: "exact" })
+      .gte("scheduled_at", ngaISO)
+      .lt("scheduled_at", deriISO)
+      .order("scheduled_at", { ascending: true });
+    if (vetemTeMijat) k = k.eq("user_id", user.id);
+    return k.range(nga, deri);
+  };
 
-  const [terminetResult, notesResult, profilesResult] = await Promise.all([
-    kerkesa.returns<Appointment[]>(),
-    supabase.from("notes").select("id, user_id").returns<
-      { id: string; user_id: string }[]
-    >(),
-    supabase
-      .from("profiles")
-      .select("id, email")
-      .returns<{ id: string; email: string | null }[]>(),
-  ]);
+  const [terminetResult, shenimeGjithsej, shenimetEMia, profilesResult] =
+    await Promise.all([
+      // Faqe pas faqeje: një muaj i ngarkuar i kalon 1000 terminet, dhe
+      // Supabase i pret aty pa dhënë gabim.
+      merrTeGjitha<Appointment>(faqjaETermineve, "terminet"),
+      // Shënimet numërohen te baza. Më parë merreshin TË GJITHA — çdo shënim
+      // i çdo termini, sa herë hapej dashboard-i — vetëm për dy numra.
+      // `head: true` s'sjell asnjë rresht: vetëm numrin.
+      supabase.from("notes").select("*", { count: "exact", head: true }),
+      supabase
+        .from("notes")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id),
+      supabase
+        .from("profiles")
+        .select("id, email")
+        .returns<{ id: string; email: string | null }[]>(),
+    ]);
 
   // Ndarja e saktë e muajit bëhet këtu, me orën e Beogradit.
   const terminet = (terminetResult.data ?? []).filter(
     (a) => beogradMonth(a.scheduled_at) === muaji
   );
-  const notes = notesResult.data ?? [];
+  const saShenime = shenimeGjithsej.count ?? 0;
+  const saShenimetEMia = shenimetEMia.count ?? 0;
   const emailet = new Map(
     (profilesResult.data ?? []).map((p) => [p.id, p.email ?? "—"])
   );
@@ -381,10 +395,10 @@ export default async function DashboardPage({
         ) : (
           <Card titull={t.dashNotes} nen={t.dashNotesHint}>
             <p className="text-3xl font-semibold tracking-tight text-slate-900">
-              {notes.length}
+              {saShenime}
             </p>
             <p className="mt-1 text-sm text-slate-500">
-              {t.dashNotesMine(notes.filter((n) => n.user_id === user.id).length)}
+              {t.dashNotesMine(saShenimetEMia)}
             </p>
           </Card>
         )}

@@ -1,19 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { merrTeGjitha as meFaqe } from "./faqet";
 
 /**
  * Kopja e të dhënave — çfarë merret, dhe si merret pa humbur asgjë.
  *
- * KUJDES, kjo është pika ku një kopje bëhet e padobishme pa u vënë re:
- * PostgREST-i i Supabase-it i pret rreshtat te një kufi i vetin (`max-rows`,
- * zakonisht 1000) DHE NUK JEP GABIM. Një kërkesë e thjeshtë `select("*")` do
- * të kthente 1000 rreshta nga 5000, dhe skeda e shkarkuar do të dukej krejt
- * në rregull. Prandaj lexohet faqe pas faqeje, dhe numri i rreshtave të
- * marrë krahasohet me numrin e vërtetë te baza: nëse s'përputhen, kopja NUK
- * jepet fare. Më mirë asnjë kopje sesa një kopje që gënjen.
+ * Leximi faqe-pas-faqeje rri te `lib/faqet.ts`, sepse i njëjti kurth prek
+ * edhe faqet që numërojnë. Këtu vetëm thuhet se një gabim NUK kalohet me
+ * heshtje: kopja s'jepet fare. Më mirë asnjë kopje sesa një që gënjen.
  */
-
-/** Sa rreshta merren me një kërkesë. Nën kufirin e parazgjedhur të Supabase-it. */
-const FAQJA = 1000;
 
 /** Tabelat që hyjnë te kopja, dhe radha e tyre kur të kthehen mbrapsht. */
 export const TABELAT_E_KOPJES = [
@@ -32,38 +26,13 @@ export async function merrTeGjitha(
   supabase: SupabaseClient,
   tabela: string
 ): Promise<Record<string, unknown>[]> {
-  const rreshta: Record<string, unknown>[] = [];
-  let nga = 0;
-  let gjithsej: number | null = null;
-
-  for (;;) {
-    const { data, error, count } = await supabase
-      .from(tabela)
-      .select("*", { count: "exact" })
-      .range(nga, nga + FAQJA - 1);
-
-    if (error) throw new Error(`${tabela}: ${error.message}`);
-    if (gjithsej === null) gjithsej = count ?? null;
-
-    const faqja = (data ?? []) as Record<string, unknown>[];
-    rreshta.push(...faqja);
-
-    if (faqja.length < FAQJA) break;
-    nga += FAQJA;
-
-    // Rrethore mbrojtëse: pa të, një gabim te faqosja do të sillte një cikël
-    // pa fund dhe faqja do të mbetej e varur pa asnjë mesazh.
-    if (rreshta.length > 1_000_000) {
-      throw new Error(`${tabela}: mbi një milion rreshta — ndalur`);
-    }
-  }
-
-  if (gjithsej !== null && rreshta.length !== gjithsej) {
-    throw new Error(
-      `${tabela}: u morën ${rreshta.length} rreshta nga ${gjithsej} që ka baza`
-    );
-  }
-  return rreshta;
+  const { data, error } = await meFaqe<Record<string, unknown>>(
+    (nga, deri) =>
+      supabase.from(tabela).select("*", { count: "exact" }).range(nga, deri),
+    tabela
+  );
+  if (error) throw new Error(`${tabela}: ${error.message}`);
+  return data;
 }
 
 /** E tërë kopja, tabelë për tabelë. */

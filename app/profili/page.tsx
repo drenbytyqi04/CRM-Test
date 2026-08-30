@@ -1,5 +1,6 @@
 import { Card, DayBars, StatTile } from "@/app/stats";
 import { createClient } from "@/lib/supabase/server";
+import { merrTeGjitha } from "@/lib/faqet";
 import { requireUser } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n-server";
 import type { Dict } from "@/lib/i18n";
@@ -85,17 +86,29 @@ export default async function ProfilePage() {
         .eq("user_id", user.id)
         .gte("day", dite[0])
         .returns<ActivityDay[]>(),
-      // Terminet e caktuara nga unë.
-      supabase
-        .from("appointments")
-        .select("*")
-        .eq("user_id", user.id)
-        .returns<Appointment[]>(),
-      supabase
-        .from("notes")
-        .select("id, created_at")
-        .eq("user_id", user.id)
-        .returns<{ id: string; created_at: string }[]>(),
+      // Terminet e caktuara nga unë, dhe shënimet e mia.
+      //
+      // Faqe pas faqeje: Supabase i pret rreshtat te 1000 pa dhënë gabim, dhe
+      // atëherë numrat këtu do të ndalonin te 1000 pa asnjë shenjë. Një agjent
+      // me pesë termine në ditë e kalon atë kufi brenda katër vjetësh.
+      merrTeGjitha<Appointment>(
+        (nga, deri) =>
+          supabase
+            .from("appointments")
+            .select("*", { count: "exact" })
+            .eq("user_id", user.id)
+            .range(nga, deri),
+        "terminet"
+      ),
+      merrTeGjitha<{ id: string; created_at: string }>(
+        (nga, deri) =>
+          supabase
+            .from("notes")
+            .select("id, created_at", { count: "exact" })
+            .eq("user_id", user.id)
+            .range(nga, deri),
+        "shënimet"
+      ),
     ]);
 
   const profile = profileResult.data;

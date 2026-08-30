@@ -382,7 +382,8 @@ lib/
   supabase/proxy.ts         Mban sesionin e freskët në çdo kërkesë
   supabase/admin.ts         Lidhja me çelësin sekret — vetëm për hapjen e llogarive
   auth.ts                   "Kush është i kyçur?" dhe "çfarë roli ka?"
-  backup.ts                 Leximi i plotë faqe-pas-faqeje, dhe shkrimi i CSV-së
+  backup.ts                 Ç'hyn te kopja, dhe shkrimi i CSV-së
+  faqet.ts                  Leximi faqe-pas-faqeje: kurthi i 1000 rreshtave
   types.ts                  Tipat, statuset dhe ndihmësit e vegjël
   i18n.ts                   Fjalori: çdo tekst, gjermanisht dhe shqip
   i18n-server.ts            Lexon gjuhën e zgjedhur nga cookie-ja
@@ -398,6 +399,7 @@ supabase/
   kategorite.sql            Tri kategoritë + arsyeja brenda tyre
   eksperti.sql              Roli i katërt dhe kufiri i leximit
   useri.sql                 Useri cakton terminet e veta, dhe sheh vetëm ato
+  numrat.sql                Numërimi për person te baza, jo duke tërhequr tabelën
   rls-shpejtesi.sql         Rregullat: një llogaritje për kërkesë, jo për rresht
   mbetur.sql                Të dyja migrimet e fundit, në një skedë
   activity.sql              Përcjellja e kohës
@@ -781,6 +783,26 @@ fare** — më mirë asnjë kopje sesa një kopje që gënjen.
 Kjo provohet, nuk supozohet: te provat mbushen 1200 termine dhe verifikohet se
 skeda i ka të 1200-tët, jo 1000. Edhe serveri i provës u bë ta presë te 1000
 si Supabase — përndryshe prova s'do të provonte asgjë.
+
+### I njëjti kurth ishte edhe te tri faqe
+
+Sapo serveri i provës nisi t'i priste rreshtat si Supabase, doli se tri faqe
+numëronin mbi atë që merrnin — pra mbi 1000 termine do të tregonin numra
+**thjesht të gabuar**, më të vegjël se e vërteta, pa asnjë shenjë:
+
+| Faqja | Përpara | Tani |
+| --- | --- | --- |
+| **Përdoruesit** | tërhiqte TË GJITHA terminet dhe TË GJITHA shënimet për tetë numra | i numëron baza, një rresht për person (`supabase/numrat.sql`) |
+| **Profili** | merrte terminet e mia me një kërkesë | faqe pas faqeje (`lib/faqet.ts`) |
+| **Dashboard** | merrte terminet e muajit me një kërkesë, plus TË GJITHA shënimet | terminet faqe pas faqeje; shënimet i numëron baza me `head: true` |
+
+`head: true` do të thotë: kthe vetëm numrin, asnjë rresht. Dashboard-i tregon
+sa shënime ka gjithsej dhe sa janë të miat; për ata dy numra lexonte më parë
+çdo shënim të çdo termini, sa herë hapej faqja.
+
+Nëse `supabase/numrat.sql` nuk është ekzekutuar ende, faqja «Përdoruesit»
+shfaq një njoftim të verdhë. Pa të, mungesa e funksionit do të dukej si
+«të gjithë kanë zero» — pikërisht numri i gabuar që u desh të hiqej.
 
 ### Detaje të vogla që kushtojnë kur mungojnë
 

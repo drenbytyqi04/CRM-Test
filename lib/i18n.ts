@@ -395,6 +395,8 @@ const de = {
   usersTitle: "Benutzer",
   usersSubtitle:
     "Alle Konten des Systems. Nur Sie legen neue Konten an und entziehen den Zugang.",
+  usersCountsMissing:
+    "Die Zahlen für Termine und Feedback konnten nicht geladen werden: supabase/numrat.sql wurde noch nicht ausgeführt. Bis dahin stehen hier Nullen — sie sind nicht echt.",
   usersLoadError: "Benutzer konnten nicht geladen werden",
   usersColEmail: "E-Mail",
   usersColRole: "Rolle",
@@ -839,6 +841,8 @@ const sq: Dict = {
   usersTitle: "Përdoruesit",
   usersSubtitle:
     "Të gjitha llogaritë e sistemit. Vetëm ti hap llogari të reja dhe u heq hyrjen atyre që largohen.",
+  usersCountsMissing:
+    "Numrat e termineve dhe të feedback-ut nuk u lexuan dot: supabase/numrat.sql s'është ekzekutuar ende. Deri atëherë këtu rrinë zero — ato nuk janë të vërteta.",
   usersLoadError: "Nuk u lexuan dot përdoruesit",
   usersColEmail: "Emaili",
   usersColRole: "Roli",

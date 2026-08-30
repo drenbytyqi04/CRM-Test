@@ -16,6 +16,9 @@ import {
 
 export const dynamic = "force-dynamic";
 
+/** Një rresht i `puna_per_person()`: sa ka bërë secili. */
+type PunaEPersonit = { user_id: string; terminet: number; shenimet: number };
+
 /** Faqja e administratorit: të gjithë përdoruesit dhe sa të dhëna ka secili. */
 export default async function AdminPage() {
   // Kush s'është admin, dërgohet te faqja kryesore.
@@ -27,18 +30,18 @@ export default async function AdminPage() {
   // Dita e sotme sipas orës së Beogradit, si te funksioni në bazë.
   const sot = todayInBeograd();
 
-  const [profilesResult, terminetResult, notesResult, activityResult] =
+  const [profilesResult, punaResult, activityResult] =
     await Promise.all([
     supabase
       .from("profiles")
       .select("id, email, role, active, created_at")
       .order("created_at", { ascending: true })
       .returns<Profile[]>(),
-    supabase
-      .from("appointments")
-      .select("user_id")
-      .returns<{ user_id: string }[]>(),
-    supabase.from("notes").select("user_id").returns<{ user_id: string }[]>(),
+    // Numërimin e bën baza (`supabase/numrat.sql`): një rresht për person, në
+    // vend të TË GJITHA termineve dhe TË GJITHA shënimeve. Ashtu si ishte,
+    // mbi 1000 rreshta Supabase i priste në heshtje dhe numrat dilnin të
+    // gabuar — më të vegjël se e vërteta, pa asnjë shenjë.
+    supabase.rpc("puna_per_person"),
     supabase
       .from("activity_days")
       .select("user_id, day, active_seconds, last_seen_at")
@@ -48,16 +51,15 @@ export default async function AdminPage() {
 
   const profiles = profilesResult.data ?? [];
 
-  const countBy = (rows: { user_id: string }[] | null) => {
-    const map = new Map<string, number>();
-    for (const row of rows ?? []) {
-      map.set(row.user_id, (map.get(row.user_id) ?? 0) + 1);
-    }
-    return map;
-  };
-
-  const termineCounts = countBy(terminetResult.data);
-  const noteCounts = countBy(notesResult.data);
+  const termineCounts = new Map<string, number>();
+  const noteCounts = new Map<string, number>();
+  // Tipi vjen nga vetë funksioni te baza; këtu thuhet shprehimisht, sepse
+  // tipat e Supabase-it nuk e njohin një funksion që s'është te skema e tyre.
+  const puna = (punaResult.data ?? []) as PunaEPersonit[];
+  for (const rresht of puna) {
+    termineCounts.set(rresht.user_id, Number(rresht.terminet));
+    noteCounts.set(rresht.user_id, Number(rresht.shenimet));
+  }
 
   // Aktiviteti i sotëm: sa kohë dhe kur u pa së fundi.
   const sotSekonda = new Map<string, number>();
@@ -85,6 +87,14 @@ export default async function AdminPage() {
       {profilesResult.error && (
         <p className="mb-6 rounded-lg bg-red-50 p-4 text-sm text-red-700">
           {t.usersLoadError}: {profilesResult.error.message}
+        </p>
+      )}
+
+      {/* Pa këtë, mungesa e funksionit do të dukej si «të gjithë kanë zero» —
+          pikërisht numri i gabuar që u desh të hiqej. */}
+      {punaResult.error && (
+        <p className="mb-6 rounded-lg bg-amber-50 p-4 text-sm text-amber-900">
+          {t.usersCountsMissing}
         </p>
       )}
 
