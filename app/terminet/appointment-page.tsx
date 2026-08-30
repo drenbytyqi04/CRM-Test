@@ -58,7 +58,8 @@ export default async function AppointmentPage({
   // e kanë `id`-në e gjatë brenda, prandaj i njohim të dyja format.
   const eshteNumer = /^\d+$/.test(nr);
 
-  // Terminin e hap çdo i kyçur; e ndryshon vetëm menaxheri.
+  // Termini merret pa asnjë filtër roli: kufirin e vë baza. Kush s'ka të
+  // drejtë ta shohë, merr bosh — dhe faqja del 404, sikur të mos ekzistonte.
   const kerkesa = supabase.from("appointments").select(APPOINTMENT_COLUMNS);
   const terminiResult = await (
     eshteNumer ? kerkesa.eq("nr", Number(nr)) : kerkesa.eq("id", nr)
@@ -109,6 +110,12 @@ export default async function AppointmentPage({
 
   const agjenti =
     termini.user_id === user.id ? null : (emailet.get(termini.user_id) ?? null);
+
+  // Kush e ndryshon këtë termin: menaxheri e admini çdo termin, kushdo
+  // tjetër vetëm atë që ka caktuar vetë. Kufiri i vërtetë rri te baza
+  // (`supabase/useri.sql`) dhe te vetë veprimi; kjo vendos ç'të vizatohet.
+  const mundTaNdryshoje =
+    user.isManager || (!user.isExpert && termini.user_id === user.id);
 
   // Ekspertët: ata që e shohin tashmë, dhe llogaritë që mund të shtohen.
   const meAkses = ekspertetResult.data ?? [];
@@ -187,14 +194,14 @@ export default async function AppointmentPage({
             : []),
         ]}
       >
-      {user.isManager ? (
+      {mundTaNdryshoje ? (
         <AppointmentForm
           appointment={termini}
           scheduledDefault={toBeogradInput(termini.scheduled_at)}
           lang={lang}
         />
       ) : (
-        /* Përdoruesi i thjeshtë e lexon terminin, por nuk e ndryshon. */
+        /* Termini i dikujt tjetër: lexohet, por nuk ndryshohet. */
         <div className="space-y-6">
           <TabPanel id="personalia">
           <section className="rounded-xl border border-slate-200 bg-white p-5">

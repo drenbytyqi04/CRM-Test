@@ -165,10 +165,11 @@ Tabela dhe funksioni që numërojnë kohën aktive janë zbatuar
 Termini është njësia e vetme e sistemit; tabela e klientëve u hoq dhe të dhënat
 e personit kaluan mbi vetë terminin. Shih **Pjesa 7**.
 
-### Hapi 13: Tri rolet — TË GATSHME ✅
+### Hapi 13: Katër rolet — TË GATSHME ✅
 
-Rregullat e roleve `user`, `manager` dhe `admin` janë zbatuar
-(skeda `supabase/roles.sql`). Shih tabelën te **Pjesa 3**.
+Rregullat e roleve `user`, `manager`, `admin` dhe `expert` janë zbatuar
+(skedat `supabase/roles.sql`, `supabase/eksperti.sql` dhe
+`supabase/useri.sql`). Shih tabelën te **Pjesa 3**.
 
 Roli caktohet me një rresht te Supabase → SQL Editor:
 
@@ -216,7 +217,7 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
   ditë pas dite, dhe terminet e radhës. Admini sheh edhe ndarjen sipas
   agjentit. Numrat llogariten sa herë hapet faqja, nuk ruhen askund.
 - **Profili:** koha jote brenda CRM-së (sot, 14 ditët e fundit, mesatarja),
-  sa shënime ke shkruar, dhe — për menaxherin e adminin — sa termine ke
+  sa shënime ke shkruar, dhe — për këdo që cakton termine — sa termine ke
   caktuar dhe sa kontrata dolën prej tyre. Poshtë rri lista e asaj që roli yt
   mund e nuk mund të bëjë.
 - **Numri i terminit:** çdo termin ka një numër të shkurtër — `#1000`, `#1001`
@@ -245,32 +246,49 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
 
 | Veprimi | Ekspert | Përdorues | Menaxher | Admin |
 | --- | :---: | :---: | :---: | :---: |
-| Lexon **të gjitha** terminet | ❌ | ✅ | ✅ | ✅ |
-| Lexon terminet **që i janë caktuar** | ✅ | ✅ | ✅ | ✅ |
-| Shkruan shënime | ✅\* | ✅ | ✅ | ✅ |
-| Cakton dhe ndryshon termine | ❌ | ❌ | ✅ | ✅ |
+| Lexon **të gjitha** terminet | ❌ | ❌ | ✅ | ✅ |
+| Lexon terminet **e veta** | — | ✅ | ✅ | ✅ |
+| Lexon terminet **që ia jep admini** | ✅ | — | ✅ | ✅ |
+| Shkruan shënime | ✅\* | ✅\*\* | ✅ | ✅ |
+| Cakton termine | ❌ | ✅ | ✅ | ✅ |
+| Ndryshon **terminet e veta** | ❌ | ✅ | ✅ | ✅ |
+| Ndryshon terminet **e të tjerëve** | ❌ | ❌ | ✅ | ✅ |
 | Fshin termine | ❌ | ❌ | ✅ | ✅ |
 | Jep akses ekspertëve | ❌ | ❌ | ❌ | ✅ |
 | Hap llogari dhe heq hyrjen | ❌ | ❌ | ❌ | ✅ |
 | Faqja *Përdoruesit* dhe *Aktiviteti* | ❌ | ❌ | ❌ | ✅ |
 
 \* Eksperti shkruan shënime vetëm te terminet që i janë caktuar.
+\*\* Përdoruesi i thjeshtë vetëm te terminet e veta.
 
-Përdoruesi i thjeshtë e hap çdo termin dhe e lexon të plotë — personalinë, të
-dhënat teknike, rezultatin dhe detajet — por si tekst, pa formularë. Puna e tij
-regjistrohet përmes shënimeve.
+**Përdoruesi i thjeshtë** është agjent i vogël: cakton terminet e veta, i
+ndryshon derisa t'i mbyllë, shkruan feedback mbi to — dhe sheh vetëm ato.
+Terminet e të tjerëve për të nuk ekzistojnë: nuk dalin te lista, nuk hyjnë te
+numrat e përmbledhjes as te dashboard-i, dhe adresa e drejtpërdrejtë kthen
+404 — jo «nuk ke leje», që as vetë numri të mos tregojë nëse ekziston.
+
+Ndryshimi i terminit të vet nuk është zbukurim: pa të, useri do ta caktonte
+terminin dhe pastaj nuk do të shkruante dot kurrë se si përfundoi — as
+rezultatin, as kontratën. Fshirja, përkundrazi, i mbetet menaxherit: ajo merr
+me vete edhe shënimet e terminit dhe nuk kthehet mbrapsht.
+
+> **KUJDES gjatë kalimit.** Deri para kësaj, përdoruesi i thjeshtë i lexonte
+> TË GJITHA terminet dhe nuk caktonte asnjë. Pas `supabase/useri.sql` ai sheh
+> vetëm të vetat — pra dikush që dje shihte një listë të plotë, sot e sheh
+> bosh derisa të caktojë vetë. Kjo është pikërisht ajo që u kërkua, por s'ka
+> si të mos vihet re. Kush duhet t'i shohë të gjitha, bëhet **menaxher**.
 
 **Eksperti** e bën të njëjtën gjë, por **vetëm te terminet që ia jep admini**.
 Për të, ato që s'i janë dhënë nuk ekzistojnë fare: nuk dalin te lista, nuk
 numërohen te përmbledhja, dhe adresa e drejtpërdrejtë kthen 404 — jo një
 mesazh «nuk ke leje», që as vetë numri i terminit të mos tregojë nëse ekziston.
 
-Ky kufi rri te **baza**, jo te faqja. Deri para pak, rregulli i leximit thoshte
-`using (true)` — çdo i kyçur i shihte të gjitha. Ai rregull tani është i
-vetëdijshëm për rolin (`supabase/eksperti.sql`): për tri rolet e para asgjë
-nuk ndryshoi; për ekspertin ngushtohet te lista e aksesit. E njëjta vlen edhe
-për **shënimet** — ndryshe eksperti do të mos e shihte terminin e huaj te
-lista, por do t'i lexonte shënimet e tij përmes API-së.
+Ky kufi rri te **baza**, jo te faqja. Rregulli i leximit dikur thoshte
+`using (true)` — çdo i kyçur i shihte të gjitha. Ai u bë i vetëdijshëm për
+rolin te `supabase/eksperti.sql` (dega e ekspertit) dhe pastaj te
+`supabase/useri.sql` (dega e userit). E njëjta ndarje vlen edhe për
+**shënimet** — ndryshe dikush do të mos e shihte terminin e huaj te lista,
+por do t'i lexonte shënimet e tij përmes API-së. Shih **Pjesa 9**.
 
 Një termin mund t'u jepet **disa ekspertëve** njëherësh. Aksesin e jep vetëm
 admini, në dy mënyra:
@@ -371,6 +389,7 @@ supabase/
   faqosja.sql               Numrat e përmbledhjes + indekset e listës
   kategorite.sql            Tri kategoritë + arsyeja brenda tyre
   eksperti.sql              Roli i katërt dhe kufiri i leximit
+  useri.sql                 Useri cakton terminet e veta, dhe sheh vetëm ato
   rls-shpejtesi.sql         Rregullat: një llogaritje për kërkesë, jo për rresht
   mbetur.sql                Të dyja migrimet e fundit, në një skedë
   activity.sql              Përcjellja e kohës
@@ -407,12 +426,22 @@ Të dhënat mbrohen në tri shtresa, njëra mbi tjetrën:
 ndryshimi — pra askush nuk e bën dot veten admin apo menaxher nga aplikacioni.
 Roli ndryshohet vetëm nga paneli i Supabase-it, ku hyn vetëm ti.
 
-**Leximi është i përbashkët, shkrimi jo.** Çdo i kyçur i lexon terminet e
-regjistruara dhe shënimet e tyre. Shtimi dhe ndryshimi mbeten të mbyllura:
-terminet i prek vetëm menaxheri, shënimin e vet e ndryshon vetëm autori (ose
-admini). Lista e profileve lexohet nga të gjithë (`profiles_select_all`),
-sepse tabela e feedback-ut tregon se kush e shkroi secilin shënim — por vetëm
-lexohet, roli nuk ndryshohet dot nga aplikacioni.
+**Secili sheh punën e vet; menaxheri sheh të gjitha.** Rregulli i leximit
+dikur thoshte `using (true)` — çdo i kyçur i shihte të gjitha terminet. Sot ai
+ka tri degë (`supabase/useri.sql`): menaxheri dhe admini gjithçka, eksperti
+ato që ia jep admini, përdoruesi i thjeshtë të vetat. E njëjta ndarje vlen
+edhe për **shënimet** — pa të, dikush do të mos e shihte terminin e huaj te
+lista, por do t'i lexonte shënimet e tij përmes API-së.
+
+Shkrimi është më i ngushtë se leximi: terminin e vet e ndryshon ai që e
+caktoi, çdo termin vetëm menaxheri, dhe fshirjen e bën vetëm menaxheri.
+`user_id` merret gjithmonë nga sesioni, kurrë nga formulari, dhe rregulli i
+shtimit e kërkon `user_id = auth.uid()` — pra askush nuk shkruan dot një
+termin në emër të dikujt tjetër, as duke e thirrur bazën jashtë faqes sonë.
+
+Lista e profileve lexohet nga të gjithë (`profiles_select_all`), sepse tabela
+e feedback-ut tregon se kush e shkroi secilin shënim — por vetëm lexohet,
+roli nuk ndryshohet dot nga aplikacioni.
 
 ### Publikimi në Vercel
 
@@ -541,7 +570,60 @@ gabim sepse serveri e shfletuesi vizatonin tekste të ndryshme.
 
 ---
 
-## Pjesa 9 — Lista me shumë termine
+## Pjesa 9 — Useri që punon vetë
+
+Deri para pak, përdoruesi i thjeshtë ishte lexues: i shihte **të gjitha**
+terminet e regjistruara, por nuk caktonte dot asnjë. Puna e tij ishte vetëm
+feedback-u. Tani është agjent i vogël — cakton terminet e veta, dhe sheh
+vetëm ato.
+
+Ndryshimi është një skedë e vetme te baza, `supabase/useri.sql`, dhe prek
+katër rregulla:
+
+| Rregulli | Përpara | Tani |
+| --- | --- | --- |
+| Cakton termin | vetëm menaxheri | kushdo veç ekspertit |
+| Lexon terminet | të gjithë i shihnin të gjitha | menaxheri të gjitha, useri të vetat, eksperti të caktuarat |
+| Ndryshon terminin | vetëm menaxheri | menaxheri çdo termin, useri të vetin |
+| Lexon shënimet | të gjithë i lexonin të gjitha | ashtu si terminet |
+
+Fshirja **nuk** ndryshoi: mbetet te menaxheri dhe admini. Ajo merr me vete
+edhe shënimet e terminit (`on delete cascade`) dhe nuk kthehet mbrapsht — nuk
+u kërkua, prandaj nuk u dha.
+
+Ndryshimi i terminit të vet nuk është shtesë kozmetike. Pa të, useri do ta
+caktonte terminin dhe pastaj nuk do të shkruante dot kurrë se si përfundoi —
+as rezultatin, as kontratën. Një termin që nuk mbyllet dot s'i shërben askujt.
+`with check` te rregulli i ndryshimit është i njëjtë me `using`, prandaj ai
+nuk ia dorëzon dot terminin dikujt tjetër duke i ndërruar `user_id`.
+
+**Përse `not is_expert()` te dega e userit.** Te terminet e ekspertit,
+`user_id` është ai që ia caktoi, jo vetë eksperti. Pa atë kusht, një llogari
+që dikur ka caktuar termine dhe më pas u bë ekspert, do t'i shihte ato përjetë
+— jashtë listës së aksesit. E njëjta gjë e detyron faqen të mos e filtrojë
+ekspertin sipas `user_id`: do t'i dilte bosh. Për të e bën ndarjen vetëm baza.
+
+**Si u provua.** Të gjitha migrimet u riluajtën nga zeroja mbi një Postgres 16
+lokal, dhe matrica e plotë e lejeve — kush lexon, kush cakton, kush ndryshon,
+kush dorëzon, kush fshin, kush shkruan shënim — u shënua **para** dhe **pas**
+skedës, për të pesë llogaritë e provës. Për matjen e `update` dhe `delete`
+numërohen rreshtat e prekur, jo gabimet: një ndryshim që rregullat nuk e
+lejojnë **nuk jep gabim** — thjesht nuk prek asnjë rresht. Po të kishim matur
+gabimet, "useri ndryshon terminin e menaxherit" do të dukej i lejuar.
+
+Rezultati pas skedës, i shkurtuar:
+
+```
+admin    sheh=3  cakton=po  ndryshon të tjetrit=po  fshin=po
+menaxher sheh=3  cakton=po  ndryshon të tjetrit=po  fshin=po
+user A   sheh=1  cakton=po  ndryshon të tjetrit=JO  fshin=JO   dorëzon=JO
+user B   sheh=1  cakton=po  ndryshon të tjetrit=JO  fshin=JO   dorëzon=JO
+ekspert  sheh=1  cakton=JO  ndryshon të tjetrit=JO  fshin=JO
+```
+
+---
+
+## Pjesa 10 — Lista me shumë termine
 
 Deri para pak, lista i merrte **të gjitha** terminet sa herë hapej. Me pak
 dhjetëra kjo s'duket. Me 2000 prishet, dhe u mat me 2000 të vërtetë:
@@ -601,7 +683,7 @@ brenda një transaksioni që u përmbys.
 
 ---
 
-## Pjesa 10 — Dy gjuhët
+## Pjesa 11 — Dy gjuhët
 
 Çdo tekst që sheh njeriu rri te `lib/i18n.ts`, jo nëpër faqe. Aty janë dy
 fjalorë: `de` (gjermanisht) dhe `sq` (shqip).
@@ -632,7 +714,7 @@ vetë me `DICTS[lang]`.
 
 ---
 
-## Pjesa 11 — Kur diçka nuk shkon
+## Pjesa 12 — Kur diçka nuk shkon
 
 | Problemi | Zgjidhja |
 | --- | --- |

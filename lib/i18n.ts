@@ -157,7 +157,7 @@ const de = {
   tabDetails: "Details",
   tabFeedback: (n: number) => `Feedback (${n})`,
   readOnlyHint:
-    "Termine werden nur vom Manager angelegt und geändert. Feedback können Sie im Tab «Feedback» schreiben.",
+    "Diesen Termin hat Ihnen der Admin zugewiesen. Ändern können ihn nur die Person, die ihn angelegt hat, und der Manager — Ihr Feedback schreiben Sie im Tab «Feedback».",
 
   // Personalia
   fName: "Name",
@@ -345,6 +345,11 @@ const de = {
     "Diese Regeln setzt die Datenbank selbst durch, nicht die Oberfläche.",
 
   permReadAll: "Alle angelegten Termine lesen",
+  permReadOwn: "Nur die eigenen Termine lesen",
+  permEditOwn: "Die eigenen Termine ändern",
+  permWriteOwnNotes: "Feedback zu den eigenen Terminen schreiben",
+  permNoDeleteAppointments: "Termine löschen",
+  permNoReadOthers: "Termine anderer sehen",
   permWriteNotes: "Feedback zu jedem Termin schreiben",
   permCreateAppointments: "Neue Termine anlegen",
   permEditAppointments: "Jeden Termin ändern",
@@ -446,6 +451,8 @@ const de = {
   errAppointmentNotSaved: "Der Termin konnte nicht gespeichert werden",
   errAppointmentMissing: "Der zu ändernde Termin fehlt.",
   errAppointmentNotFound: "Dieser Termin wurde nicht gefunden.",
+  errAppointmentNotYours:
+    "Diesen Termin hat jemand anderes angelegt — Sie können nur Ihre eigenen ändern.",
   errChangesRejected:
     "Die Änderungen wurden nicht gespeichert: die Datenbank hat den Vorgang abgelehnt.",
   errDeleteMissing: "Der zu löschende Termin fehlt.",
@@ -576,7 +583,7 @@ const sq: Dict = {
   tabDetails: "Detaje",
   tabFeedback: (n) => `Feedback (${n})`,
   readOnlyHint:
-    "Terminet i cakton dhe i ndryshon vetëm menaxheri. Ti mund të shkruash shënime te skeda «Feedback».",
+    "Këtë termin ta ka dhënë admini. E ndryshon ai që e ka caktuar dhe menaxheri — ti shkruan feedback te skeda «Feedback».",
 
   fName: "Emri",
   fCustomerNumber: "Numri i klientit",
@@ -751,6 +758,11 @@ const sq: Dict = {
     "Këto rregulla i zbaton vetë baza e të dhënave, jo faqja.",
 
   permReadAll: "Lexon të gjitha terminet e regjistruara",
+  permReadOwn: "Lexon vetëm terminet e veta",
+  permEditOwn: "Ndryshon terminet e veta",
+  permWriteOwnNotes: "Shkruan feedback te terminet e veta",
+  permNoDeleteAppointments: "Fshin termine",
+  permNoReadOthers: "Sheh terminet e të tjerëve",
   permWriteNotes: "Shkruan feedback te çdo termin",
   permCreateAppointments: "Cakton termine të reja",
   permEditAppointments: "Ndryshon çdo termin",
@@ -844,6 +856,8 @@ const sq: Dict = {
   errAppointmentNotSaved: "Nuk u ruajt dot termini",
   errAppointmentMissing: "Mungon termini që duhet ndryshuar.",
   errAppointmentNotFound: "Ky termin nuk u gjet.",
+  errAppointmentNotYours:
+    "Këtë termin e ka caktuar dikush tjetër — ti ndryshon vetëm të tutë.",
   errChangesRejected: "Ndryshimet nuk u ruajtën: baza nuk e lejoi këtë veprim.",
   errDeleteMissing: "Mungon termini që duhet fshirë.",
   errDeleteFailed: "Termini nuk u fshi",

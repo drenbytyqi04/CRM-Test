@@ -3,7 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUser, requireManager, requireUser } from "@/lib/auth";
+import {
+  getCurrentUser,
+  requireCreator,
+  requireManager,
+  requireUser,
+} from "@/lib/auth";
 import { getDict } from "@/lib/i18n-server";
 import type { Dict } from "@/lib/i18n";
 import {
@@ -228,12 +233,21 @@ function validateAppointment(
   return null;
 }
 
-/** Cakton një termin të ri. */
+/**
+ * Cakton një termin të ri.
+ *
+ * E cakton admini, menaxheri dhe përdoruesi i thjeshtë. Jo eksperti: ai
+ * lexon terminet që ia jep admini dhe shkruan feedback, nuk cakton.
+ *
+ * `user_id` merret nga sesioni, kurrë nga formulari. Kështu askush nuk
+ * shkruan dot një termin sikur ta kishte caktuar dikush tjetër — dhe
+ * rregullat e bazës (`supabase/useri.sql`) e kërkojnë pikërisht këtë.
+ */
 export async function createAppointment(
   _prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
-  const user = await requireManager();
+  const user = await requireCreator();
   const t = await getDict();
   const { scheduled, persons, contracts, status, category, values } =
     readAppointmentFields(formData);
@@ -269,12 +283,18 @@ export async function createAppointment(
   return { ok: true, message: t.appointmentCreated };
 }
 
-/** Ndryshon një termin: të dhënat teknike, rezultatin dhe detajet. */
+/**
+ * Ndryshon një termin: të dhënat teknike, rezultatin dhe detajet.
+ *
+ * Menaxheri dhe admini ndryshojnë çdo termin. Përdoruesi i thjeshtë vetëm
+ * atë që ka caktuar vetë — pa këtë do ta caktonte terminin dhe pastaj nuk
+ * do të shkruante dot kurrë se si përfundoi.
+ */
 export async function updateAppointment(
   _prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
-  await requireManager();
+  const user = await requireUser();
   const t = await getDict();
   const id = String(formData.get("appointmentId") ?? "");
   const { scheduled, persons, contracts, status, category, values } =
@@ -304,6 +324,9 @@ export async function updateAppointment(
     .maybeSingle<{ id: string; user_id: string }>();
 
   if (!termini) return { error: t.errAppointmentNotFound };
+  if (!user.isManager && termini.user_id !== user.id) {
+    return { error: t.errAppointmentNotYours };
+  }
 
   const { data, error } = await supabase
     .from("appointments")

@@ -12,8 +12,9 @@ export type CurrentUser = {
   /** Admini: gjithçka, plus përdoruesit dhe aktiviteti. */
   isAdmin: boolean;
   /**
-   * Menaxheri ose admini: shtojnë e ndryshojnë klientë dhe termine.
-   * Përdoruesi i thjeshtë vetëm i lexon ato dhe shkruan shënime.
+   * Menaxheri ose admini. Dy gjëra bashkë, sepse te ne përputhen:
+   * i shohin TË GJITHA terminet, dhe i ndryshojnë e i fshijnë të gjitha.
+   * Të tjerët e kanë secili vetëm punën e vet.
    */
   isManager: boolean;
   /**
@@ -22,6 +23,13 @@ export type CurrentUser = {
    * kjo shenjë shërben vetëm që faqja të mos i tregojë butona që s'i hapen.
    */
   isExpert: boolean;
+  /**
+   * Cakton termine të reja: admini, menaxheri dhe përdoruesi i thjeshtë.
+   *
+   * Jashtë mbetet vetëm eksperti: ai lexon terminet që ia jep admini dhe
+   * shkruan feedback mbi to, por nuk cakton asnjë.
+   */
+  canCreate: boolean;
 };
 
 /**
@@ -68,6 +76,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
     isAdmin: role === "admin",
     isManager: role === "admin" || role === "manager",
     isExpert: role === "expert",
+    canCreate: role !== "expert",
   };
 });
 
@@ -89,5 +98,12 @@ export async function requireAdmin(): Promise<CurrentUser> {
 export async function requireManager(): Promise<CurrentUser> {
   const user = await requireUser();
   if (!user.isManager) redirect("/");
+  return user;
+}
+
+/** Për caktimin e termineve: kushdo veç ekspertit. */
+export async function requireCreator(): Promise<CurrentUser> {
+  const user = await requireUser();
+  if (!user.canCreate) redirect("/");
   return user;
 }

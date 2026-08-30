@@ -51,9 +51,16 @@ function lejet(role: string, t: Dict): { po: string[]; jo: string[] } {
       jo: [t.permNoReadAll, t.permNoCreateAppointments, t.permNoSeeUsers],
     };
   }
+  // Përdoruesi i thjeshtë: agjent i vogël. Cakton terminet e veta, i
+  // ndryshon, shkruan feedback mbi to — dhe sheh vetëm ato.
   return {
-    po: [t.permReadAll, t.permWriteNotes],
-    jo: [t.permNoCreateAppointments, t.permNoSeeUsers],
+    po: [
+      t.permReadOwn,
+      t.permCreateAppointments,
+      t.permEditOwn,
+      t.permWriteOwnNotes,
+    ],
+    jo: [t.permNoReadOthers, t.permNoDeleteAppointments, t.permNoSeeUsers],
   };
 }
 
@@ -205,8 +212,11 @@ export default async function ProfilePage() {
         </Card>
       </div>
 
-      {/* ---------- Puna ime ---------- */}
-      {user.isManager && (
+      {/* ---------- Puna ime ----------
+          Tani e sheh edhe përdoruesi i thjeshtë: terminet i cakton vetë,
+          prandaj ka punë të vetën për të numëruar. Eksperti jo — te terminet
+          që i jepen, agjenti është dikush tjetër. */}
+      {user.canCreate && (
         <div className="mb-6 grid gap-4 lg:grid-cols-2">
           <Card
             titull={t.profileMyAppointments}

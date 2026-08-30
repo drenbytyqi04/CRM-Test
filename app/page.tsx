@@ -60,9 +60,15 @@ export default async function Page({ searchParams }: PageProps<"/">) {
   // Faqja vjen nga adresa dhe mund të jetë çfarëdo: «abc», «-3», «99999».
   // Prandaj kthehet në numër dhe kufizohet më poshtë, pasi dimë sa faqe ka.
   const faqjaEKerkuar = Math.max(1, Number(faqe) || 1);
-  // Terminet e regjistruara i sheh çdo i kyçur. Menaxheri mund t'i ngushtojë
-  // te "Të mijat".
-  const showAll = view !== "mine";
+  // Kush i sheh të gjitha, dhe kush vetëm të vetat.
+  //
+  // Menaxheri dhe admini i shohin të gjitha, me çelësin «Të mijat» për t'i
+  // ngushtuar. Përdoruesi i thjeshtë ka vetëm të vetat, gjithmonë.
+  //
+  // Eksperti bën përjashtim dhe duhet lënë te «të gjitha»: te terminet e tij
+  // `user_id` është ai që ia caktoi, jo vetë ai. Filtri sipas `user_id` do t'i
+  // dilte bosh. Për të e bën ndarjen vetë baza (`supabase/eksperti.sql`).
+  const showAll = user.isManager ? view !== "mine" : user.isExpert;
   const sot = todayInBeograd();
 
   // Radha: i fundit i regjistruar rri lart. Kështu termini që sapo u shtua
@@ -118,7 +124,10 @@ export default async function Page({ searchParams }: PageProps<"/">) {
     faqe?: number;
   } = {}) => {
     const p = new URLSearchParams();
-    const vetemTeMijat = o.view ? o.view === "mine" : !showAll;
+    // `view` ka kuptim vetëm aty ku ka çelës: te menaxheri dhe admini. Për
+    // të tjerët do të ishte një parametër që s'ndryshon asgjë.
+    const vetemTeMijat =
+      user.isManager && (o.view ? o.view === "mine" : !showAll);
     if (vetemTeMijat) p.set("view", "mine");
     if (filtri) p.set("status", filtri);
     if (kerkimi) p.set("kerko", kerkimi);
@@ -218,7 +227,6 @@ export default async function Page({ searchParams }: PageProps<"/">) {
       </header>
 
       {user.isManager && (
-        <>
           <nav className="mb-4 flex gap-2 text-sm">
             <Link
               href={adresaEListes({ view: "all" })}
@@ -241,7 +249,11 @@ export default async function Page({ searchParams }: PageProps<"/">) {
               {t.listMine}
             </Link>
           </nav>
+      )}
 
+      {/* Termin të ri cakton kushdo veç ekspertit. Përdoruesi i thjeshtë e
+          sheh pastaj vetëm atë që caktoi vetë. */}
+      {user.canCreate && (
           <details className="mb-6 rounded-xl border border-slate-200 bg-white">
             <summary className="cursor-pointer px-5 py-4 text-sm font-medium text-slate-700 select-none">
               {t.listNewAppointment}
@@ -253,20 +265,19 @@ export default async function Page({ searchParams }: PageProps<"/">) {
               />
             </div>
           </details>
-        </>
       )}
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <StatusFilter
           vlera={filtri}
-          vetemTeMijat={!showAll}
+          vetemTeMijat={user.isManager && !showAll}
           kerkimi={kerkimi}
           lang={lang}
         />
         <SearchBox
           vlera={kerkimi}
           status={filtri}
-          vetemTeMijat={!showAll}
+          vetemTeMijat={user.isManager && !showAll}
           t={t}
         />
       </div>
