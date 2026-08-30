@@ -326,7 +326,8 @@ app/
   admin/user-form.tsx       Paneli "Hap llogari të re"
   admin/delete-user.tsx     Heqja e hyrjes së një llogarie
   admin/aktiviteti/page.tsx Koha e secilit përdorues, ditë pas dite
-  dashboard/page.tsx        Dashboard-i: numrat dhe grafikët
+  dashboard/page.tsx        Dashboard-i: puna e një muaji, numrat dhe grafikët
+  dashboard/month-filter.tsx  Zgjedhja e muajit
   profili/page.tsx          Profili im: koha, puna dhe lejet
   stats.tsx                 Kutitë e numrave dhe grafikët (HTML i thjeshtë)
   status-filter.tsx         Menyja e filtrit sipas statusit
@@ -503,7 +504,44 @@ shumëvjeçare* dhe *trajtim* — mund të shoqërojnë çdo rezultat.
 **Kontratat nuk fryhen dot:** baza refuzon një numër më të madh se numri i
 personave të terminit.
 
-## Pjesa 8 — Lista me shumë termine
+## Pjesa 8 — Dashboard-i: një muaj, dhe puna e secilit
+
+Dashboard-i tregon **një muaj njëherësh**, jo gjithçka që ka ndodhur ndonjëherë.
+Muaji zgjidhet lart dhe rri te adresa (`/dashboard?muaji=2026-07`), prandaj
+lidhja mund të dërgohet dhe kthimi mbrapa i shfletuesit punon si pret njeriu.
+Shkohet deri 24 muaj prapa.
+
+**Në cilin muaj bie një termin** e vendos **data e vetë terminit**, jo ajo kur
+u regjistrua. Një termin i caktuar për 3 tetor numërohet te tetori, edhe nëse u
+fut te sistemi në shtator. Kjo i përgjigjet pyetjes «sa punë kam në tetor».
+
+**Kush sheh çfarë:**
+
+| Roli | Dashboard-i tregon |
+| --- | --- |
+| **Admin** | të gjitha terminet e qendrës — me çelës për t'i ngushtuar te të vetat |
+| **Menaxher** | vetëm terminet që ka caktuar vetë |
+| **Përdorues** | vetëm terminet që ka caktuar vetë |
+| **Ekspert** | vetëm terminet që i janë caktuar |
+
+Eksperti është rasti i veçantë. Te terminet e tij, kolona që tregon *kush e
+caktoi* mban menaxherin, jo atë. Po ta filtronim sipas asaj kolone, dashboard-i
+i tij do të dilte bosh. Për të, kufirin e ka vënë tashmë baza — sheh vetëm ato
+që i janë dhënë — prandaj s'i shtohet asnjë filtër tjetër.
+
+**Ndarja e muajit bëhet me orën e Beogradit.** Kërkesa merr një ditë më shumë
+nga të dyja anët, dhe ndarja e saktë bëhet pastaj. Ndryshe do të duhej
+llogaritur me dorë sa është dallimi i Beogradit nga ora botërore atë ditë — dhe
+ai ndryshon me orën e verës. Kështu përgjigjen e jep kalendari, jo ne.
+
+**Emrat e muajve formatohen te serveri**, jo te shfletuesi. Kjo doli gjatë
+provës: Chrome-i nuk i ka të njëjtat emra shqip si Node-i, prandaj menyja
+shkruante «August 2026» ndërsa gjithë faqja ishte shqip — dhe React-i jepte
+gabim sepse serveri e shfletuesi vizatonin tekste të ndryshme.
+
+---
+
+## Pjesa 9 — Lista me shumë termine
 
 Deri para pak, lista i merrte **të gjitha** terminet sa herë hapej. Me pak
 dhjetëra kjo s'duket. Me 2000 prishet, dhe u mat me 2000 të vërtetë:
@@ -563,7 +601,7 @@ brenda një transaksioni që u përmbys.
 
 ---
 
-## Pjesa 9 — Dy gjuhët
+## Pjesa 10 — Dy gjuhët
 
 Çdo tekst që sheh njeriu rri te `lib/i18n.ts`, jo nëpër faqe. Aty janë dy
 fjalorë: `de` (gjermanisht) dhe `sq` (shqip).
@@ -594,7 +632,7 @@ vetë me `DICTS[lang]`.
 
 ---
 
-## Pjesa 10 — Kur diçka nuk shkon
+## Pjesa 11 — Kur diçka nuk shkon
 
 | Problemi | Zgjidhja |
 | --- | --- |

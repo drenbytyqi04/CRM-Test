@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BarRow, Card, DayBars, StatTile } from "@/app/stats";
+import MonthFilter from "./month-filter";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n-server";
@@ -9,32 +10,74 @@ import {
   categoryStyle,
   appointmentPath,
   beogradDay,
-  ditetEFundit,
+  beogradMonth,
+  currentMonth,
+  eshteMuaj,
   formatBeograd,
   formatDayShort,
+  formatMonth,
+  muajtEFundit,
   todayInBeograd,
   type Appointment,
 } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-/** Sa ditë prapa shfaqet grafiku ditor. */
-const DITE = 14;
+/** Sa muaj prapa mund të shohësh. */
+const MUAJ = 24;
 
-export default async function DashboardPage() {
-  const { t, locale } = await getI18n();
+export default async function DashboardPage({
+  searchParams,
+}: PageProps<"/dashboard">) {
+  const { t, lang, locale } = await getI18n();
   const user = await requireUser();
   const supabase = await createClient();
 
-  const dite = ditetEFundit(DITE);
+  const { muaji: muajiParam, view } = await searchParams;
+  const muajt = muajtEFundit(MUAJ);
+  // Muaji vjen nga adresa dhe mund të jetë çfarëdo. Nëse s'është muaj i
+  // vlefshëm, kthehemi te ai i tanishmi në vend që të nxjerrim faqe bosh.
+  const muaji =
+    typeof muajiParam === "string" && eshteMuaj(muajiParam)
+      ? muajiParam
+      : currentMonth();
   const sot = todayInBeograd();
 
+  /**
+   * Kush sheh çfarë.
+   *
+   * Admini i sheh të gjitha; mund t'i ngushtojë te të vetat me çelësin.
+   * Menaxheri dhe useri shohin vetëm terminet që kanë caktuar vetë.
+   *
+   * Eksperti është rasti i veçantë: te terminet e tij `user_id` është ai që
+   * i caktoi, jo ai vetë. Po ta filtronim sipas `user_id`, do të dilte bosh.
+   * Për të, kufirin e ka vënë tashmë baza — sheh vetëm ato që i janë dhënë —
+   * prandaj këtu nuk shtohet asgjë.
+   */
+  const vetemTeMijat = user.isAdmin ? view === "mine" : !user.isExpert;
+
+  /**
+   * Kufijtë e muajit, si çaste botërore.
+   *
+   * Merret një ditë më shumë nga të dyja anët, dhe ndarja e saktë bëhet më
+   * poshtë me `beogradMonth`. Ndryshe do të duhej llogaritur me dorë sa është
+   * dallimi i Beogradit nga ora botërore atë ditë — dhe ai ndryshon me orën
+   * e verës. Kështu përgjigjen e jep kalendari, jo ne.
+   */
+  const [vitiM, muajiM] = muaji.split("-").map(Number);
+  const ngaISO = new Date(Date.UTC(vitiM, muajiM - 1, 1, -36)).toISOString();
+  const deriISO = new Date(Date.UTC(vitiM, muajiM, 1, 36)).toISOString();
+
+  let kerkesa = supabase
+    .from("appointments")
+    .select("*")
+    .gte("scheduled_at", ngaISO)
+    .lt("scheduled_at", deriISO)
+    .order("scheduled_at", { ascending: true });
+  if (vetemTeMijat) kerkesa = kerkesa.eq("user_id", user.id);
+
   const [terminetResult, notesResult, profilesResult] = await Promise.all([
-    supabase
-      .from("appointments")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .returns<Appointment[]>(),
+    kerkesa.returns<Appointment[]>(),
     supabase.from("notes").select("id, user_id").returns<
       { id: string; user_id: string }[]
     >(),
@@ -44,7 +87,10 @@ export default async function DashboardPage() {
       .returns<{ id: string; email: string | null }[]>(),
   ]);
 
-  const terminet = terminetResult.data ?? [];
+  // Ndarja e saktë e muajit bëhet këtu, me orën e Beogradit.
+  const terminet = (terminetResult.data ?? []).filter(
+    (a) => beogradMonth(a.scheduled_at) === muaji
+  );
   const notes = notesResult.data ?? [];
   const emailet = new Map(
     (profilesResult.data ?? []).map((p) => [p.id, p.email ?? "—"])
@@ -63,10 +109,8 @@ export default async function DashboardPage() {
   const normaMbylljes =
     teMbyllura > 0 ? Math.round((uMbajten / teMbyllura) * 100) : 0;
 
-  const tani = new Date().toISOString();
-  const teArdhshme = terminet.filter(
-    (t) => t.scheduled_at > tani && t.category === "talking"
-  );
+  const teDeshtuara = terminet.filter((t) => t.category === "failed").length;
+  const neBisedim = terminet.filter((t) => t.category === "talking").length;
   const sotTermine = terminet.filter(
     (t) => beogradDay(t.scheduled_at) === sot
   ).length;
@@ -89,11 +133,17 @@ export default async function DashboardPage() {
     .sort((a, b) => b.sa - a.sa);
   const maksArsye = Math.max(1, ...sipasArsyes.map((s) => s.sa));
 
-  // ---------- Të regjistruar ditë pas dite ----------
-  const perDite = dite.map((dita) => ({
+  // ---------- Ditët e muajit ----------
+  // Grafiku tregon ditët e vetë muajit të zgjedhur, jo 14 ditët e fundit:
+  // ndryshe do të kishte dy periudha të ndryshme në të njëjtën faqe.
+  const ditetEMuajit = Array.from(
+    { length: new Date(Date.UTC(vitiM, muajiM, 0)).getUTCDate() },
+    (_, i) => `${muaji}-${String(i + 1).padStart(2, "0")}`
+  );
+  const perDite = ditetEMuajit.map((dita) => ({
     dita,
     etiketa: formatDayShort(dita),
-    vlera: terminet.filter((t) => beogradDay(t.created_at) === dita).length,
+    vlera: terminet.filter((a) => beogradDay(a.scheduled_at) === dita).length,
   }));
 
   // ---------- Kush sa ka caktuar (vetëm për adminin) ----------
@@ -116,8 +166,51 @@ export default async function DashboardPage() {
           {t.dashTitle}
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          {t.dashSubtitle}
+          {user.isExpert
+            ? t.dashScopeAssigned
+            : vetemTeMijat
+              ? t.dashScopeMine
+              : t.dashScopeAll}
         </p>
+
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <MonthFilter
+            vlera={muaji}
+            muajt={muajt.map((m) => ({
+              vlera: m,
+              etiketa: formatMonth(m, locale),
+            }))}
+            vetemTeMijat={vetemTeMijat}
+            lang={lang}
+          />
+
+          {/* Vetëm admini i sheh të gjitha, prandaj vetëm ai ka ç'të
+              ngushtojë. Për të tjerët kufiri s'është zgjedhje. */}
+          {user.isAdmin && (
+            <nav className="flex gap-2 text-sm">
+              <Link
+                href={`/dashboard?muaji=${muaji}`}
+                className={`rounded-lg px-3 py-1.5 transition ${
+                  vetemTeMijat
+                    ? "border border-slate-300 text-slate-600 hover:bg-white"
+                    : "bg-slate-900 text-white"
+                }`}
+              >
+                {t.dashAll}
+              </Link>
+              <Link
+                href={`/dashboard?muaji=${muaji}&view=mine`}
+                className={`rounded-lg px-3 py-1.5 transition ${
+                  vetemTeMijat
+                    ? "bg-slate-900 text-white"
+                    : "border border-slate-300 text-slate-600 hover:bg-white"
+                }`}
+              >
+                {t.dashMine}
+              </Link>
+            </nav>
+          )}
+        </div>
       </header>
 
       {terminetResult.error && (
@@ -148,9 +241,9 @@ export default async function DashboardPage() {
           nen={t.dashCloseRate(normaMbylljes)}
         />
         <StatTile
-          etiketa={t.dashUpcoming}
-          vlera={teArdhshme.length}
-          nen={sotTermine > 0 ? t.dashTodayN(sotTermine) : t.dashNoneToday}
+          etiketa={t.catFailed}
+          vlera={teDeshtuara}
+          nen={sotTermine > 0 ? t.dashTodayN(sotTermine) : t.dashTalkingN(neBisedim)}
         />
       </div>
 
@@ -213,7 +306,7 @@ export default async function DashboardPage() {
         {/* ---------- Ditët e fundit ---------- */}
         <Card
           titull={t.dashByDay}
-          nen={t.dashByDayHint(DITE)}
+          nen={t.dashByDayHint(formatMonth(muaji, locale))}
         >
           <DayBars dite={perDite} />
         </Card>
@@ -221,15 +314,12 @@ export default async function DashboardPage() {
 
       {/* ---------- Terminet e radhës ---------- */}
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card titull={t.dashNext} nen={t.dashNextHint}>
-          {teArdhshme.length === 0 ? (
-            <p className="text-sm text-slate-500">
-              {t.dashNoUpcoming}
-            </p>
+        <Card titull={t.dashInMonth} nen={t.dashInMonthHint}>
+          {terminet.length === 0 ? (
+            <p className="text-sm text-slate-500">{t.dashNoneInMonth}</p>
           ) : (
             <ul className="divide-y divide-slate-100">
-              {[...teArdhshme]
-                .sort((a, b) => a.scheduled_at.localeCompare(b.scheduled_at))
+              {terminet
                 .slice(0, 5)
                 .map((termini) => (
                   <li key={termini.id}>
@@ -260,8 +350,9 @@ export default async function DashboardPage() {
           )}
         </Card>
 
-        {/* ---------- Agjentët: vetëm admini ---------- */}
-        {user.isAdmin ? (
+        {/* ---------- Agjentët: vetëm admini, dhe vetëm kur sheh të
+             gjitha. Te «Të mijat» do të ishte një rresht i vetëm. ---------- */}
+        {user.isAdmin && !vetemTeMijat ? (
           <Card
             titull={t.dashByAgent}
             nen={t.dashByAgentHint}

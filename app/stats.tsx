@@ -19,7 +19,10 @@ export function StatTile({
   nen?: string;
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
+    <div
+      className="rounded-xl border border-slate-200 bg-white p-4"
+      data-stat={etiketa}
+    >
       <p className="text-sm text-slate-500">{etiketa}</p>
       <p className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">
         {vlera}

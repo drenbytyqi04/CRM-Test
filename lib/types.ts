@@ -391,6 +391,57 @@ export function ditetEFundit(sa: number): string[] {
   return lista;
 }
 
+/**
+ * Muaji i Beogradit të cilit i përket ky çast, p.sh. "2026-08".
+ *
+ * Si `beogradDay`, por deri te muaji. Një termin i caktuar më 1 shtator në
+ * orën 00:30 të Beogradit i përket shtatorit — jo gushtit, siç do të dilte
+ * po ta llogaritnim me orën botërore.
+ */
+export function beogradMonth(iso: string): string {
+  return beogradDay(iso).slice(0, 7);
+}
+
+/** Muaji i tanishëm sipas orës së Beogradit, p.sh. "2026-08". */
+export function currentMonth(): string {
+  return todayInBeograd().slice(0, 7);
+}
+
+/**
+ * Lista e `sa` muajve të fundit, nga më i riu te më i vjetri.
+ *
+ * Filtri i dashboard-it e nis te muaji i tanishëm dhe zbret prapa. Radha
+ * është me qëllim e kundërt me atë të ditëve: te një meny, muaji që kërkohet
+ * më shpesh duhet të jetë i pari, jo i fundit.
+ */
+export function muajtEFundit(sa: number): string[] {
+  const [v, m] = currentMonth().split("-").map(Number);
+  const lista: string[] = [];
+  for (let i = 0; i < sa; i++) {
+    // `m - 1 - i` mund të dalë negativ; `Date` e kthen vetë vitin prapa.
+    const d = new Date(Date.UTC(v, m - 1 - i, 1));
+    lista.push(
+      `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`
+    );
+  }
+  return lista;
+}
+
+/** A duket "2026-08" si muaj i vlefshëm? */
+export function eshteMuaj(v: string): boolean {
+  return /^\d{4}-(0[1-9]|1[0-2])$/.test(v);
+}
+
+/** Emri i muajit sipas gjuhës, p.sh. "gusht 2026" / "August 2026". */
+export function formatMonth(muaji: string, locale = "de-DE"): string {
+  const [v, m] = muaji.split("-").map(Number);
+  return new Intl.DateTimeFormat(locale, {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(v, m - 1, 1)));
+}
+
 /** A është parë ky çast brenda `minutes` minutave të fundit? */
 export function isRecent(iso: string | undefined | null, minutes = 5): boolean {
   if (!iso) return false;
