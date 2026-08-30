@@ -804,6 +804,13 @@ Nëse `supabase/numrat.sql` nuk është ekzekutuar ende, faqja «Përdoruesit»
 shfaq një njoftim të verdhë. Pa të, mungesa e funksionit do të dukej si
 «të gjithë kanë zero» — pikërisht numri i gabuar që u desh të hiqej.
 
+> **E ZBATUAR ✅** — `supabase/numrat.sql` u ekzekutua më 30 gusht 2026 mbi
+> bazën e vërtetë. U verifikua aty se funksioni i respekton rregullat e
+> leximit: admini dhe menaxheri shohin numrat e të gjithëve (18 termine, 22
+> shënime gjithsej), eksperti vetëm ata që i takojnë terminet e caktuara, dhe
+> përdoruesi i thjeshtë vetëm të vetët. Këshilluesi i Supabase-it nuk shtoi
+> asnjë paralajmërim të ri.
+
 ### Detaje të vogla që kushtojnë kur mungojnë
 
 - **CSV-ja nis me shenjën UTF-8** (BOM). Pa këto tre bajte, Excel-i te
