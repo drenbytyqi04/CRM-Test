@@ -52,16 +52,17 @@ function lejet(role: string, t: Dict): { po: string[]; jo: string[] } {
       jo: [t.permNoReadAll, t.permNoCreateAppointments, t.permNoSeeUsers],
     };
   }
-  // Përdoruesi i thjeshtë: agjent i vogël. Cakton terminet e veta, i
-  // ndryshon, shkruan feedback mbi to — dhe sheh vetëm ato.
+  // Përdoruesi i thjeshtë: cakton terminet e veta dhe shkruan feedback mbi
+  // to. Nuk i ndryshon — as ato që ka caktuar vetë. Rezultatin e mbyll
+  // menaxheri.
   return {
-    po: [
-      t.permReadOwn,
-      t.permCreateAppointments,
-      t.permEditOwn,
-      t.permWriteOwnNotes,
+    po: [t.permReadOwn, t.permCreateAppointments, t.permWriteOwnNotes],
+    jo: [
+      t.permNoReadOthers,
+      t.permNoEditOwn,
+      t.permNoDeleteAppointments,
+      t.permNoSeeUsers,
     ],
-    jo: [t.permNoReadOthers, t.permNoDeleteAppointments, t.permNoSeeUsers],
   };
 }
 

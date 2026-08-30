@@ -111,11 +111,11 @@ export default async function AppointmentPage({
   const agjenti =
     termini.user_id === user.id ? null : (emailet.get(termini.user_id) ?? null);
 
-  // Kush e ndryshon këtë termin: menaxheri e admini çdo termin, kushdo
-  // tjetër vetëm atë që ka caktuar vetë. Kufiri i vërtetë rri te baza
-  // (`supabase/useri.sql`) dhe te vetë veprimi; kjo vendos ç'të vizatohet.
-  const mundTaNdryshoje =
-    user.isManager || (!user.isExpert && termini.user_id === user.id);
+  // Terminin e ndryshon VETËM menaxheri dhe admini — edhe atë që e ka caktuar
+  // dikush tjetër, edhe atë që e ka caktuar vetë ai. Përdoruesi i thjeshtë e
+  // lexon dhe shkruan feedback. Kufiri i vërtetë rri te baza
+  // (`supabase/ndryshimi-menaxherit.sql`); kjo vendos vetëm ç'të vizatohet.
+  const mundTaNdryshoje = user.isManager;
 
   // Ekspertët: ata që e shohin tashmë, dhe llogaritë që mund të shtohen.
   const meAkses = ekspertetResult.data ?? [];

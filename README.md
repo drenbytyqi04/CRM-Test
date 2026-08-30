@@ -256,8 +256,7 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
 | Lexon terminet **që ia jep admini** | ✅ | — | ✅ | ✅ |
 | Shkruan shënime | ✅\* | ✅\*\* | ✅ | ✅ |
 | Cakton termine | ❌ | ✅ | ✅ | ✅ |
-| Ndryshon **terminet e veta** | ❌ | ✅ | ✅ | ✅ |
-| Ndryshon terminet **e të tjerëve** | ❌ | ❌ | ✅ | ✅ |
+| Ndryshon termine — edhe të vetat | ❌ | ❌ | ✅ | ✅ |
 | Fshin termine | ❌ | ❌ | ✅ | ✅ |
 | Jep akses ekspertëve | ❌ | ❌ | ❌ | ✅ |
 | Hap llogari dhe heq hyrjen | ❌ | ❌ | ❌ | ✅ |
@@ -266,16 +265,16 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
 \* Eksperti shkruan shënime vetëm te terminet që i janë caktuar.
 \*\* Përdoruesi i thjeshtë vetëm te terminet e veta.
 
-**Përdoruesi i thjeshtë** është agjent i vogël: cakton terminet e veta, i
-ndryshon derisa t'i mbyllë, shkruan feedback mbi to — dhe sheh vetëm ato.
-Terminet e të tjerëve për të nuk ekzistojnë: nuk dalin te lista, nuk hyjnë te
-numrat e përmbledhjes as te dashboard-i, dhe adresa e drejtpërdrejtë kthen
-404 — jo «nuk ke leje», që as vetë numri të mos tregojë nëse ekziston.
+**Përdoruesi i thjeshtë** cakton terminet e veta dhe shkruan feedback mbi to
+— dhe sheh vetëm ato. Terminet e të tjerëve për të nuk ekzistojnë: nuk dalin
+te lista, nuk hyjnë te numrat e përmbledhjes as te dashboard-i, dhe adresa e
+drejtpërdrejtë kthen 404 — jo «nuk ke leje», që as vetë numri të mos tregojë
+nëse ekziston.
 
-Ndryshimi i terminit të vet nuk është zbukurim: pa të, useri do ta caktonte
-terminin dhe pastaj nuk do të shkruante dot kurrë se si përfundoi — as
-rezultatin, as kontratën. Fshirja, përkundrazi, i mbetet menaxherit: ajo merr
-me vete edhe shënimet e terminit dhe nuk kthehet mbrapsht.
+**Ndryshimin e bën vetëm menaxheri ose admini** — edhe te terminet që i ka
+caktuar vetë useri. Pra useri nuk e mbyll dot terminin e vet: rezultatin
+përfundimtar e shënon menaxheri. Fshirja po ashtu i mbetet menaxherit: ajo
+merr me vete edhe shënimet e terminit dhe nuk kthehet mbrapsht.
 
 > **KUJDES gjatë kalimit.** Deri para kësaj, përdoruesi i thjeshtë i lexonte
 > TË GJITHA terminet dhe nuk caktonte asnjë. Pas `supabase/useri.sql` ai sheh
@@ -400,6 +399,7 @@ supabase/
   eksperti.sql              Roli i katërt dhe kufiri i leximit
   useri.sql                 Useri cakton terminet e veta, dhe sheh vetëm ato
   numrat.sql                Numërimi për person te baza, jo duke tërhequr tabelën
+  ndryshimi-menaxherit.sql  Terminin e ndryshon vetëm menaxheri, as useri të vetin
   rls-shpejtesi.sql         Rregullat: një llogaritje për kërkesë, jo për rresht
   mbetur.sql                Të dyja migrimet e fundit, në një skedë
   activity.sql              Përcjellja e kohës
@@ -599,20 +599,26 @@ katër rregulla:
 | --- | --- | --- |
 | Cakton termin | vetëm menaxheri | kushdo veç ekspertit |
 | Lexon terminet | të gjithë i shihnin të gjitha | menaxheri të gjitha, useri të vetat, eksperti të caktuarat |
-| Ndryshon terminin | vetëm menaxheri | menaxheri çdo termin, useri të vetin |
+| Ndryshon terminin | vetëm menaxheri | **vetëm menaxheri** (pa ndryshim) |
 | Lexon shënimet | të gjithë i lexonin të gjitha | ashtu si terminet |
 
 Fshirja **nuk** ndryshoi: mbetet te menaxheri dhe admini. Ajo merr me vete
-edhe shënimet e terminit (`on delete cascade`) dhe nuk kthehet mbrapsht — nuk
-u kërkua, prandaj nuk u dha.
+edhe shënimet e terminit (`on delete cascade`) dhe nuk kthehet mbrapsht.
 
-Ndryshimi i terminit të vet nuk është shtesë kozmetike. Pa të, useri do ta
-caktonte terminin dhe pastaj nuk do të shkruante dot kurrë se si përfundoi —
-as rezultatin, as kontratën. Një termin që nuk mbyllet dot s'i shërben askujt.
-`with check` te rregulli i ndryshimit është i njëjtë me `using`, prandaj ai
-nuk ia dorëzon dot terminin dikujt tjetër duke i ndërruar `user_id`.
+### Ndryshimin e bën vetëm menaxheri
 
-**Përse `not is_expert()` te dega e userit.** Te terminet e ekspertit,
+Në fillim useri e ndryshonte terminin që kishte caktuar vetë, që të mund ta
+mbyllte. Pastaj kjo u hoq me kërkesë (`supabase/ndryshimi-menaxherit.sql`):
+useri e cakton terminin dhe shkruan feedback mbi të, por nuk e prek më pas.
+
+Pasoja duhet ditur: **useri nuk e mbyll dot terminin e vet.** Ai mbetet «në
+bisedim» derisa menaxheri t'i shënojë rezultatin. Numrat e raporteve —
+«e suksesshme», kontratat — dalin nga rezultati, jo nga feedback-u, prandaj
+një termin i mbaruar mirë por i pashënuar nga menaxheri nuk numërohet askund.
+Kjo është zgjedhje pune, jo teknike: rezultatin e vendos ai që mban përgjegjësi
+për të.
+
+**Përse `not is_expert()` te dega e leximit.** Te terminet e ekspertit,
 `user_id` është ai që ia caktoi, jo vetë eksperti. Pa atë kusht, një llogari
 që dikur ka caktuar termine dhe më pas u bë ekspert, do t'i shihte ato përjetë
 — jashtë listës së aksesit. E njëjta gjë e detyron faqen të mos e filtrojë
@@ -637,10 +643,11 @@ ekspert     5      6    |   JO           JO         |    JO      JO   |   JO (po
 user        0      0    |   po           JO         |    JO      JO   |   JO
 ```
 
-Të dy userat e sotëm kanë 0 termine, prandaj lista e tyre do të dalë bosh
-derisa të caktojnë vetë. Një provë e plotë, e kthyer mbrapsht, tregoi se
-useri e cakton terminin, e sheh menjëherë (0 → 1), e mbyll me kontratë, i
-shkruan feedback — dhe nuk ia dorëzon dot dikujt tjetër.
+> Ajo matje u bë kur useri e ndryshonte ende terminin e vet; edhe atëherë
+> kolona «ndryshon» i dilte JO, sepse ajo mati terminin e dikujt tjetër. Pas
+> `supabase/ndryshimi-menaxherit.sql` i del JO edhe te termini i vet — matur
+> sërish mbi bazën e vërtetë më 30 gusht 2026, bashkë me kontrollin se
+> feedback-un te termini i vet ende e shkruan.
 
 ---
 

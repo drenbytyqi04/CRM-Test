@@ -333,9 +333,13 @@ export async function createAppointment(
 /**
  * Ndryshon një termin: të dhënat teknike, rezultatin dhe detajet.
  *
- * Menaxheri dhe admini ndryshojnë çdo termin. Përdoruesi i thjeshtë vetëm
- * atë që ka caktuar vetë — pa këtë do ta caktonte terminin dhe pastaj nuk
- * do të shkruante dot kurrë se si përfundoi.
+ * VETËM menaxheri dhe admini. Përdoruesi i thjeshtë e cakton terminin dhe
+ * shkruan feedback mbi të, por nuk e prek më pas — as atë që ka caktuar vetë.
+ *
+ * Kjo do të thotë se terminin e mbyll menaxheri: rezultati përfundimtar —
+ * u mbajt, doli kontratë, u anulua — nuk shkruhet dot nga ai që e caktoi.
+ * Kështu u kërkua. Kufiri i vërtetë rri te baza
+ * (`supabase/ndryshimi-menaxherit.sql`); kjo është shtresa e dytë.
  */
 export async function updateAppointment(
   _prevState: FormState,
@@ -361,9 +365,7 @@ export async function updateAppointment(
     .maybeSingle<{ id: string; user_id: string } & VleraTeVjetra>();
 
   if (!termini) return { error: t.errAppointmentNotFound };
-  if (!user.isManager && termini.user_id !== user.id) {
-    return { error: t.errAppointmentNotYours };
-  }
+  if (!user.isManager) return { error: t.errEditManagerOnly };
 
   const gabim = validateAppointment(
     scheduled,
