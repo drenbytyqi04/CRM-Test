@@ -83,7 +83,7 @@ export default function Pagination({
           <span
             key={n}
             aria-current="page"
-            className={`${kuti} bg-slate-900 font-medium text-white tabular-nums`}
+            className={`${kuti} bg-brand font-medium text-white tabular-nums`}
           >
             {n}
           </span>

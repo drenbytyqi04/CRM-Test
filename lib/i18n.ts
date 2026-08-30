@@ -43,7 +43,7 @@ function sasi(n: number, njejes: string, shumes: string): string {
 
 const de = {
   // ---------- E përbashkët ----------
-  appName: "CRM",
+  appName: "Assurance ACC",
   appTagline: "Termine",
   save: "Speichern",
   cancel: "Abbrechen",
@@ -91,7 +91,8 @@ const de = {
   bkTblActivity: "Arbeitszeiten",
 
   // ---------- Hyrja ----------
-  loginTitle: "Anmelden",
+  loginHeading: "Anmelden",
+  loginTitle: "Melden Sie sich mit Ihrem Konto an.",
   loginEmail: "E-Mail",
   loginPassword: "Passwort",
   loginButton: "Anmelden",
@@ -518,7 +519,7 @@ export type Dict = typeof de;
 
 const sq: Dict = {
   // ---------- E përbashkët ----------
-  appName: "CRM",
+  appName: "Assurance ACC",
   appTagline: "Terminet",
   save: "Ruaj",
   cancel: "Anulo",
@@ -564,6 +565,7 @@ const sq: Dict = {
   bkTblActivity: "Orët e punës",
   signOut: "Dil",
 
+  loginHeading: "Hyrje",
   loginTitle: "Hyr në llogarinë tënde.",
   loginEmail: "Emaili",
   loginPassword: "Fjalëkalimi",

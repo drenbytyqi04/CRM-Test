@@ -57,14 +57,14 @@ export default function NoteRow({
               rows={3}
               required
               defaultValue={note.body}
-              className="w-full resize-y rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none focus:border-slate-900"
+              className="w-full resize-y rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none focus:border-brand"
             />
             <div className="mt-2 flex flex-wrap items-center gap-3">
               <button
                 type="submit"
                 data-testid="note-save"
                 disabled={pending}
-                className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-slate-700 disabled:opacity-50"
+                className="rounded-lg bg-brand px-3 py-1.5 text-sm font-medium text-white transition hover:bg-brand-dark disabled:opacity-50"
               >
                 {pending ? t.saving : t.save}
               </button>

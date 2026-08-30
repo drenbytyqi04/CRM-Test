@@ -45,7 +45,7 @@ export default function MonthFilter({
           if (vetemTeMijat) p.set("view", "mine");
           router.push(`/dashboard?${p.toString()}`);
         }}
-        className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-slate-900 outline-none focus:border-slate-900"
+        className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-slate-900 outline-none focus:border-brand"
       >
         {muajt.map((m) => (
           <option key={m.vlera} value={m.vlera}>

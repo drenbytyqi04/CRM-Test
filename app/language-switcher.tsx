@@ -31,7 +31,7 @@ export default function LanguageSwitcher({ aktive }: { aktive: Lang }) {
           }
           className={`rounded px-2 py-1 text-xs transition ${
             g.code === aktive
-              ? "bg-slate-900 font-medium text-white"
+              ? "bg-brand font-medium text-white"
               : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
           }`}
         >

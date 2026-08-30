@@ -87,7 +87,7 @@ export function BarRow({
       >
         {vlera > 0 && (
           <div
-            className="h-2.5 rounded-full bg-slate-900"
+            className="h-2.5 rounded-full bg-brand"
             style={{ width: `${Math.max(gjeresi, 2)}%` }}
           />
         )}
@@ -150,7 +150,7 @@ export function DayBars({
               )}
               <div
                 className={`absolute bottom-0 w-full rounded-t ${
-                  d.vlera > 0 ? "bg-slate-900" : "bg-slate-200"
+                  d.vlera > 0 ? "bg-brand" : "bg-slate-200"
                 }`}
                 style={{ height: lart }}
               />

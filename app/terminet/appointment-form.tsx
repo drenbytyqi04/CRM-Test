@@ -15,7 +15,7 @@ import { TabPanel } from "./tabs";
 import { DICTS, type Lang } from "@/lib/i18n";
 
 const input =
-  "w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none placeholder:text-slate-400 focus:border-slate-900";
+  "w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none placeholder:text-slate-400 focus:border-brand";
 const label = "mb-1 block text-sm font-medium text-slate-700";
 
 /**
@@ -487,7 +487,7 @@ export default function AppointmentForm({
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:opacity-50"
+          className="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-dark disabled:opacity-50"
         >
           {pending ? t.saving : duke ? t.saveChanges : t.createAppointment}
         </button>

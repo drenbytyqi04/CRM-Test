@@ -196,6 +196,10 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
 - **Lista:** një tabelë e ngjeshur — *Nr · Emri · Data e terminit · Sigurimi ·
   Pers. · Kontr. · Shën. · Statusi* — ku çdo termin zë një rresht të vetëm.
   Në ekran të vogël kolonat dytësore fshihen vetvetiu.
+- **Logoja dhe ngjyra:** shenja e Assurance ACC rri te menyja anash, dhe
+  logoja e plotë te faqja e hyrjes. Bluja e markës (`#0069C8`) është ngjyra e
+  butonave dhe e lidhjes së zgjedhur. Skedat: `public/shenja.png`,
+  `public/logo.png`, `app/icon.png` (ikona e skedës së shfletuesit).
 - **Gjuha:** CRM-ja flet **gjermanisht** dhe **shqip**. Gjermanishtja është e
   parazgjedhur; çelësi *Deutsch / Shqip* rri poshtë te menyja anash dhe e
   ndryshon gjithë faqen menjëherë. Zgjedhja ruhet te shfletuesi dhe mbetet
@@ -337,7 +341,8 @@ app/
   activity-tracker.tsx      Sinjali "jam aktiv" çdo 2 minuta
   setup-notice.tsx          Udhëzimet nëse .env.local mungon
   layout.tsx                Korniza e përbashkët e faqeve
-  globals.css               Stilet
+  globals.css               Stilet dhe ngjyrat e markës
+  icon.png                  Ikona e skedës te shfletuesi
   login/
     page.tsx                Faqja e hyrjes
     login-form.tsx          Formulari i hyrjes (vetëm "Hyr")
@@ -376,6 +381,9 @@ app/
   ekspert/terminet/[nr]/page.tsx   Termini siç e sheh eksperti
   menager/terminet/[nr]/page.tsx   Termini siç e sheh menaxheri
   user/terminet/[nr]/page.tsx      Termini siç e sheh përdoruesi
+public/
+  logo.png                  Logoja e plotë — vetëm te faqja e hyrjes
+  shenja.png                Vetëm shenja — te menyja anash
 lib/
   supabase/server.ts        Lidhja me bazën për kodin në server
   supabase/proxy.ts         Mban sesionin e freskët në çdo kërkesë

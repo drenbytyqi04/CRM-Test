@@ -96,7 +96,7 @@ export default function Experts({
               id="expertId"
               name="expertId"
               defaultValue=""
-              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-900"
+              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand"
             >
               <option value="" disabled>
                 {t.expertsPick}
@@ -110,7 +110,7 @@ export default function Experts({
             <button
               type="submit"
               disabled={dukeJapur}
-              className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:opacity-50"
+              className="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-dark disabled:opacity-50"
             >
               {dukeJapur ? t.expertsAdding : t.expertsAdd}
             </button>

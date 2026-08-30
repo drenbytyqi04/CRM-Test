@@ -13,8 +13,8 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "CRM",
-  description: "Termine",
+  title: "Assurance ACC",
+  description: "Termine — Assurance ACC",
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {

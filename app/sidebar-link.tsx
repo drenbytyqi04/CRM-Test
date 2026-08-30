@@ -28,7 +28,7 @@ export default function SidebarLink({
       aria-current={aktiv ? "page" : undefined}
       className={`block rounded-lg px-3 py-2 text-sm transition ${
         aktiv
-          ? "bg-slate-900 font-medium text-white"
+          ? "bg-brand font-medium text-white"
           : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
       }`}
     >

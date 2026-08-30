@@ -110,6 +110,15 @@ export default async function DashboardPage({
     (profilesResult.data ?? []).map((p) => [p.id, p.email ?? "—"])
   );
 
+  /**
+   * Sa përqind e muajit zë ky numër.
+   *
+   * Me zero termine, pjesëtimi jep `NaN` dhe te faqja dilte «NaN%» —
+   * dukej gabim programi, ndërsa ishte thjesht një muaj bosh.
+   */
+  const perqind = (sa: number) =>
+    terminet.length > 0 ? Math.round((sa / terminet.length) * 100) : 0;
+
   // ---------- Numrat kryesorë ----------
   const persona = terminet.reduce((s, t) => s + t.persons_count, 0);
   const kontrata = terminet.reduce((s, t) => s + t.contracts_closed, 0);
@@ -207,7 +216,7 @@ export default async function DashboardPage({
                 className={`rounded-lg px-3 py-1.5 transition ${
                   vetemTeMijat
                     ? "border border-slate-300 text-slate-600 hover:bg-white"
-                    : "bg-slate-900 text-white"
+                    : "bg-brand text-white"
                 }`}
               >
                 {t.dashAll}
@@ -216,7 +225,7 @@ export default async function DashboardPage({
                 href={`/dashboard?muaji=${muaji}&view=mine`}
                 className={`rounded-lg px-3 py-1.5 transition ${
                   vetemTeMijat
-                    ? "bg-slate-900 text-white"
+                    ? "bg-brand text-white"
                     : "border border-slate-300 text-slate-600 hover:bg-white"
                 }`}
               >
@@ -277,7 +286,7 @@ export default async function DashboardPage({
                   etiketa={t[s.key]}
                   vlera={s.sa}
                   maks={maksStatus}
-                  perqindje={Math.round((s.sa / terminet.length) * 100)}
+                  perqindje={perqind(s.sa)}
                   shenja={
                     <span
                       className={`h-2.5 w-2.5 shrink-0 rounded-full ${
@@ -303,7 +312,7 @@ export default async function DashboardPage({
                   etiketa={t[s.key]}
                   vlera={s.sa}
                   maks={maksArsye}
-                  perqindje={Math.round((s.sa / terminet.length) * 100)}
+                  perqindje={perqind(s.sa)}
                   shenja={
                     <span
                       className={`h-2.5 w-2.5 shrink-0 rounded-full ${

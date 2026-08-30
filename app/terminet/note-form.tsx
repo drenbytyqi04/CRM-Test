@@ -48,7 +48,7 @@ export default function NoteForm({
             rows={2}
             required
             placeholder={t.notePlaceholder}
-            className="w-full resize-y rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none placeholder:text-slate-400 focus:border-slate-900"
+            className="w-full resize-y rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none placeholder:text-slate-400 focus:border-brand"
             onKeyDown={(e) => {
               // Ctrl+Enter e ruan pa e lëvizur dorën nga tastiera.
               if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
@@ -61,7 +61,7 @@ export default function NoteForm({
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:opacity-50 sm:mb-1"
+          className="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-dark disabled:opacity-50 sm:mb-1"
         >
           {pending ? t.saving : t.noteAdd}
         </button>

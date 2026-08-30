@@ -108,7 +108,7 @@ export default function BulkAssign({
             name="expertId"
             defaultValue=""
             disabled={sa === 0}
-            className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 outline-none focus:border-slate-900 disabled:opacity-50"
+            className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 outline-none focus:border-brand disabled:opacity-50"
           >
             <option value="" disabled>
               {t.expertsPick}
@@ -122,7 +122,7 @@ export default function BulkAssign({
           <button
             type="submit"
             disabled={sa === 0 || pending}
-            className="rounded-lg bg-slate-900 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-slate-700 disabled:opacity-40"
+            className="rounded-lg bg-brand px-4 py-1.5 text-sm font-medium text-white transition hover:bg-brand-dark disabled:opacity-40"
           >
             {pending ? t.expertsAdding : t.bulkAssign}
           </button>

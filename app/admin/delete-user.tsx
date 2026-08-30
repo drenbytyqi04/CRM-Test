@@ -68,7 +68,7 @@ export default function DeleteUser({
         type="button"
         onClick={() => setPyet(false)}
         aria-label="Mbyll"
-        className="fixed inset-0 z-40 cursor-default bg-slate-900/30"
+        className="fixed inset-0 z-40 cursor-default bg-brand/30"
       />
 
       <div

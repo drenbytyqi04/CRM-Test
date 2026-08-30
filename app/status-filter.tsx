@@ -44,7 +44,7 @@ export default function StatusFilter({
           const q = params.toString();
           router.push(q ? `/?${q}` : "/");
         }}
-        className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-slate-900 outline-none focus:border-slate-900"
+        className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-slate-900 outline-none focus:border-brand"
       >
         <option value="">{t.filterAll}</option>
         {APPOINTMENT_CATEGORIES.map((c) => (

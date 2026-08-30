@@ -1,3 +1,4 @@
+import Image from "next/image";
 import SidebarLink from "./sidebar-link";
 import SignOutButton from "./sign-out-button";
 import LanguageSwitcher from "./language-switcher";
@@ -20,11 +21,26 @@ export default async function Sidebar({ user }: { user: CurrentUser }) {
   return (
     <aside className="shrink-0 border-b border-slate-200 bg-white sm:sticky sm:top-0 sm:flex sm:h-screen sm:w-56 sm:flex-col sm:border-r sm:border-b-0">
       <div className="flex items-center justify-between gap-3 px-4 py-3 sm:block sm:px-5 sm:py-5">
-        <div>
-          <p className="text-base font-semibold tracking-tight text-slate-900">
-            {t.appName}
-          </p>
-          <p className="hidden text-xs text-slate-500 sm:block">{t.appTagline}</p>
+        {/* Shenja dhe emri rrinë bashkë: shenja e njeh faqen me bisht të syrit,
+            emri e thotë hapur. Te telefoni mbetet vetëm shenja me emrin, pa
+            nënshkrimin poshtë, që shiriti i sipërm të mos trashet. */}
+        <div className="flex items-center gap-2.5">
+          <Image
+            src="/shenja.png"
+            alt=""
+            width={128}
+            height={104}
+            priority
+            className="h-8 w-auto shrink-0"
+          />
+          <div className="min-w-0">
+            <p className="truncate text-base font-semibold tracking-tight text-slate-900">
+              {t.appName}
+            </p>
+            <p className="hidden text-xs text-slate-500 sm:block">
+              {t.appTagline}
+            </p>
+          </div>
         </div>
 
         {/* Në telefon lidhjet rrinë në të njëjtin rresht me emrin. */}

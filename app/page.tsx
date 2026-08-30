@@ -232,7 +232,7 @@ export default async function Page({ searchParams }: PageProps<"/">) {
               href={adresaEListes({ view: "all" })}
               className={`rounded-lg px-3 py-1.5 transition ${
                 showAll
-                  ? "bg-slate-900 text-white"
+                  ? "bg-brand text-white"
                   : "border border-slate-300 text-slate-600 hover:bg-white"
               }`}
             >
@@ -243,7 +243,7 @@ export default async function Page({ searchParams }: PageProps<"/">) {
               className={`rounded-lg px-3 py-1.5 transition ${
                 showAll
                   ? "border border-slate-300 text-slate-600 hover:bg-white"
-                  : "bg-slate-900 text-white"
+                  : "bg-brand text-white"
               }`}
             >
               {t.listMine}

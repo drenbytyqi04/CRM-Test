@@ -38,7 +38,7 @@ export default function SearchBox({
         type="search"
         defaultValue={vlera}
         placeholder={t.searchPlaceholder}
-        className="w-44 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-slate-900 sm:w-56"
+        className="w-44 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-brand sm:w-56"
       />
       <button
         type="submit"

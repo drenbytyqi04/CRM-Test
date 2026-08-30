@@ -78,7 +78,7 @@ export default async function BackupPage() {
             mbetet aty ku është. */}
         <a
           href="/admin/kopja/shkarko?lloji=json"
-          className="inline-block rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
+          className="inline-block rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-dark"
         >
           {t.backupDownloadFull}
         </a>
