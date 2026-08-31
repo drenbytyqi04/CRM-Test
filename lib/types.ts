@@ -254,6 +254,25 @@ export function appointmentPath(
 const TZ = "Europe/Belgrade";
 
 /**
+ * Ora shkruhet gjithmonë 0–23, në të dyja gjuhët.
+ *
+ * Pa këtë, shqipja e shkruante orën me 12 dhe me «p.d./m.d.» — dhe atëherë
+ * numri që lexohej NUK ishte ora e terminit:
+ *
+ *     14:30  ->  «02:30 m.d.»     e lexon 2 pas mesnate
+ *     23:45  ->  «11:45 m.d.»     e lexon 11 paradite
+ *     00:15  ->  «12:15 p.d.»     mesnata dilte 12
+ *
+ * Te një sistem terminesh kjo nuk është hollësi: një agjent që lexon «02:30»
+ * dhe shkon në 2 pas mesnate e ka humbur terminin. Gjermanishtja e kishte
+ * gjithmonë 24-orëshin, prandaj gabimi dukej vetëm në shqip.
+ *
+ * `h23` dhe jo `hour12: false`: kjo e fundit e shkruan mesnatën «24:00» te
+ * disa gjuhë. `h23` e mban 00:00.
+ */
+const ORA24 = "h23" as const;
+
+/**
  * Sa minuta larg orës botërore është Beogradi në atë çast (60 ose 120).
  * E llogarisim, sepse ora e verës e ndryshon dy herë në vit.
  */
@@ -261,7 +280,9 @@ function beogradOffsetMinutes(date: Date): number {
   const parts = Object.fromEntries(
     new Intl.DateTimeFormat("en-US", {
       timeZone: TZ,
-      hour12: false,
+      // `h23` dhe jo `hour12: false`: kjo e fundit e kthen mesnatën si "24",
+      // dhe atëherë `Date.UTC(...)` e hidhte llogarinë një ditë përpara.
+      hourCycle: ORA24,
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
@@ -298,19 +319,40 @@ export function toBeogradInput(iso: string): string {
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
-    hour12: false,
+    hourCycle: ORA24,
   })
     .format(new Date(iso))
     .replace(" ", "T");
 }
 
-/** E kundërta: "2026-01-30T10:00" (orë Beograd) -> data e plotë për ruajtje. */
+/**
+ * E kundërta: "2026-01-30T10:00" (orë Beograd) -> data e plotë për ruajtje.
+ *
+ * Bëhet në dy hapa, dhe hapi i dytë nuk është i tepërt.
+ *
+ * Hapi i parë e merr largësinë nga ora botërore SIKUR ai tekst të ishte
+ * çast botëror. Zakonisht del e njëjta gjë. Por natën kur ora shtyhet para —
+ * te ne, e diela e fundit e marsit — ajo largësi mund të jetë e verës,
+ * ndërsa vetë ora që shkroi njeriu është ende e dimrit. Atëherë termini
+ * ruhej një orë përpara: shkruaje 01:30, lexoje 00:30.
+ *
+ * Prandaj llogaritet sërish mbi çastin që dilte, dhe nëse largësia doli
+ * tjetër, merret ajo. Kjo prek një orë të vetme në vit — por një termin i
+ * humbur është i humbur edhe kur është i rrallë.
+ */
 export function fromBeogradInput(local: string): string | null {
   if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(local)) return null;
   const sikurUTC = new Date(`${local.slice(0, 16)}:00Z`);
   if (Number.isNaN(sikurUTC.getTime())) return null;
-  const offset = beogradOffsetMinutes(sikurUTC);
-  return new Date(sikurUTC.getTime() - offset * 60000).toISOString();
+
+  const iPari = beogradOffsetMinutes(sikurUTC);
+  const provë = new Date(sikurUTC.getTime() - iPari * 60000);
+  const iDyti = beogradOffsetMinutes(provë);
+
+  return (iDyti === iPari
+    ? provë
+    : new Date(sikurUTC.getTime() - iDyti * 60000)
+  ).toISOString();
 }
 
 /** Ora e parazgjedhur për një termin të ri: nesër në orën 10:00. */
@@ -335,6 +377,7 @@ export function formatBeograd(iso: string, locale = "de-DE"): string {
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    hourCycle: ORA24,
   }).format(new Date(iso));
 }
 
@@ -553,5 +596,6 @@ export function formatDate(iso: string, locale = "de-DE"): string {
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    hourCycle: ORA24,
   }).format(new Date(iso));
 }

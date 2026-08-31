@@ -188,7 +188,10 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
   lira. Shih **Pjesa 10**.
 - **Radha e listës:** termini i regjistruar i fundit rri lart, pavarësisht se
   për cilën datë është caktuar. Kështu ai që sapo u shtua gjendet menjëherë.
-- **Ora:** të gjitha datat dhe orët shfaqen me **orën e Beogradit**
+- **Ora:** shkruhet gjithmonë **0–23**, në të dyja gjuhët. Shqipja e shkruan
+  orën me 12 nëse nuk i thuhet ndryshe, dhe atëherë 14:30 del «02:30 m.d.» —
+  numri që lexon agjenti nuk është ora e terminit. Te një sistem terminesh kjo
+  nuk është hollësi. Të gjitha datat dhe orët shfaqen me **orën e Beogradit**
   (`Europe/Belgrade`), me orën e verës të llogaritur vetvetiu. Kjo shkruhet
   shprehimisht në kod: serverat e Vercel-it punojnë me orën botërore (UTC),
   prandaj pa këtë ora do të dilte 1–2 orë prapa. Te faqja e terminit shkruhet
