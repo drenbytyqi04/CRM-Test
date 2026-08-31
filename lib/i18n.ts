@@ -417,7 +417,7 @@ const de = {
   usersActiveNow: "Jetzt aktiv",
   usersNotActive: "Nicht aktiv",
   usersYou: "Sie",
-  usersChangePassword: "Passwort ändern",
+  usersChangePassword: "Neues Passwort",
   usersChangePasswordFor: (email: string) => `Passwort für ${email}`,
   usersPasswordHint:
     "Das alte Passwort wird weder gebraucht noch angezeigt — gespeichert ist nur eine verschlüsselte Spur davon. Geben Sie das neue Passwort persönlich weiter; die Person kann es später selbst ändern.",
@@ -886,7 +886,7 @@ const sq: Dict = {
   usersActiveNow: "Aktiv tani",
   usersNotActive: "Jo aktiv",
   usersYou: "ti",
-  usersChangePassword: "Ndrysho fjalëkalimin",
+  usersChangePassword: "Fjalëkalim i ri",
   usersChangePasswordFor: (email: string) => `Fjalëkalimi i ${email}`,
   usersPasswordHint:
     "Fjalëkalimi i vjetër as nuk duhet, as nuk shfaqet — te baza rri vetëm një gjurmë e koduar e tij. Jepja të riun në dorë; personi mund ta ndërrojë vetë më vonë.",

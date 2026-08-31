@@ -6,7 +6,8 @@ import { requireAdmin } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n-server";
 import {
   ROLE_CLASSES,
-  formatDate,
+  beogradDay,
+  formatDateOnly,
   formatDuration,
   isRecent,
   roleLabel,
@@ -72,7 +73,7 @@ export default async function AdminPage() {
   const eshteAktiv = (userId: string) => isRecent(paSeFundi.get(userId));
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-5 py-10">
+    <main className="mx-auto w-full max-w-5xl px-5 py-10">
       {/* Lidhjet, emaili dhe "Dil" rrinë te menyja anash. */}
       <header className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
@@ -155,13 +156,16 @@ export default async function AdminPage() {
                 <td className="p-4 text-slate-600">
                   {noteCounts.get(profile.id) ?? 0}
                 </td>
-                <td className="p-4 text-slate-500">
-                  {formatDate(profile.created_at, locale)}
+                <td className="p-4 whitespace-nowrap text-slate-500">
+                  {formatDateOnly(beogradDay(profile.created_at), locale)}
                 </td>
-                <td className="p-4 text-right align-top">
-                  {/* Dy veprimet e llogarisë rrinë bashkë: njëri e rikthen
-                      personin në punë, tjetri e nxjerr jashtë. */}
-                  <div className="flex flex-col items-end gap-1">
+                <td className="p-4 align-middle">
+                  {/* Dy veprimet e llogarisë, njëri pas tjetrit: i pari e
+                      rikthen personin në punë, i dyti e nxjerr jashtë.
+                      `justify-end` i shtyn djathtas, `nowrap` i mban në një
+                      rresht — ndryshe etiketat thyheshin në dy rreshta dhe
+                      rreshtat e tabelës dilnin të pabarabartë. */}
+                  <div className="flex items-center justify-end gap-2">
                     <PasswordForm
                       userId={profile.id}
                       email={profile.email ?? "—"}

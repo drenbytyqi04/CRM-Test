@@ -43,7 +43,7 @@ export default function PasswordForm({
       <button
         type="button"
         onClick={() => setHapur(true)}
-        className="text-xs text-slate-600 underline underline-offset-2 transition hover:text-slate-900"
+        className="rounded-lg border border-slate-300 px-2.5 py-1 text-xs whitespace-nowrap text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
       >
         {t.usersChangePassword}
       </button>

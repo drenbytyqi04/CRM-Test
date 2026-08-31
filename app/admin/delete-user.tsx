@@ -40,12 +40,18 @@ export default function DeleteUser({
     {}
   );
 
+  // Rreshti im, dhe llogaritë pa hyrje: një fjalë e qetë në vend të butonit.
+  // Hapësira mbetet e njëjtë, prandaj rreshtat nuk kërcejnë.
   if (vetja) {
-    return <span className="text-xs text-slate-400">{t.usersYou}</span>;
+    return <span className="px-1 text-xs text-slate-400">{t.usersYou}</span>;
   }
 
   if (!aktiv || state.ok) {
-    return <span className="text-xs text-slate-400">{t.usersNoAccess}</span>;
+    return (
+      <span className="px-1 text-xs whitespace-nowrap text-slate-400">
+        {t.usersNoAccess}
+      </span>
+    );
   }
 
   if (!pyet) {
@@ -53,7 +59,7 @@ export default function DeleteUser({
       <button
         type="button"
         onClick={() => setPyet(true)}
-        className="text-xs text-red-700 underline underline-offset-2 transition hover:text-red-900"
+        className="rounded-lg border border-red-200 px-2.5 py-1 text-xs whitespace-nowrap text-red-700 transition hover:border-red-300 hover:bg-red-50"
       >
         {t.usersRemoveAccess}
       </button>

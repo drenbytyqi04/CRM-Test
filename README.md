@@ -318,7 +318,7 @@ e një llogarie.
 
 Administratori ka edhe:
 
-- **Ndryshimin e fjalëkalimit** të çdo llogarie — user, menaxher, ekspert ose
+- **Fjalëkalim i ri** për çdo llogari — user, menaxher, ekspert ose
   admin tjetër. Nuk ka email rikthimi te ky sistem: llogaritë i hap admini,
   prandaj edhe fjalëkalimin e harruar e zëvendëson ai. Fjalëkalimi i vjetër
   as nuk kërkohet, as nuk shfaqet — baza mban vetëm një gjurmë të koduar të
