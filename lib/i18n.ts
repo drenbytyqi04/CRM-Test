@@ -332,6 +332,14 @@ const de = {
   dashNext: "Nächste Termine",
   dashNextHint: "Die fünf nächsten.",
   dashNoUpcoming: "Kein offener Termin in der Zukunft.",
+  dashPeople: "Arbeit der Einzelnen",
+  dashPeopleHint: (muaji: string) =>
+    `Wer wie viel im Monat ${muaji} gemacht hat. Auch Konten ohne Termine stehen hier.`,
+  dashColPerson: "Person",
+  dashColRole: "Rolle",
+  dashColAppointments: "Termine",
+  dashExpertNote:
+    "Beim Experten heißt «Termine»: wie viele ihm zugewiesen wurden. Experten legen selbst keine Termine an.",
   dashByAgent: "Nach Mitarbeiter",
   dashByAgentHint: "Wer die Termine angelegt hat und wie viele Verträge daraus wurden.",
   dashContractsLine: "Verträge",
@@ -781,6 +789,14 @@ const sq: Dict = {
   dashNext: "Terminet e radhës",
   dashNextHint: "Pesë të parët që vijnë.",
   dashNoUpcoming: "Asnjë termin i hapur në të ardhmen.",
+  dashPeople: "Puna e secilit",
+  dashPeopleHint: (muaji: string) =>
+    `Kush sa ka bërë brenda muajit ${muaji}. Edhe llogaritë pa asnjë termin rrinë këtu.`,
+  dashColPerson: "Personi",
+  dashColRole: "Roli",
+  dashColAppointments: "Termine",
+  dashExpertNote:
+    "Te eksperti «Termine» do të thotë: sa i janë dhënë. Ekspertët nuk caktojnë vetë termine.",
   dashByAgent: "Sipas agjentit",
   dashByAgentHint: "Kush i ka caktuar terminet dhe sa kontrata dolën.",
   dashContractsLine: "Kontrata",

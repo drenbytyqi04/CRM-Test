@@ -19,8 +19,18 @@ import {
   formatMonth,
   muajtEFundit,
   todayInBeograd,
+  roleLabel,
+  ROLE_CLASSES,
   type Appointment,
 } from "@/lib/types";
+
+/** Një llogari, aq sa i duhet tabelës së punës. */
+type Profil = {
+  id: string;
+  email: string | null;
+  role: string;
+  active: boolean | null;
+};
 
 export const dynamic = "force-dynamic";
 
@@ -81,8 +91,13 @@ export default async function DashboardPage({
     return k.range(nga, deri);
   };
 
-  const [terminetResult, shenimeGjithsej, shenimetEMia, profilesResult] =
-    await Promise.all([
+  const [
+    terminetResult,
+    shenimeGjithsej,
+    shenimetEMia,
+    profilesResult,
+    aksesetResult,
+  ] = await Promise.all([
       // Faqe pas faqeje: një muaj i ngarkuar i kalon 1000 terminet, dhe
       // Supabase i pret aty pa dhënë gabim.
       merrTeGjitha<Appointment>(faqjaETermineve, "terminet"),
@@ -96,8 +111,21 @@ export default async function DashboardPage({
         .eq("user_id", user.id),
       supabase
         .from("profiles")
-        .select("id, email")
-        .returns<{ id: string; email: string | null }[]>(),
+        .select("id, email, role, active")
+        .returns<Profil[]>(),
+      // Kush ekspert e sheh cilin termin. Tabela është e vogël, por lexohet
+      // faqe pas faqeje si çdo tjetër: eksperti nuk cakton termine, prandaj
+      // «sa ka bërë» për të del vetëm nga kjo listë.
+      user.isAdmin && !vetemTeMijat
+        ? merrTeGjitha<{ appointment_id: string; expert_id: string }>(
+            (nga, deri) =>
+              supabase
+                .from("appointment_experts")
+                .select("appointment_id, expert_id", { count: "exact" })
+                .range(nga, deri),
+            "aksesi i ekspertëve"
+          )
+        : Promise.resolve({ data: [], error: null }),
     ]);
 
   // Ndarja e saktë e muajit bëhet këtu, me orën e Beogradit.
@@ -106,10 +134,6 @@ export default async function DashboardPage({
   );
   const saShenime = shenimeGjithsej.count ?? 0;
   const saShenimetEMia = shenimetEMia.count ?? 0;
-  const emailet = new Map(
-    (profilesResult.data ?? []).map((p) => [p.id, p.email ?? "—"])
-  );
-
   /**
    * Sa përqind e muajit zë ky numër.
    *
@@ -169,18 +193,53 @@ export default async function DashboardPage({
     vlera: terminet.filter((a) => beogradDay(a.scheduled_at) === dita).length,
   }));
 
-  // ---------- Kush sa ka caktuar (vetëm për adminin) ----------
-  const perAgjent = new Map<string, { termine: number; kontrata: number }>();
-  for (const t of terminet) {
-    const rreshti = perAgjent.get(t.user_id) ?? { termine: 0, kontrata: 0 };
-    rreshti.termine += 1;
-    rreshti.kontrata += t.contracts_closed;
-    perAgjent.set(t.user_id, rreshti);
+  // ---------- Puna e secilit brenda muajit (vetëm për adminin) ----------
+  //
+  // Një rresht për çdo llogari, edhe për ata që s'kanë bërë asgjë: pikërisht
+  // ata janë të vështirët për t'u parë, sepse mungojnë nga çdo listë që
+  // ndërtohet mbi terminet.
+  //
+  // KUJDES te kolona «Termine». Për user, menaxher e admin ajo do të thotë
+  // «sa ka caktuar» (`user_id`). Për EKSPERTIN do të thotë «sa i janë dhënë»,
+  // sepse eksperti nuk cakton asnjë — te terminet e tij `user_id` është ai që
+  // ia caktoi. Po ta numëronim edhe atë sipas `user_id`, çdo ekspert do të
+  // dilte me zero, dhe tabela do të gënjente për tërë punën e tij.
+  const idetEMuajit = new Set(terminet.map((a) => a.id));
+  const terminiSipasId = new Map(terminet.map((a) => [a.id, a]));
+
+  /** Terminet e këtij muaji që i janë dhënë secilit ekspert. */
+  const perEkspert = new Map<string, Appointment[]>();
+  for (const akses of aksesetResult.data ?? []) {
+    if (!idetEMuajit.has(akses.appointment_id)) continue;
+    const lista = perEkspert.get(akses.expert_id) ?? [];
+    lista.push(terminiSipasId.get(akses.appointment_id)!);
+    perEkspert.set(akses.expert_id, lista);
   }
-  const agjentet = [...perAgjent.entries()]
-    .map(([id, v]) => ({ id, email: emailet.get(id) ?? "—", ...v }))
-    .sort((a, b) => b.termine - a.termine);
-  const maksAgjent = Math.max(1, ...agjentet.map((a) => a.termine));
+
+  const puna = (profilesResult.data ?? [])
+    .map((p) => {
+      const tijat =
+        p.role === "expert"
+          ? (perEkspert.get(p.id) ?? [])
+          : terminet.filter((a) => a.user_id === p.id);
+      return {
+        id: p.id,
+        email: p.email ?? "—",
+        role: p.role,
+        active: p.active !== false,
+        eDhene: p.role === "expert",
+        termine: tijat.length,
+        suksese: tijat.filter((a) => a.category === "success").length,
+        kontrata: tijat.reduce((n, a) => n + a.contracts_closed, 0),
+      };
+    })
+    // Llogaritë pa hyrje mbeten vetëm nëse kanë punë atë muaj: përndryshe
+    // tabela do të mbushej me emra që s'punojnë më.
+    .filter((r) => r.active || r.termine > 0)
+    .sort((a, b) => b.termine - a.termine || a.email.localeCompare(b.email));
+
+  const maksAgjent = Math.max(1, ...puna.map((p) => p.termine));
+  const kaEkspert = puna.some((p) => p.eDhene);
 
   return (
     <main className="mx-auto w-full max-w-5xl px-5 py-10">
@@ -373,45 +432,111 @@ export default async function DashboardPage({
           )}
         </Card>
 
-        {/* ---------- Agjentët: vetëm admini, dhe vetëm kur sheh të
-             gjitha. Te «Të mijat» do të ishte një rresht i vetëm. ---------- */}
-        {user.isAdmin && !vetemTeMijat ? (
-          <Card
-            titull={t.dashByAgent}
-            nen={t.dashByAgentHint}
-          >
-            {agjentet.length === 0 ? (
+        <Card titull={t.dashNotes} nen={t.dashNotesHint}>
+          <p className="text-3xl font-semibold tracking-tight text-slate-900">
+            {saShenime}
+          </p>
+          <p className="mt-1 text-sm text-slate-500">
+            {t.dashNotesMine(saShenimetEMia)}
+          </p>
+        </Card>
+      </div>
+
+      {/* ---------- Puna e secilit ----------
+           Vetëm admini, dhe vetëm kur sheh të gjitha: te «Të mijat» do të
+           ishte një rresht i vetëm. Zë tërë gjerësinë, sepse është tabelë. */}
+      {user.isAdmin && !vetemTeMijat && (
+        <div className="mt-4">
+          <Card titull={t.dashPeople} nen={t.dashPeopleHint(formatMonth(muaji, locale))}>
+            {puna.length === 0 ? (
               <p className="text-sm text-slate-500">{t.dashNoAppointments}</p>
             ) : (
-              <div>
-                {agjentet.map((a) => (
-                  <BarRow
-                    key={a.id}
-                    etiketa={a.email}
-                    vlera={a.termine}
-                    maks={maksAgjent}
-                  />
-                ))}
-                <p className="mt-3 text-xs text-slate-500">
-                  {t.dashContractsLine}:{" "}
-                  {agjentet
-                    .map((a) => `${a.email.split("@")[0]} ${a.kontrata}`)
-                    .join(" · ")}
-                </p>
-              </div>
+              <>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-200 text-left text-slate-500">
+                        <th className="pb-2 font-medium">{t.dashColPerson}</th>
+                        <th className="pb-2 font-medium">{t.dashColRole}</th>
+                        <th className="pb-2 pl-3 font-medium">
+                          {t.dashColAppointments}
+                        </th>
+                        <th className="pb-2 pl-3 text-right font-medium">
+                          {t.catSuccess}
+                        </th>
+                        <th className="hidden pb-2 pl-3 text-right font-medium sm:table-cell">
+                          {t.colContracts}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {puna.map((p) => (
+                        <tr key={p.id}>
+                          <td className="py-2 pr-3">
+                            <span className="block truncate text-slate-900">
+                              {p.email}
+                            </span>
+                            {!p.active && (
+                              <span className="text-xs text-slate-400">
+                                {t.usersNoAccess}
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-2 pr-3">
+                            <span
+                              className={`rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${
+                                ROLE_CLASSES[p.role] ?? ROLE_CLASSES.user
+                              }`}
+                            >
+                              {roleLabel(p.role, t)}
+                            </span>
+                          </td>
+                          {/* Shtylla e vogël bën që radha të lexohet me një
+                              vështrim, pa i krahasuar numrat një nga një. */}
+                          <td className="w-1/3 py-2 pl-3">
+                            <div className="flex items-center gap-2">
+                              <div className="h-2 min-w-24 flex-1 rounded-full bg-slate-100">
+                                {p.termine > 0 && (
+                                  <div
+                                    className="h-2 rounded-full bg-brand"
+                                    style={{
+                                      width: `${Math.max(
+                                        Math.round((p.termine / maksAgjent) * 100),
+                                        3
+                                      )}%`,
+                                    }}
+                                  />
+                                )}
+                              </div>
+                              <span className="w-8 text-right tabular-nums text-slate-900">
+                                {p.termine}
+                              </span>
+                              {p.eDhene && (
+                                <span className="text-xs text-slate-400">*</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-2 pl-3 text-right tabular-nums text-slate-900">
+                            {p.suksese}
+                          </td>
+                          <td className="hidden py-2 pl-3 text-right tabular-nums text-slate-900 sm:table-cell">
+                            {p.kontrata}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {kaEkspert && (
+                  <p className="mt-3 text-xs text-slate-500">
+                    * {t.dashExpertNote}
+                  </p>
+                )}
+              </>
             )}
           </Card>
-        ) : (
-          <Card titull={t.dashNotes} nen={t.dashNotesHint}>
-            <p className="text-3xl font-semibold tracking-tight text-slate-900">
-              {saShenime}
-            </p>
-            <p className="mt-1 text-sm text-slate-500">
-              {t.dashNotesMine(saShenimetEMia)}
-            </p>
-          </Card>
-        )}
-      </div>
+        </div>
+      )}
     </main>
   );
 }

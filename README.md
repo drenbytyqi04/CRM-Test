@@ -571,6 +571,24 @@ fut te sistemi në shtator. Kjo i përgjigjet pyetjes «sa punë kam në tetor»
 | **Përdorues** | vetëm terminet që ka caktuar vetë |
 | **Ekspert** | vetëm terminet që i janë caktuar |
 
+### Puna e secilit — vetëm te admini
+
+Poshtë dashboard-it, admini ka një tabelë me **një rresht për çdo llogari**:
+sa termine ka bërë secili brenda atij muaji, sa dolën të suksesshme, dhe sa
+kontrata. Edhe llogaritë pa asnjë termin rrinë aty — pikërisht ato janë të
+vështirat për t'u parë, sepse mungojnë nga çdo listë që ndërtohet mbi
+terminet.
+
+**Te eksperti kolona «Termine» ka kuptim tjetër, dhe kjo shkruhet te tabela.**
+Ai numër do të thotë *sa i janë dhënë*, jo *sa ka caktuar*. Eksperti nuk
+cakton asnjë termin: te terminet e tij `user_id` është ai që ia caktoi.
+Po ta numëronim si të tjerët, çdo ekspert do të dilte me zero dhe tabela do
+të gënjente për tërë punën e tij — prandaj numri i tij vjen nga
+`appointment_experts`, dhe pas tij rri një yll që e shpjegon.
+
+Tabela del vetëm kur admini sheh **të gjitha**: te «Të mijat» do të ishte një
+rresht i vetëm.
+
 Eksperti është rasti i veçantë. Te terminet e tij, kolona që tregon *kush e
 caktoi* mban menaxherin, jo atë. Po ta filtronim sipas asaj kolone, dashboard-i
 i tij do të dilte bosh. Për të, kufirin e ka vënë tashmë baza — sheh vetëm ato
