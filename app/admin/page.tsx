@@ -1,5 +1,6 @@
 import UserForm from "./user-form";
 import DeleteUser from "./delete-user";
+import PasswordForm from "./password-form";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n-server";
@@ -158,6 +159,15 @@ export default async function AdminPage() {
                   {formatDate(profile.created_at, locale)}
                 </td>
                 <td className="p-4 text-right align-top">
+                  {/* Dy veprimet e llogarisë rrinë bashkë: njëri e rikthen
+                      personin në punë, tjetri e nxjerr jashtë. */}
+                  <div className="flex flex-col items-end gap-1">
+                    <PasswordForm
+                      userId={profile.id}
+                      email={profile.email ?? "—"}
+                      aktiv={profile.active}
+                      lang={lang}
+                    />
                   <DeleteUser
                     userId={profile.id}
                     email={profile.email ?? "—"}
@@ -167,6 +177,7 @@ export default async function AdminPage() {
                     lang={lang}
                     aktiv={profile.active}
                   />
+                  </div>
                 </td>
               </tr>
             ))}

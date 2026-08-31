@@ -417,6 +417,14 @@ const de = {
   usersActiveNow: "Jetzt aktiv",
   usersNotActive: "Nicht aktiv",
   usersYou: "Sie",
+  usersChangePassword: "Passwort ändern",
+  usersChangePasswordFor: (email: string) => `Passwort für ${email}`,
+  usersPasswordHint:
+    "Das alte Passwort wird weder gebraucht noch angezeigt — gespeichert ist nur eine verschlüsselte Spur davon. Geben Sie das neue Passwort persönlich weiter; die Person kann es später selbst ändern.",
+  usersNewPassword: "Neues Passwort",
+  usersPasswordPlaceholder: "mindestens 8 Zeichen",
+  usersShowPassword: "Passwort anzeigen",
+  usersSavePassword: "Passwort setzen",
   usersRemoveAccess: "Zugang entziehen",
   usersRemoveAsk: (email: string) => `${email} den Zugang entziehen?`,
   usersRemoveExplain: (t: number, n: number) =>
@@ -504,6 +512,12 @@ const de = {
     "Der Termin wurde nicht gelöscht: die Datenbank hat den Vorgang abgelehnt. Möglicherweise wurde supabase/fshirja.sql noch nicht ausgeführt.",
   errFillBoth: "Bitte E-Mail und Passwort ausfüllen.",
   errPasswordShort: "Das Passwort muss mindestens 8 Zeichen haben.",
+  errPasswordMissing: "Bitte ein neues Passwort eingeben.",
+  errNoAccessNoPassword:
+    "Dieses Konto hat keinen Zugang mehr — es gibt kein Login, dem ein Passwort gesetzt werden könnte.",
+  errPasswordNotChanged: "Das Passwort wurde nicht geändert",
+  okPasswordChanged: (email: string) =>
+    `Das Passwort für ${email} wurde geändert. Geben Sie es der Person weiter. Achtung: eine bereits offene Sitzung bleibt bestehen — wer sofort ausgesperrt werden soll, dem entziehen Sie den Zugang.`,
   errUnknownRole: "Die gewählte Rolle ist unbekannt.",
   errEmailExists: "Für diese E-Mail gibt es bereits ein Konto.",
   errAccountNotCreated: "Das Konto wurde nicht angelegt",
@@ -872,6 +886,14 @@ const sq: Dict = {
   usersActiveNow: "Aktiv tani",
   usersNotActive: "Jo aktiv",
   usersYou: "ti",
+  usersChangePassword: "Ndrysho fjalëkalimin",
+  usersChangePasswordFor: (email: string) => `Fjalëkalimi i ${email}`,
+  usersPasswordHint:
+    "Fjalëkalimi i vjetër as nuk duhet, as nuk shfaqet — te baza rri vetëm një gjurmë e koduar e tij. Jepja të riun në dorë; personi mund ta ndërrojë vetë më vonë.",
+  usersNewPassword: "Fjalëkalimi i ri",
+  usersPasswordPlaceholder: "të paktën 8 shenja",
+  usersShowPassword: "Shfaqe fjalëkalimin",
+  usersSavePassword: "Vendos fjalëkalimin",
   usersRemoveAccess: "Hiqi hyrjen",
   usersRemoveAsk: (email) => `T'ia heq hyrjen ${email}?`,
   usersRemoveExplain: (t, n) =>
@@ -951,6 +973,12 @@ const sq: Dict = {
     "Termini nuk u fshi: baza nuk e lejoi këtë veprim. Ka gjasë të mos jetë ekzekutuar ende supabase/fshirja.sql.",
   errFillBoth: "Plotëso emailin dhe fjalëkalimin.",
   errPasswordShort: "Fjalëkalimi duhet të ketë të paktën 8 shenja.",
+  errPasswordMissing: "Shkruaj fjalëkalimin e ri.",
+  errNoAccessNoPassword:
+    "Kjo llogari s'ka më hyrje — nuk ka ku të vendoset një fjalëkalim.",
+  errPasswordNotChanged: "Fjalëkalimi nuk u ndryshua",
+  okPasswordChanged: (email: string) =>
+    `Fjalëkalimi i ${email} u ndryshua. Jepja personit. Kujdes: sesioni që është tashmë i hapur vazhdon — kush duhet ndalur menjëherë, i hiqet hyrja.`,
   errUnknownRole: "Roli i zgjedhur nuk njihet.",
   errEmailExists: "Ky email ka tashmë një llogari.",
   errAccountNotCreated: "Llogaria nuk u hap",

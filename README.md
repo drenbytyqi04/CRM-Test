@@ -318,6 +318,14 @@ e një llogarie.
 
 Administratori ka edhe:
 
+- **Ndryshimin e fjalëkalimit** të çdo llogarie — user, menaxher, ekspert ose
+  admin tjetër. Nuk ka email rikthimi te ky sistem: llogaritë i hap admini,
+  prandaj edhe fjalëkalimin e harruar e zëvendëson ai. Fjalëkalimi i vjetër
+  as nuk kërkohet, as nuk shfaqet — baza mban vetëm një gjurmë të koduar të
+  tij, prandaj askush nuk e "sheh" fjalëkalimin e dikujt, vetëm e zëvendëson.
+  **Kujdes:** ndryshimi nuk e nxjerr jashtë atë që është tashmë i kyçur;
+  sesioni i hapur vazhdon derisa t'i mbarojë vetë. Kur dikush duhet ndalur
+  menjëherë, përdoret *Hiq hyrjen*.
 - **Heqjen e hyrjes** — vetëm admini. Llogaria fshihet dhe personi nuk hyn
   më, por **asnjë e dhënë e tij nuk humbet**: terminet që ka caktuar,
   shënimet që ka shkruar dhe orët e tij mbeten, dhe vazhdojnë të mbajnë emrin
@@ -351,6 +359,7 @@ app/
   admin/page.tsx            Faqja e administratorit: të gjithë përdoruesit
   admin/actions.ts          Hapja e llogarive (vetëm admini)
   admin/user-form.tsx       Paneli "Hap llogari të re"
+  admin/password-form.tsx   Ndryshimi i fjalëkalimit të një llogarie
   admin/delete-user.tsx     Heqja e hyrjes së një llogarie
   admin/aktiviteti/page.tsx Koha e secilit përdorues, ditë pas dite
   admin/kopja/page.tsx      Kopja e të dhënave: numrat dhe butonat e shkarkimit

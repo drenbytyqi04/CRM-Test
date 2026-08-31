@@ -103,6 +103,66 @@ export async function createUserAccount(
 
 
 /**
+ * Ndërron fjalëkalimin e një llogarie. VETËM administratori.
+ *
+ * Vlen për çdo rol — user, menaxher, ekspert, dhe admin tjetër. Kjo është
+ * rruga kur dikush e harron fjalëkalimin: nuk ka email rikthimi te ky
+ * sistem, sepse llogaritë i hap admini, jo njerëzit vetë.
+ *
+ * Fjalëkalimi i vjetër NUK kërkohet dhe as nuk lexohet dot: baza mban vetëm
+ * një gjurmë të koduar të tij. Prandaj admini nuk e "sheh" fjalëkalimin e
+ * dikujt — ai vetëm e zëvendëson me një të ri.
+ *
+ * KUJDES: ndërrimi i fjalëkalimit nuk e nxjerr jashtë atë që është tashmë i
+ * kyçur; sesioni i hapur vazhdon derisa t'i mbarojë vetë. Kur dikush duhet
+ * ndalur menjëherë, përdoret «Hiq hyrjen», jo ky buton.
+ */
+export async function changeUserPassword(
+  _prevState: FormState,
+  formData: FormData
+): Promise<FormState> {
+  await requireAdmin();
+  const t = await getDict();
+
+  const userId = String(formData.get("userId") ?? "");
+  const password = String(formData.get("password") ?? "");
+
+  if (!userId) return { error: t.errAccountMissing };
+  if (!password) return { error: t.errPasswordMissing };
+  if (password.length < 8) return { error: t.errPasswordShort };
+
+  const supabase = await createClient();
+  const { data: profili } = await supabase
+    .from("profiles")
+    .select("id, email, active")
+    .eq("id", userId)
+    .maybeSingle<{ id: string; email: string | null; active: boolean }>();
+
+  if (!profili) return { error: t.errAccountNotFound };
+  // Llogarive pa hyrje u është fshirë rreshti te `auth.users`: nuk ka ku të
+  // shkruhet fjalëkalimi. Pa këtë kontroll, gabimi do të vinte nga Supabase
+  // dhe do të ishte i pakuptueshëm.
+  if (!profili.active) return { error: t.errNoAccessNoPassword };
+
+  let sherbimi;
+  try {
+    sherbimi = createAdminClient();
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Lidhja s\'u hap dot." };
+  }
+
+  const { error } = await sherbimi.auth.admin.updateUserById(userId, {
+    password,
+  });
+
+  if (error) {
+    return { error: `${t.errPasswordNotChanged}: ${error.message}` };
+  }
+
+  return { ok: true, message: t.okPasswordChanged(profili.email ?? "") };
+}
+
+/**
  * Heq hyrjen e një llogarie. VETËM administratori.
  *
  * Fshihet llogaria te `auth.users` — pra personi nuk hyn dot më. Por
