@@ -56,9 +56,21 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   // vazhdon të punojë normalisht.
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, active")
     .eq("id", id)
-    .maybeSingle<{ role: string }>();
+    .maybeSingle<{ role: string; active: boolean }>();
+
+  // Hyrja e hequr vlen MENJËHERË.
+  //
+  // Çelësi që mban shfletuesi (JWT) është i nënshkruar dhe vlen deri sa t'i
+  // mbarojë koha — rreth një orë. Deri para pak, brenda asaj ore një llogari
+  // e hequr vazhdonte të punonte: hapte faqe, caktonte termine. Prandaj
+  // shenja `active` pyetet këtu, te çdo kërkesë, jo vetëm te lista e
+  // llogarive.
+  //
+  // Kur profili s'lexohet fare (tabela s'ekziston ende), nuk bllokohet
+  // askush: aty s'ka as rol, as `active` — dhe sistemi punon si më parë.
+  if (profile && profile.active === false) return null;
 
   const role: Role =
     profile?.role === "admin"
@@ -80,10 +92,27 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   };
 });
 
-/** Si më sipër, por dërgon te faqja e hyrjes nëse s'ka njeri të kyçur. */
+/**
+ * A ka ende një sesion te shfletuesi — pavarësisht se llogaria mund të jetë
+ * hequr. Shërben vetëm për të dalluar dy rastet më poshtë.
+ */
+const kaSesion = cache(async (): Promise<boolean> => {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getClaims();
+  return Boolean(data?.claims?.sub);
+});
+
+/**
+ * Si më sipër, por dërgon te faqja e hyrjes nëse s'ka njeri të kyçur.
+ *
+ * Dy rastet ndahen me qëllim. Kur s'ka fare sesion, mjafton faqja e hyrjes.
+ * Por kur sesioni është i vlefshëm dhe llogaria është hequr, ridrejtimi te
+ * `/login` do të bëhej unazë: proxy-ja e sheh çelësin ende të mirë, e quan
+ * të kyçur, dhe e kthen te «/». Prandaj ai dërgohet të dalë vërtet.
+ */
 export async function requireUser(): Promise<CurrentUser> {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) redirect((await kaSesion()) ? "/auth/dil" : "/login");
   return user;
 }
 

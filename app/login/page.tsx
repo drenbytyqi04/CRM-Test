@@ -6,8 +6,13 @@ import { getI18n } from "@/lib/i18n-server";
 
 export const dynamic = "force-dynamic";
 
-export default async function LoginPage() {
-  const { lang } = await getI18n();
+export default async function LoginPage({
+  searchParams,
+}: PageProps<"/login">) {
+  const { lang, t } = await getI18n();
+  // Vjen nga `/auth/dil`: personi nuk doli vetë, iu hoq hyrja. Pa këtë
+  // rresht, dalja e papritur do të dukej si prishje e faqes.
+  const { hequr } = await searchParams;
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-8 px-5 py-10">
@@ -21,6 +26,14 @@ export default async function LoginPage() {
         priority
         className="h-28 w-auto"
       />
+      {hequr === "1" && (
+        <p
+          role="status"
+          className="max-w-sm rounded-lg bg-amber-50 px-4 py-3 text-center text-sm text-amber-900"
+        >
+          {t.loginAccessRemoved}
+        </p>
+      )}
       {hasSupabaseConfig() ? <LoginForm lang={lang} /> : <SetupNotice />}
     </main>
   );

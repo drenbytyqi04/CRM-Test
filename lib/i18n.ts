@@ -92,6 +92,8 @@ const de = {
 
   // ---------- Hyrja ----------
   loginHeading: "Anmelden",
+  loginAccessRemoved:
+    "Ihr Zugang wurde entzogen. Wenden Sie sich an den Administrator.",
   loginTitle: "Melden Sie sich mit Ihrem Konto an.",
   loginEmail: "E-Mail",
   loginPassword: "Passwort",
@@ -590,6 +592,8 @@ const sq: Dict = {
   signOut: "Dil",
 
   loginHeading: "Hyrje",
+  loginAccessRemoved:
+    "Hyrja jote është hequr. Drejtohu te administratori.",
   loginTitle: "Hyr në llogarinë tënde.",
   loginEmail: "Emaili",
   loginPassword: "Fjalëkalimi",

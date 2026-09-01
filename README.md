@@ -334,8 +334,9 @@ Administratori ka edhe:
   **Kujdes:** ndryshimi nuk e nxjerr jashtë atë që është tashmë i kyçur;
   sesioni i hapur vazhdon derisa t'i mbarojë vetë. Kur dikush duhet ndalur
   menjëherë, përdoret *Hiq hyrjen*.
-- **Heqjen e hyrjes** — vetëm admini. Llogaria fshihet dhe personi nuk hyn
-  më, por **asnjë e dhënë e tij nuk humbet**: terminet që ka caktuar,
+- **Heqjen e hyrjes** — vetëm admini. Vlen **menjëherë**: me klikimin e parë
+  personi del nga aplikacioni dhe sheh njoftimin pse. Llogaria fshihet dhe ai
+  nuk hyn më, por **asnjë e dhënë e tij nuk humbet**: terminet që ka caktuar,
   shënimet që ka shkruar dhe orët e tij mbeten, dhe vazhdojnë të mbajnë emrin
   e tij. Rreshti mbetet në listë, i shënuar *pa hyrje*. Tri gjëra ndalohen:
   ta heqësh veten, adminin e fundit, ose ta bësh pa qenë admin.
@@ -364,6 +365,7 @@ app/
     login-form.tsx          Formulari i hyrjes (vetëm "Hyr")
     actions.ts              Hyrja, regjistrimi dhe dalja
   auth/confirm/route.ts     Aty bie lidhja e konfirmimit nga emaili
+  auth/dil/route.ts         Dalja e detyruar, kur llogarisë i hiqet hyrja
   admin/page.tsx            Faqja e administratorit: të gjithë përdoruesit
   admin/actions.ts          Hapja e llogarive (vetëm admini)
   admin/user-form.tsx       Paneli "Hap llogari të re"
@@ -425,6 +427,7 @@ supabase/
   useri.sql                 Useri cakton terminet e veta, dhe sheh vetëm ato
   numrat.sql                Numërimi për person te baza, jo duke tërhequr tabelën
   ndryshimi-menaxherit.sql  Terminin e ndryshon vetëm menaxheri, as useri të vetin
+  hyrja-e-hequr.sql         Llogaria e hequr ndalet menjëherë, edhe me çelësin e vjetër
   rls-shpejtesi.sql         Rregullat: një llogaritje për kërkesë, jo për rresht
   mbetur.sql                Të dyja migrimet e fundit, në një skedë
   activity.sql              Përcjellja e kohës
@@ -894,7 +897,52 @@ kurrë — por të dhënat janë punë tjetër.
 
 ---
 
-## Pjesa 13 — Dy gjuhët
+## Pjesa 13 — Hyrja e hequr vlen menjëherë
+
+Kur admini i hiqte hyrjen dikujt, ai person vazhdonte të punonte — hapte faqe,
+caktonte termine, shkruante shënime. **Deri në një orë.**
+
+Shkaku nuk ishte te fshirja: ajo punonte. Ishte te çelësi. Kur dikush kyçet,
+shfletuesi i tij merr një çelës të nënshkruar (JWT) që vlen rreth një orë, dhe
+**fshirja e llogarisë nuk e prish atë çelës**. Deri sa t'i mbaronte koha,
+`auth.uid()` kthente ende id-në e tij — dhe asnjë rregull i bazës nuk e
+pyeste nëse llogaria ishte ende e gjallë. Ato pyesnin vetëm për rolin.
+
+Prandaj shenja `active` te `profiles`, e cila deri tani vinte vetëm një
+etiketë te lista e llogarive, u bë kusht i vërtetë, në dy shtresa:
+
+**Te faqja** (`lib/auth.ts`). Roli lexohet te çdo kërkesë; tani lexohet edhe
+`active`. Nëse është `false`, personi trajtohet si i pakyçur dhe dërgohet të
+dalë. Kjo e nxjerr jashtë me klikimin e parë.
+
+**Te baza** (`supabase/hyrja-e-hequr.sql`). Funksionet `is_admin()`,
+`is_manager()` dhe `is_expert()` tani kërkojnë edhe `active` — një menaxher pa
+hyrje nuk është më menaxher. Dhe çdo rregull tjetër nis me `eshte_aktiv()`.
+Kjo shtresë mbron nga një kërkesë e dërguar drejt te baza, jashtë faqes sonë,
+me çelësin që i ka mbetur në dorë. E njëjta shenjë ndalon edhe orën e punës:
+`record_activity()` nuk numëron më.
+
+### Dy gjëra që dolën duke e ndërtuar
+
+**Rregulli i ri ia fshihte njeriut vetë profilin.** Nëse `profiles` kërkonte
+`eshte_aktiv()`, atëherë një llogari e hequr nuk e lexonte dot as rreshtin e
+vet — dhe faqja nuk e mësonte dot se hyrja i ishte hequr, sepse `active`
+rri pikërisht aty. Përfundimi ishte se personi mbetej brenda, i trajtuar si
+përdorues i zakonshëm. Prandaj rregulli ka një degë të dytë: **secili e sheh
+gjithmonë rreshtin e vet**, edhe pa hyrje. Nuk rrjedh asgjë — sheh vetëm
+veten, dhe asnjë veprim tjetër nuk i hapet.
+
+**Ridrejtimi te `/login` do të bëhej unazë.** Proxy-ja e sheh çelësin ende të
+mirë, e quan njeriun të kyçur, dhe e kthen nga `/login` te «/». Prandaj u
+shtua `/auth/dil`: aty sesioni fshihet vërtet, dhe pastaj s'ka më ku të
+kthehet. Ridrejtimi është me adresë **relative** — `new URL(..., request.url)`
+e ndërton adresën nga hosti që sheh serveri brenda, dhe ai jo gjithmonë është
+ai që ka shkruar njeriu; te prova doli «localhost» ndërsa shfletuesi ishte te
+«127.0.0.1», dhe bashkë me hostin humbte edhe cookie-ja e gjuhës.
+
+---
+
+## Pjesa 14 — Dy gjuhët
 
 Çdo tekst që sheh njeriu rri te `lib/i18n.ts`, jo nëpër faqe. Aty janë dy
 fjalorë: `de` (gjermanisht) dhe `sq` (shqip).
@@ -925,7 +973,7 @@ vetë me `DICTS[lang]`.
 
 ---
 
-## Pjesa 14 — Kur diçka nuk shkon
+## Pjesa 15 — Kur diçka nuk shkon
 
 | Problemi | Zgjidhja |
 | --- | --- |
