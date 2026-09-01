@@ -207,7 +207,9 @@ const de = {
   fCurrentInsurance: "Aktuelle Versicherung",
   fLanguage: "Sprache",
   fCallDate: "Anrufdatum",
-  fScheduledAt: "Datum und Uhrzeit des Termins",
+  fScheduledDate: "Datum des Termins",
+  fScheduledTime: "Uhrzeit",
+  fTimeHint: "24-Stunden-Format, z. B. 09:00 oder 22:00",
   fPersonsCount: "Anzahl Personen",
   fCreatedAt: "Angelegt am",
 
@@ -688,7 +690,9 @@ const sq: Dict = {
   fCurrentInsurance: "Sigurimi aktual",
   fLanguage: "Gjuha",
   fCallDate: "Data e telefonatës",
-  fScheduledAt: "Data dhe ora e terminit",
+  fScheduledDate: "Data e terminit",
+  fScheduledTime: "Ora",
+  fTimeHint: "Ora 0–23, p.sh. 09:00 ose 22:00",
   fPersonsCount: "Numri i personave",
   fCreatedAt: "Shtuar më",
 

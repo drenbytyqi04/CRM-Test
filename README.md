@@ -188,7 +188,12 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
   lira. Shih **Pjesa 10**.
 - **Radha e listës:** termini i regjistruar i fundit rri lart, pavarësisht se
   për cilën datë është caktuar. Kështu ai që sapo u shtua gjendet menjëherë.
-- **Ora:** shkruhet gjithmonë **0–23**, në të dyja gjuhët. Shqipja e shkruan
+- **Ora:** shkruhet gjithmonë **0–23**, edhe kur lexohet, edhe kur shkruhet.
+  Data dhe ora janë dy fusha veç: fusha e vjetër `datetime-local` e vizatonte
+  vetë shfletuesi sipas gjuhës së kompjuterit, dhe te një kompjuter shqip ajo
+  shkruante «10:00 PM» në vend të «22:00». Atë pamje faqja nuk e urdhëron dot
+  — s'ka as atribut, as stil që ta detyrojë 24-orëshin — prandaj fusha e orës
+  u ndërtua vetë: shkruhet `HH:MM`, dhe çdo gjë tjetër nuk pranohet. Shqipja e shkruan
   orën me 12 nëse nuk i thuhet ndryshe, dhe atëherë 14:30 del «02:30 m.d.» —
   numri që lexon agjenti nuk është ora e terminit. Te një sistem terminesh kjo
   nuk është hollësi. Të gjitha datat dhe orët shfaqen me **orën e Beogradit**

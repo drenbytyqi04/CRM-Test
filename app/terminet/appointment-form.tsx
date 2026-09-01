@@ -86,6 +86,9 @@ export default function AppointmentForm({
       ? appointment.status
       : arsyet[0]?.value;
 
+  // Data dhe ora ndahen këtu: te baza rrinë bashkë, te formulari veç.
+  const [dataFillestare, oraFillestare] = scheduledDefault.split("T");
+
   const [state, action, pending] = useActionState<FormState, FormData>(
     duke ? updateAppointment : createAppointment,
     {}
@@ -303,17 +306,45 @@ export default function AppointmentForm({
               className={input}
             />
           </label>
+          {/* Data dhe ora, në dy fusha.
+              Më parë ishte një fushë e vetme `datetime-local`. Atë kontroll e
+              vizaton vetë shfletuesi, sipas gjuhës së kompjuterit — dhe te një
+              kompjuter shqip ai shkruante «10:00 PM» në vend të «22:00». Faqja
+              nuk e urdhëron dot atë pamje: s'ka as atribut, as stil që ta
+              detyrojë 24-orëshin. E vetmja rrugë ishte ta ndërtojmë vetë.
+              Ora shkruhet HH:MM, gjithmonë 0–23, kudo njësoj. */}
           <label className="block">
             <span className={label}>
-              {t.fScheduledAt} <span className="text-red-600">*</span>
+              {t.fScheduledDate} <span className="text-red-600">*</span>
             </span>
             <input
-              name="scheduledAt"
-              type="datetime-local"
+              name="scheduledDate"
+              type="date"
               required
-              defaultValue={nis("scheduledAt", scheduledDefault)}
+              defaultValue={nis("scheduledDate", dataFillestare)}
               className={input}
             />
+          </label>
+          <label className="block">
+            <span className={label}>
+              {t.fScheduledTime} <span className="text-red-600">*</span>
+            </span>
+            <input
+              name="scheduledTime"
+              type="text"
+              required
+              inputMode="numeric"
+              // 00:00 deri 23:59. Shfletuesi e ndalon çdo gjë tjetër, dhe
+              // serveri e kontrollon sërish.
+              pattern="([01][0-9]|2[0-3]):[0-5][0-9]"
+              placeholder="14:30"
+              maxLength={5}
+              defaultValue={nis("scheduledTime", oraFillestare)}
+              className={input}
+            />
+            <span className="mt-1 block text-xs text-slate-500">
+              {t.fTimeHint}
+            </span>
           </label>
           <label className="block">
             <span className={label}>{t.fPersonsCount}</span>

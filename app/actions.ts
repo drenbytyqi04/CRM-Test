@@ -174,7 +174,15 @@ export async function recordActivity(): Promise<void> {
 
 /** Lexon fushat e përbashkëta të formularit të terminit. */
 function readAppointmentFields(formData: FormData) {
-  const scheduled = fromBeogradInput(String(formData.get("scheduledAt") ?? ""));
+  // Data dhe ora vijnë veç nga formulari, dhe bashkohen këtu. Ora shkruhet
+  // gjithmonë 0–23: fusha `datetime-local` u hoq sepse te një kompjuter
+  // shqip ajo shkruante «10:00 PM» në vend të «22:00», dhe atë pamje faqja
+  // nuk e urdhëron dot.
+  const data = String(formData.get("scheduledDate") ?? "").trim();
+  const ora = String(formData.get("scheduledTime") ?? "").trim();
+  const scheduled = fromBeogradInput(
+    data && /^([01]\d|2[0-3]):[0-5]\d$/.test(ora) ? `${data}T${ora}` : ""
+  );
   const persons = Number(formData.get("personsCount") ?? 1);
   const contracts = Number(formData.get("contractsClosed") ?? 0);
   const status = String(formData.get("status") ?? "open");
