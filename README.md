@@ -219,8 +219,28 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
   Numri i faqes rri te adresa (`/?faqe=7`), prandaj lidhja mund të dërgohet
   ose të ruhet, dhe kthimi nga një termin të lë aty ku ishe.
 - **Kërko:** kutia djathtas filtrit gjen sipas emrit (kudo brenda tekstit)
-  ose sipas numrit të shkurtër (`2998`). Kërkimi, filtri dhe pamja *Të mijat*
-  udhëtojnë bashkë.
+  ose sipas numrit të shkurtër (`2998`).
+- **Data e terminit:** rreshti i dytë i filtrave, *Nga … Deri*. Filtron sipas
+  datës **për të cilën është caktuar** termini — jo sipas datës kur u shtua te
+  sistemi. Të dyja anët janë të lira: vetëm *Nga* do të thotë «prej asaj dite
+  e tutje», vetëm *Deri* «gjithçka para saj». Për një ditë të vetme, e njëjta
+  datë në të dyja anët — ose shkurtorja *Sot*; ka edhe *Kjo javë* (e hënë–e
+  diel) dhe *Ky muaj*.
+
+  Kur ka filtër date, lista renditet sipas **orës së terminit**, nga i pari i
+  ditës te i fundit — sepse atëherë pyetja s'është më «çfarë u shtua së
+  fundi», por «si e kemi të mërkurën». Pa filtër date, radha mbetet si ishte:
+  i fundit i regjistruar rri lart.
+
+  Fushat e datës i vizaton vetë shfletuesi, sipas gjuhës së tij: një
+  kompjuter i vendosur në anglisht e shkruan 5 shtatorin si `09/05`. Prandaj
+  intervali përsëritet pranë tyre me shkronjat tona, dita e para:
+  `5.9.2026 – 12.9.2026`.
+- **Filtrat udhëtojnë bashkë.** Rezultati, kërkimi, intervali i datës, pamja
+  *Të mijat* dhe numri i faqes rrinë të gjitha te adresa dhe asnjëri nuk i
+  fshin të tjerët: ndërro rezultatin dhe data mbetet; kërko dhe të dyja
+  mbeten. Ndërrimi i një filtri e kthen listën te faqja e parë — rezultatet
+  janë të tjera, prandaj faqja 7 e mëparshme s'ka kuptim.
 - **Hap një termin:** kliko mbi emrin. Faqja ndahet në pesë skeda —
   *Personalia*, *Të dhëna teknike*, *Rezultati*, *Detaje*, *Feedback* — dhe
   duket vetëm njëra njëherësh, që të mos zbresësh gjatë. Butoni *Ruaj
@@ -396,6 +416,7 @@ app/
   profili/page.tsx          Profili im: koha, puna dhe lejet
   stats.tsx                 Kutitë e numrave dhe grafikët (HTML i thjeshtë)
   status-filter.tsx         Menyja e filtrit sipas statusit
+  date-filter.tsx           Filtri sipas datës së terminit + shkurtoret
   pagination.tsx            Butonat e faqeve: ‹ 1 2 … 40 ›
   search-box.tsx            Kutia e kërkimit mbi listë
   bulk-assign.tsx           Zgjedhja e disa termineve dhe dhënia te një ekspert
@@ -427,6 +448,7 @@ lib/
   auth.ts                   "Kush është i kyçur?" dhe "çfarë roli ka?"
   backup.ts                 Ç'hyn te kopja, dhe shkrimi i CSV-së
   faqet.ts                  Leximi faqe-pas-faqeje: kurthi i 1000 rreshtave
+  lista.ts                  Gjendja e listës dhe e VETMJA adresë që e ndërton
   types.ts                  Tipat, statuset dhe ndihmësit e vegjël
   i18n.ts                   Fjalori: çdo tekst, gjermanisht dhe shqip
   i18n-server.ts            Lexon gjuhën e zgjedhur nga cookie-ja
@@ -444,6 +466,8 @@ supabase/
   useri.sql                 Useri cakton terminet e veta, dhe sheh vetëm ato
   numrat.sql                Numërimi për person te baza, jo duke tërhequr tabelën
   ndryshimi-menaxherit.sql  Terminin e ndryshon vetëm menaxheri, as useri të vetin
+  ekspertet-menaxheri.sql   Aksesin e ekspertit e jep edhe menaxheri
+  datat.sql                 Filtri sipas datës së terminit + indekset e tij
   hyrja-e-hequr.sql         Llogaria e hequr ndalet menjëherë, edhe me çelësin e vjetër
   rls-shpejtesi.sql         Rregullat: një llogaritje për kërkesë, jo për rresht
   mbetur.sql                Të dyja migrimet e fundit, në një skedë
@@ -802,6 +826,55 @@ Një kurth që u kap vetëm duke e matur: indeksi duhet të përputhet me **radh
 e plotë**, jo vetëm me kolonën e parë. Me indeks mbi `created_at desc` dhe
 renditje `created_at desc, nr desc`, baza e lë indeksin dhe skanon gjithçka —
 **125 ms** në vend të 0.06 ms. Indeksi tani i mban të dyja kolonat.
+
+I njëjti rregull vlen edhe për filtrin sipas datës, i cili rendit sipas
+`scheduled_at, nr` (`supabase/datat.sql`). E provuar te vetë baza: me
+`appointments_scheduled_nr_idx` plani është një **Index Scan i vetëm, pa
+hap renditjeje** — indeksi i shërben edhe kufirit edhe radhës.
+
+### Filtri sipas datës, dhe një kurth me një ditë të tërë
+
+Një filtër date shkruhet gati gjithmonë me `<=`. Dhe gati gjithmonë është
+gabim, sepse njeriu zgjedh një **ditë**, kurse baza mban një **çast**. Me
+`scheduled_at <= '5 shtator'`, baza e lexon atë si «5 shtator, ora 00:00» —
+pra hyn vetëm mesnata, dhe termini i orës 17:00 të asaj dite mbetet jashtë.
+Asnjë gabim nuk shfaqet; lista thjesht del më e shkurtër nga sa duhet, dhe
+kjo është pikërisht mënyra si një filtër i tillë rri i prishur me muaj.
+
+Prandaj intervali është **gjysmë i hapur**: `nga 00:00 e ditës së parë` deri
+`< 00:00 e ditës PASARDHËSE`. «Deri më 5» i merr edhe terminet e orës 23:59.
+
+Të dyja mesnatat janë të Beogradit, jo të orës botërore — dhe llogariten me
+`fromBeogradInput`, që e njeh orën e verës. Nuk është hollësi: në gusht
+mesnata e Beogradit është 22:00 e ditës së kaluar sipas orës botërore, në
+janar 23:00. Me një largësi të ngurtë, dy herë në vit çdo ditë do të
+zhvendosej për një orë — dhe terminet e para ose të fundit të ditës do të
+binin te dita e gabuar.
+
+Kjo pjesë është matur në të dyja anët. Te faqja, **32 kontrolle** mbi vetë
+llogaritjen, përfshirë të dyja netët kur ndërrohet ora (29 mars dhe 25 tetor
+2026) dhe 29 shkurtin e vitit të brishtë. Te baza, mbi të dhënat e vërteta:
+25 gushti ka katër termine, nga ora 02:18 deri në 19:31 — dhe filtri «25
+gusht – 25 gusht» i kthen **të katërt**. Postgres-i dhe faqja nxjerrin
+saktësisht të njëjtin çast për çdo datë të provuar.
+
+> **E ZBATUAR ✅** — `supabase/datat.sql` u ekzekutua më 3 shtator 2026 mbi
+> bazën e vërtetë. Funksioni `appointments_summary` mori dy parametra të rinj
+> me vlerë të parazgjedhur `null`, prandaj thirrja e vjetër me tre argumente
+> vazhdon të punojë — një version i pandërtuar i faqes nuk prishet. Këshilluesi
+> i Supabase-it nuk shtoi asnjë paralajmërim të ri.
+
+**Pse edhe përmbledhja.** Numrat lart llogariten nga baza, jo nga rreshtat e
+faqes. Po të mos e mësonte edhe ajo intervalin, lista poshtë do të tregonte
+terminet e një jave kurse numrat lart do të mbeteshin të gjithë bazës — dy të
+vërteta të ndryshme në të njëjtin ekran, që është më keq se asnjë numër fare.
+
+**Një skedë e vetme e ndërton adresën.** Lista ka tani pesë zgjedhje që rrinë
+te adresa, dhe secila ndërtohet nga një pjesë tjetër e faqes. Deri para pak
+secila e ndërtonte adresën vetë; me tre parametra kjo mbahej, me pesë jo —
+mjafton që njëra ta harrojë njërin, dhe filtri i datës humbet sapo ndërron
+rezultatin, pa asnjë gabim. Tani adresën e ndërton vetëm `adresaEListes` te
+`lib/lista.ts`, dhe të gjitha e thërrasin atë.
 
 **Rregullat e leximit.** `rls-shpejtesi.sql` i rishkruan rregullat e RLS-së
 që `auth.uid()` dhe `is_admin()`/`is_manager()` të llogariten **një herë për

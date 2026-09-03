@@ -2,6 +2,7 @@ import Link from "next/link";
 import AppointmentForm from "./terminet/appointment-form";
 import SetupNotice from "./setup-notice";
 import StatusFilter from "./status-filter";
+import DateFilter from "./date-filter";
 import Pagination from "./pagination";
 import SearchBox from "./search-box";
 import BulkAssign from "./bulk-assign";
@@ -15,11 +16,15 @@ import {
   appointmentPath,
   categoryStyle,
   defaultAppointmentSlot,
+  ditaTjeter,
+  eshteDite,
+  fillimiIDites,
   formatDuration,
   formatBeograd,
   todayInBeograd,
   type Appointment,
 } from "@/lib/types";
+import { adresaEListes, type GjendjaEListes } from "@/lib/lista";
 
 // I thotë Next.js-it ta ndërtojë faqen sa herë hapet, që lista të jetë e freskët.
 export const dynamic = "force-dynamic";
@@ -54,9 +59,22 @@ export default async function Page({ searchParams }: PageProps<"/">) {
   const user = await requireUser();
   const supabase = await createClient();
 
-  const { status, view, kerko, faqe } = await searchParams;
+  const { status, view, kerko, faqe, nga, deri } = await searchParams;
   const filtri = typeof status === "string" ? status : "";
   const kerkimi = typeof kerko === "string" ? kerko.trim() : "";
+  // Datat vijnë nga adresa dhe mund të jenë çfarëdo: «dje», «2026-02-31»,
+  // gjysma e një date. Çdo gjë që s'është ditë e vërtetë hidhet poshtë dhe
+  // trajtohet si e pazgjedhur — më mirë lista e plotë se një filtër që
+  // heshtazi nuk kthen asgjë.
+  const dataNga = typeof nga === "string" && eshteDite(nga) ? nga : "";
+  const dataDeri = typeof deri === "string" && eshteDite(deri) ? deri : "";
+  // I kthyer: kush shkruan «nga 10 shtatori deri më 5» do të thotë 5–10.
+  // Alternativa — një listë bosh — e lë njeriun të mendojë se s'ka termine.
+  const [ditaNga, ditaDeri] =
+    dataNga && dataDeri && dataNga > dataDeri
+      ? [dataDeri, dataNga]
+      : [dataNga, dataDeri];
+  const meDate = Boolean(ditaNga || ditaDeri);
   // Faqja vjen nga adresa dhe mund të jetë çfarëdo: «abc», «-3», «99999».
   // Prandaj kthehet në numër dhe kufizohet më poshtë, pasi dimë sa faqe ka.
   const faqjaEKerkuar = Math.max(1, Number(faqe) || 1);
@@ -80,16 +98,38 @@ export default async function Page({ searchParams }: PageProps<"/">) {
   // tregonte 50 në vend të 2000.
   let query = supabase
     .from("appointments")
-    .select(APPOINTMENT_COLUMNS, { count: "exact" })
-    .order("created_at", { ascending: false })
-    // Ndarës i dytë, i detyrueshëm sapo lista u nda në faqe. Dy termine të
-    // regjistruar brenda të njëjtit çast kanë të njëjtën `created_at`, dhe
-    // atëherë radha mes tyre s'është e përcaktuar: baza mund t'i kthejë
-    // ndryshe sa herë. Me faqe kjo do të thoshte se i njëjti termin del në
-    // dy faqe, ose nuk del në asnjërën. `nr` është unik, prandaj e mbyll.
-    .order("nr", { ascending: false });
+    .select(APPOINTMENT_COLUMNS, { count: "exact" });
+
+  // Radha ndryshon bashkë me pyetjen që bën njeriu.
+  //
+  // Pa filtër date, pyetja është «çfarë u shtua së fundi» — prandaj lart rri
+  // i fundit i regjistruar. Me filtër date, pyetja është tjetër: «si e kemi
+  // të mërkurën». Atë e lexon vetëm një listë e renditur sipas orës së
+  // terminit, nga i pari i ditës te i fundit — përndryshe orari i një dite
+  // do të dilte i përzier sipas kohës kur dikush e futi te sistemi.
+  //
+  // Ndarësi i dytë është i detyrueshëm në të dyja rastet, sepse lista është
+  // e ndarë në faqe. Dy termine me të njëjtin çast kanë radhë të
+  // papërcaktuar: baza mund t'i kthejë ndryshe sa herë, dhe atëherë i njëjti
+  // termin del në dy faqe ose në asnjërën. `nr` është unik, prandaj e mbyll.
+  query = meDate
+    ? query
+        .order("scheduled_at", { ascending: true })
+        .order("nr", { ascending: true })
+    : query
+        .order("created_at", { ascending: false })
+        .order("nr", { ascending: false });
 
   if (!showAll) query = query.eq("user_id", user.id);
+
+  // Data e zgjedhur do të thotë ditë e tërë e Beogradit. Fundi është i
+  // hapur — «< fillimi i ditës pasardhëse» — sepse «deri më 5» duhet t'i
+  // marrë edhe terminet e orës 17:00 të asaj dite; me `<= 5` do të mbetej
+  // vetëm mesnata.
+  const nisja = ditaNga ? fillimiIDites(ditaNga) : null;
+  const fundi = ditaDeri ? fillimiIDites(ditaTjeter(ditaDeri)) : null;
+  if (nisja) query = query.gte("scheduled_at", nisja);
+  if (fundi) query = query.lt("scheduled_at", fundi);
   if (kategoriaIVlefshme) query = query.eq("category", filtri);
   if (kerkimi) {
     // Emri kudo brenda tekstit, ose numri i shkurtër i saktë (#1234).
@@ -101,9 +141,9 @@ export default async function Page({ searchParams }: PageProps<"/">) {
 
   // Faqja e parë merret gjithmonë; nëse numri i kërkuar del jashtë, faqja
   // rregullohet pasi dimë sa rreshta ka gjithsej.
-  const nga = (faqjaEKerkuar - 1) * FAQE_MADHESIA;
+  const rreshtiIPare = (faqjaEKerkuar - 1) * FAQE_MADHESIA;
   const terminetResult = await query
-    .range(nga, nga + FAQE_MADHESIA - 1)
+    .range(rreshtiIPare, rreshtiIPare + FAQE_MADHESIA - 1)
     .returns<Appointment[]>();
 
   const terminet = terminetResult.data ?? [];
@@ -119,22 +159,23 @@ export default async function Page({ searchParams }: PageProps<"/">) {
    * ndryshon filtri ose pamja, `faqe` bie qëllimisht: rezultatet janë të
    * tjera, prandaj faqja 7 e mëparshme s'ka kuptim.
    */
-  const adresaEListes = (o: {
-    view?: "mine" | "all";
-    faqe?: number;
-  } = {}) => {
-    const p = new URLSearchParams();
-    // `view` ka kuptim vetëm aty ku ka çelës: te menaxheri dhe admini. Për
-    // të tjerët do të ishte një parametër që s'ndryshon asgjë.
-    const vetemTeMijat =
-      user.isManager && (o.view ? o.view === "mine" : !showAll);
-    if (vetemTeMijat) p.set("view", "mine");
-    if (filtri) p.set("status", filtri);
-    if (kerkimi) p.set("kerko", kerkimi);
-    if (o.faqe && o.faqe > 1) p.set("faqe", String(o.faqe));
-    const q = p.toString();
-    return q ? `/?${q}` : "/";
+  // Të gjitha zgjedhjet e listës në një vend. Adresën e ndërton vetëm
+  // `adresaEListes` te `lib/lista.ts`, dhe të gjitha pjesët e faqes — menyja
+  // e rezultatit, kutia e kërkimit, filtri i datës, butonat e faqeve — e
+  // thërrasin atë. Kështu asnjëra s'i harron zgjedhjet e tjetrës.
+  //
+  // `view` ka kuptim vetëm aty ku ka çelës: te menaxheri dhe admini. Për të
+  // tjerët do të ishte një parametër që s'ndryshon asgjë.
+  const gjendja: GjendjaEListes = {
+    status: filtri,
+    vetemTeMijat: user.isManager && !showAll,
+    kerko: kerkimi,
+    nga: ditaNga,
+    deri: ditaDeri,
   };
+  const adresa = (
+    ndryshimi: Partial<GjendjaEListes> & { faqe?: number } = {}
+  ) => adresaEListes(gjendja, ndryshimi);
 
   const [notesResult, agjentetResult, aktivitetiIm, permbledhja] = await Promise.all([
     // Shënimet vetëm për terminet e KËSAJ faqeje. Me të gjitha id-të, adresa
@@ -164,11 +205,17 @@ export default async function Page({ searchParams }: PageProps<"/">) {
     // Numrat e përmbledhjes janë të TËRË grupit, jo të faqes që sheh.
     // Prandaj i llogarit baza (`supabase/faqosja.sql`) dhe kthen tre numra
     // në vend të mijëra rreshtave.
+    // Filtri i datës i kalohet edhe këtu, dhe kjo nuk është hollësi: pa të,
+    // lista poshtë do të tregonte terminet e një jave, kurse tre numrat lart
+    // do të mbeteshin të gjithë bazës. Dy të vërteta të ndryshme në të
+    // njëjtin ekran janë më keq se asnjë numër fare.
     supabase
       .rpc("appointments_summary", {
         p_user: showAll ? null : user.id,
         p_category: kategoriaIVlefshme ? filtri : null,
         p_search: kerkimi || null,
+        p_from: nisja,
+        p_to: fundi,
       })
       .maybeSingle<{ total: number; held: number; contracts: number }>(),
   ]);
@@ -229,7 +276,7 @@ export default async function Page({ searchParams }: PageProps<"/">) {
       {user.isManager && (
           <nav className="mb-4 flex gap-2 text-sm">
             <Link
-              href={adresaEListes({ view: "all" })}
+              href={adresa({ vetemTeMijat: false })}
               className={`rounded-lg px-3 py-1.5 transition ${
                 showAll
                   ? "bg-brand text-white"
@@ -239,7 +286,7 @@ export default async function Page({ searchParams }: PageProps<"/">) {
               {t.listAll}
             </Link>
             <Link
-              href={adresaEListes({ view: "mine" })}
+              href={adresa({ vetemTeMijat: true })}
               className={`rounded-lg px-3 py-1.5 transition ${
                 showAll
                   ? "border border-slate-300 text-slate-600 hover:bg-white"
@@ -267,19 +314,14 @@ export default async function Page({ searchParams }: PageProps<"/">) {
           </details>
       )}
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <StatusFilter
-          vlera={filtri}
-          vetemTeMijat={user.isManager && !showAll}
-          kerkimi={kerkimi}
-          lang={lang}
-        />
-        <SearchBox
-          vlera={kerkimi}
-          status={filtri}
-          vetemTeMijat={user.isManager && !showAll}
-          t={t}
-        />
+      <div className="mb-4 space-y-3 rounded-xl border border-slate-200 bg-white p-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <StatusFilter gjendja={gjendja} lang={lang} />
+          <SearchBox gjendja={gjendja} t={t} />
+        </div>
+        <div className="border-t border-slate-100 pt-3">
+          <DateFilter gjendja={gjendja} lang={lang} />
+        </div>
       </div>
 
       {terminetResult.error && (
@@ -292,9 +334,11 @@ export default async function Page({ searchParams }: PageProps<"/">) {
         <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">
           {kerkimi
             ? t.searchNoResult(kerkimi)
-            : user.isExpert
-              ? t.expertNoAppointments
-              : t.listEmpty}
+            : meDate
+              ? t.dateNoResult
+              : user.isExpert
+                ? t.expertNoAppointments
+                : t.listEmpty}
         </p>
       ) : (
         <BulkAssign eksperte={eksperte} lang={lang} vetemFemijet={!meZgjedhje}>
@@ -404,7 +448,7 @@ export default async function Page({ searchParams }: PageProps<"/">) {
         faqja={faqja}
         gjithsej={faqeGjithsej}
         t={t}
-        adresa={(n) => adresaEListes({ faqe: n })}
+        adresa={(n) => adresa({ faqe: n })}
       />
     </main>
   );

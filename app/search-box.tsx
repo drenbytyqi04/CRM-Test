@@ -1,5 +1,10 @@
 import Link from "next/link";
 import type { Dict } from "@/lib/i18n";
+import {
+  adresaEListes,
+  fushatEFshehura,
+  type GjendjaEListes,
+} from "@/lib/lista";
 
 /**
  * Kutia e kërkimit mbi listë: emri i personit ose numri i shkurtër (#1234).
@@ -8,26 +13,25 @@ import type { Dict } from "@/lib/i18n";
  * faqeje. Prandaj kërkimi shkon bashkë me faqosjen, jo pas saj.
  *
  * Është një `<form method="get">` i thjeshtë, pa JavaScript: shkruan dhe
- * shtyp Enter. Filtri i statusit dhe pamja «Të mijat» udhëtojnë si fusha të
- * fshehura, që kërkimi të mos i humbasë.
+ * shtyp Enter. Por një formular dërgon vetëm fushat e veta — prandaj çdo
+ * zgjedhje tjetër (rezultati, pamja «Të mijat», intervali i datave) udhëton
+ * si fushë e fshehur. Listën e tyre e mban `fushatEFshehura`, që një filtër
+ * i ri të mos harrohet këtu pa u vënë re.
  */
 export default function SearchBox({
-  vlera,
-  status,
-  vetemTeMijat,
+  gjendja,
   t,
 }: {
-  vlera: string;
-  status: string;
-  vetemTeMijat: boolean;
+  gjendja: GjendjaEListes;
   t: Dict;
 }) {
   return (
     <form action="/" method="get" className="flex items-center gap-2">
       {/* Kërkimi i ri nis gjithmonë te faqja e parë: rezultatet janë të
           tjera, prandaj faqja 7 e kërkimit të mëparshëm s'ka kuptim. */}
-      {status && <input type="hidden" name="status" value={status} />}
-      {vetemTeMijat && <input type="hidden" name="view" value="mine" />}
+      {fushatEFshehura(gjendja, "kerko").map((f) => (
+        <input key={f.name} type="hidden" name={f.name} value={f.value} />
+      ))}
 
       <label className="sr-only" htmlFor="kerko">
         {t.searchLabel}
@@ -36,7 +40,7 @@ export default function SearchBox({
         id="kerko"
         name="kerko"
         type="search"
-        defaultValue={vlera}
+        defaultValue={gjendja.kerko}
         placeholder={t.searchPlaceholder}
         className="w-44 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-brand sm:w-56"
       />
@@ -47,17 +51,9 @@ export default function SearchBox({
         {t.searchButton}
       </button>
 
-      {vlera && (
+      {gjendja.kerko && (
         <Link
-          href={
-            [status && `status=${status}`, vetemTeMijat && "view=mine"]
-              .filter(Boolean)
-              .join("&")
-              ? `/?${[status && `status=${status}`, vetemTeMijat && "view=mine"]
-                  .filter(Boolean)
-                  .join("&")}`
-              : "/"
-          }
+          href={adresaEListes(gjendja, { kerko: "" })}
           className="text-sm text-slate-500 underline-offset-2 hover:underline"
         >
           {t.searchClear}

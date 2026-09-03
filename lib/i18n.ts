@@ -162,6 +162,16 @@ const de = {
   filterStatus: "Ergebnis",
   filterAll: "Alle",
 
+  // ---------- Filter nach Termindatum ----------
+  filterDate: "Termindatum",
+  filterDateFrom: "Von",
+  filterDateTo: "Bis",
+  filterDateToday: "Heute",
+  filterDateWeek: "Diese Woche",
+  filterDateMonth: "Dieser Monat",
+  filterDateClear: "Zeitraum zurücksetzen",
+  dateNoResult: "Keine Termine in diesem Zeitraum.",
+
   // ---------- Kërkimi dhe faqet ----------
   searchLabel: "Suche",
   searchPlaceholder: "Name oder Nr.",
@@ -654,6 +664,15 @@ const sq: Dict = {
   colStatus: "Rezultati",
   filterStatus: "Rezultati",
   filterAll: "Të gjitha",
+
+  filterDate: "Data e terminit",
+  filterDateFrom: "Nga",
+  filterDateTo: "Deri",
+  filterDateToday: "Sot",
+  filterDateWeek: "Kjo javë",
+  filterDateMonth: "Ky muaj",
+  filterDateClear: "Pastro datat",
+  dateNoResult: "Asnjë termin në këtë interval.",
 
   searchLabel: "Kërko",
   searchPlaceholder: "Emri ose nr.",

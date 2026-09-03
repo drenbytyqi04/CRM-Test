@@ -599,3 +599,92 @@ export function formatDate(iso: string, locale = "de-DE"): string {
     hourCycle: ORA24,
   }).format(new Date(iso));
 }
+
+// =====================================================================
+// FILTRI SIPAS DATËS SË TERMINIT
+// =====================================================================
+//
+// Këto funksione i kthejnë dy datat e zgjedhura te lista në dy çaste të
+// plota, që baza t'i krahasojë me `scheduled_at`.
+//
+// Puna e vërtetë këtu është një kurth i vetëm, dhe funksionet janë të ndara
+// pikërisht që ai të mos harrohet: një datë e zgjedhur nga njeriu do të
+// thotë NJË DITË E TËRË e Beogradit, jo një çast. «Deri më 5 shtator» duhet
+// t'i marrë edhe terminet e orës 17:00 të asaj dite. Prandaj fundi nuk është
+// «<= 5 shtatori» — ai do të linte jashtë gjithçka pas mesnatës — por
+// «< 6 shtatori në orën 00:00». Interval gjysmë i hapur.
+
+/** A duket "2026-09-05" si ditë e vërtetë? */
+export function eshteDite(v: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return false;
+  // `Date` e pranon edhe "2026-02-31" dhe e rrëshqet te 3 marsi. Prandaj
+  // krahasohet teksti pas kthimit: nëse ndryshoi, dita s'ekzistonte.
+  const d = new Date(`${v}T12:00:00Z`);
+  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === v;
+}
+
+/** Dita pasardhëse: "2026-09-05" -> "2026-09-06". Kalon vetë muajin e vitin. */
+export function ditaTjeter(dita: string): string {
+  const d = new Date(`${dita}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
+/**
+ * Fillimi i një dite sipas orës së Beogradit, si çast i plotë për bazën.
+ *
+ * Kalon nga `fromBeogradInput`, pra e mban parasysh edhe orën e verës: më 29
+ * mars mesnata e Beogradit s'është e njëjta largësi nga ora botërore si më
+ * 29 tetor.
+ */
+export function fillimiIDites(dita: string): string | null {
+  return eshteDite(dita) ? fromBeogradInput(`${dita}T00:00`) : null;
+}
+
+/**
+ * E hëna e javës së tanishme dhe e diela e saj, sipas orës së Beogradit.
+ *
+ * Java nis të hënën — si te kalendarët këtu, dhe si te vetë puna: «kjo javë»
+ * do të thotë e hënë–e diel, jo e diel–e shtunë.
+ */
+export function javaKetu(): { nga: string; deri: string } {
+  const sot = new Date(`${todayInBeograd()}T12:00:00Z`);
+  // `getUTCDay()` e nis javën të dielën (0). Kthimi në të hënë: e diela
+  // llogaritet si dita e 7-të e javës që shkoi, jo si e para e kësaj.
+  const larg = (sot.getUTCDay() + 6) % 7;
+  const eHene = new Date(sot);
+  eHene.setUTCDate(eHene.getUTCDate() - larg);
+  const eDiel = new Date(eHene);
+  eDiel.setUTCDate(eDiel.getUTCDate() + 6);
+  return {
+    nga: eHene.toISOString().slice(0, 10),
+    deri: eDiel.toISOString().slice(0, 10),
+  };
+}
+
+/** Dita e parë dhe e fundit e muajit të tanishëm, sipas orës së Beogradit. */
+export function muajiKetu(): { nga: string; deri: string } {
+  const [v, m] = currentMonth().split("-").map(Number);
+  // Dita 0 e muajit pasardhës është dita e fundit e këtij muaji — pa pasur
+  // nevojë të dihet nëse muaji ka 28, 29, 30 apo 31 ditë.
+  const fundi = new Date(Date.UTC(v, m, 0));
+  return { nga: `${currentMonth()}-01`, deri: fundi.toISOString().slice(0, 10) };
+}
+
+/**
+ * Data si numra, dita e para: "2026-09-05" -> "5.9.2026".
+ *
+ * Fushat `type="date"` i vizaton vetë shfletuesi, sipas gjuhës së tij — dhe
+ * një kompjuter i vendosur në anglisht e shkruan 5 shtatorin si «09/05».
+ * Kush e lexon këtu, e lexon si 9 maj. Prandaj intervali i zgjedhur
+ * përsëritet edhe një herë me shkronjat tona, pranë fushave.
+ *
+ * Me numra e jo me emrin e muajit, dhe pa `Intl`, me qëllim: emrat e muajve
+ * nuk janë të njëjtë te Node-i dhe te Chrome-i, dhe kjo pjesë vizatohet në
+ * të dyja anët. Një ndryshim i vetëm shkronje mjafton që React-i të ankohet
+ * se faqja e serverit s'përputhet me atë të shfletuesit.
+ */
+export function dataShkurt(dita: string): string {
+  const [v, m, d] = dita.split("-");
+  return `${Number(d)}.${Number(m)}.${v}`;
+}
