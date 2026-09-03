@@ -255,7 +255,7 @@ const de = {
   // ---------- Ekspertët ----------
   expertsTitle: "Experten mit Zugriff",
   expertsHint:
-    "Nur diese Experten sehen diesen Termin. Zugriff vergibt ausschließlich der Administrator.",
+    "Nur diese Experten sehen diesen Termin. Zugriff vergeben Manager und Administrator.",
   expertsNone: "Noch kein Experte hat Zugriff auf diesen Termin.",
   expertsAdd: "Zugriff geben",
   expertsAdding: "Wird hinzugefügt…",
@@ -267,7 +267,7 @@ const de = {
   expertsRevoked: (email: string) => `${email} sieht diesen Termin nicht mehr.`,
   expertsCount: (n: number) => sasi(n, "Experte", "Experten"),
   expertsGrantedBy: "hinzugefügt von",
-  errExpertsAdminOnly: "Nur der Administrator vergibt Zugriff.",
+  errExpertsManagerOnly: "Zugriff vergeben nur Manager und Administrator.",
   errBulkNoneSelected: "Bitte mindestens einen Termin auswählen.",
   bulkSelected: (n: number) => `${sasi(n, "Termin", "Termine")} ausgewählt`,
   bulkAssign: "Einem Experten zuweisen",
@@ -283,7 +283,7 @@ const de = {
   errExpertAlready: "Diese Person hat bereits Zugriff.",
   errExpertFailed: "Der Zugriff konnte nicht geändert werden",
   expertNoAppointments:
-    "Ihnen wurde noch kein Termin zugewiesen. Der Administrator gibt Ihnen Zugriff.",
+    "Ihnen wurde noch kein Termin zugewiesen. Manager und Administrator geben Ihnen Zugriff.",
 
   // ---------- Feedback ----------
   feedbackTitle: "Feedback zum Termin",
@@ -395,6 +395,7 @@ const de = {
   permEditAppointments: "Jeden Termin ändern",
   permDeleteAppointments: "Termine löschen",
   permEditAnyNote: "Jede Notiz schreiben und ändern",
+  permGrantExperts: "Experten Zugriff auf Termine geben",
   permSeeUsers: "Benutzer und deren Arbeitszeit sehen",
   permNoCreateAppointments: "Termine anlegen oder ändern",
   permReadAssigned: "Nur die zugewiesenen Termine lesen",
@@ -734,7 +735,7 @@ const sq: Dict = {
 
   expertsTitle: "Ekspertët me akses",
   expertsHint:
-    "Vetëm këta ekspertë e shohin këtë termin. Aksesin e jep vetëm administratori.",
+    "Vetëm këta ekspertë e shohin këtë termin. Aksesin e jep menaxheri ose administratori.",
   expertsNone: "Asnjë ekspert nuk e sheh ende këtë termin.",
   expertsAdd: "Jepi akses",
   expertsAdding: "Duke shtuar…",
@@ -746,7 +747,7 @@ const sq: Dict = {
   expertsRevoked: (email) => `${email} nuk e sheh më këtë termin.`,
   expertsCount: (n) => sasi(n, "ekspert", "ekspertë"),
   expertsGrantedBy: "shtuar nga",
-  errExpertsAdminOnly: "Aksesin e jep vetëm administratori.",
+  errExpertsManagerOnly: "Aksesin e jep vetëm menaxheri ose administratori.",
   errBulkNoneSelected: "Zgjidh të paktën një termin.",
   bulkSelected: (n) => `${sasi(n, "termin", "termine")} të zgjedhur`,
   bulkAssign: "Jepja një eksperti",
@@ -762,7 +763,7 @@ const sq: Dict = {
   errExpertAlready: "Ky person e ka tashmë aksesin.",
   errExpertFailed: "Nuk u ndryshua dot aksesi",
   expertNoAppointments:
-    "Ende nuk të është caktuar asnjë termin. Aksesin ta jep administratori.",
+    "Ende nuk të është caktuar asnjë termin. Aksesin ta jep menaxheri ose administratori.",
 
   feedbackTitle: "Feedback i terminit",
   noteNew: "Shënim i ri",
@@ -869,6 +870,7 @@ const sq: Dict = {
   permEditAppointments: "Ndryshon çdo termin",
   permDeleteAppointments: "Fshin termine",
   permEditAnyNote: "Shkruan dhe ndryshon çdo shënim",
+  permGrantExperts: "U jep ekspertëve akses te terminet",
   permSeeUsers: "Sheh përdoruesit dhe kohën e tyre aktive",
   permNoCreateAppointments: "Cakton ose ndryshon termine",
   permReadAssigned: "Lexon vetëm terminet që i janë caktuar",

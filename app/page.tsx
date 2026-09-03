@@ -181,14 +181,14 @@ export default async function Page({ searchParams }: PageProps<"/">) {
     (agjentetResult.data ?? []).map((p) => [p.id, p.email ?? "—"])
   );
 
-  // Shiriti i zgjedhjes duket vetëm për adminin, dhe vetëm nëse ka të kujt
-  // t'ia japë. Kufiri i vërtetë rri te baza; kjo është thjesht pamje.
-  const eksperte = user.isAdmin
+  // Shiriti i zgjedhjes duket për menaxherin dhe adminin, dhe vetëm nëse ka
+  // të kujt t'ia japë. Kufiri i vërtetë rri te baza; kjo është thjesht pamje.
+  const eksperte = user.isManager
     ? (agjentetResult.data ?? [])
         .filter((p) => p.role === "expert")
         .map((p) => ({ id: p.id, email: p.email ?? "—" }))
     : [];
-  const meZgjedhje = user.isAdmin && eksperte.length > 0;
+  const meZgjedhje = user.isManager && eksperte.length > 0;
 
   // Nëse `supabase/faqosja.sql` s'është ngritur ende, funksioni mungon.
   // Atëherë tregohet vetëm numri i termineve — i saktë gjithsesi, sepse vjen

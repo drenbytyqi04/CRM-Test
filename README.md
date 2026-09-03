@@ -265,12 +265,12 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
 | --- | :---: | :---: | :---: | :---: |
 | Lexon **të gjitha** terminet | ❌ | ❌ | ✅ | ✅ |
 | Lexon terminet **e veta** | — | ✅ | ✅ | ✅ |
-| Lexon terminet **që ia jep admini** | ✅ | — | ✅ | ✅ |
+| Lexon terminet **që i jepen** | ✅ | — | ✅ | ✅ |
 | Shkruan shënime | ✅\* | ✅\*\* | ✅ | ✅ |
 | Cakton termine | ❌ | ✅ | ✅ | ✅ |
 | Ndryshon termine — edhe të vetat | ❌ | ❌ | ✅ | ✅ |
 | Fshin termine | ❌ | ❌ | ✅ | ✅ |
-| Jep akses ekspertëve | ❌ | ❌ | ❌ | ✅ |
+| Jep akses ekspertëve | ❌ | ❌ | ✅ | ✅ |
 | Hap llogari dhe heq hyrjen | ❌ | ❌ | ❌ | ✅ |
 | Faqja *Përdoruesit* dhe *Aktiviteti* | ❌ | ❌ | ❌ | ✅ |
 
@@ -294,7 +294,8 @@ merr me vete edhe shënimet e terminit dhe nuk kthehet mbrapsht.
 > bosh derisa të caktojë vetë. Kjo është pikërisht ajo që u kërkua, por s'ka
 > si të mos vihet re. Kush duhet t'i shohë të gjitha, bëhet **menaxher**.
 
-**Eksperti** e bën të njëjtën gjë, por **vetëm te terminet që ia jep admini**.
+**Eksperti** e bën të njëjtën gjë, por **vetëm te terminet që i jepen** — nga
+menaxheri ose nga admini.
 Për të, ato që s'i janë dhënë nuk ekzistojnë fare: nuk dalin te lista, nuk
 numërohen te përmbledhja, dhe adresa e drejtpërdrejtë kthen 404 — jo një
 mesazh «nuk ke leje», që as vetë numri i terminit të mos tregojë nëse ekziston.
@@ -306,13 +307,19 @@ rolin te `supabase/eksperti.sql` (dega e ekspertit) dhe pastaj te
 **shënimet** — ndryshe dikush do të mos e shihte terminin e huaj te lista,
 por do t'i lexonte shënimet e tij përmes API-së. Shih **Pjesa 9**.
 
-Një termin mund t'u jepet **disa ekspertëve** njëherësh. Aksesin e jep vetëm
-admini, në dy mënyra:
+Një termin mund t'u jepet **disa ekspertëve** njëherësh. Aksesin e japin —
+dhe e heqin — **menaxheri dhe admini**, në dy mënyra:
 
-- **Nga lista, disa njëherësh.** Admini sheh kutiza majtas çdo rreshti. Zgjedh
-  sa termine të dojë — ose të gjitha me një klikim — zgjedh ekspertin nga
-  menyja lart, dhe ia jep me një klikim. Kështu caktohet puna e një dite pa u
-  hapur çdo termin veç.
+- **Nga lista, disa njëherësh.** Te lista dalin kutiza majtas çdo rreshti.
+  Zgjidhen sa termine të duhen — ose të gjitha me një klikim — zgjidhet
+  eksperti nga menyja lart, dhe u jepet me një klikim. Kështu caktohet puna e
+  një dite pa u hapur çdo termin veç.
+
+  Deri para pak këtë e bënte vetëm admini, dhe kjo e kthente atë në pengesë:
+  menaxheri e cakton terminin dhe e njeh rastin, por duhej të priste dikë
+  tjetër vetëm për t'ia dhënë një eksperti (`supabase/ekspertet-menaxheri.sql`).
+  Eksperti vetë vazhdon të mos i prekë këto rreshta: as s'ia jep vetes një
+  termin, as s'ia heq dikujt.
 - **Një nga një**, te skeda *Ekspertët me akses* brenda terminit. Aty duket
   edhe kush ia dha aksesin, dhe butoni për ta hequr.
 
@@ -323,6 +330,16 @@ ishte dhënë më parë.
 
 Kur ekspertit i hiqet aksesi, shënimet që ka shkruar **mbeten** — si te heqja
 e një llogarie.
+
+> **E ZBATUAR ✅** — `supabase/ekspertet-menaxheri.sql` u ekzekutua më 3 shtator
+> 2026 mbi bazën e vërtetë, dhe u mat aty me llogaritë reale, brenda një
+> transaksioni që u kthye mbrapsht. Nga 10 llogaritë: **jep dhe heq akses**
+> vetëm dy adminët aktivë dhe menaxheri aktiv; ekspertët, përdoruesit e
+> thjeshtë dhe çdo llogari pa hyrje — përfshirë një **admin** dhe një
+> **menaxher** të hequr — nuk e bëjnë as njërën as tjetrën. Heqja u mat me
+> `row_count`, jo me gabim: një fshirje që rregullat e bazës nuk e lejojnë
+> nuk kthen gabim, thjesht nuk prek asnjë rresht — matur si gabim, do të
+> dukej sikur u lejua.
 
 Administratori ka edhe:
 
@@ -467,7 +484,7 @@ Roli ndryshohet vetëm nga paneli i Supabase-it, ku hyn vetëm ti.
 **Secili sheh punën e vet; menaxheri sheh të gjitha.** Rregulli i leximit
 dikur thoshte `using (true)` — çdo i kyçur i shihte të gjitha terminet. Sot ai
 ka tri degë (`supabase/useri.sql`): menaxheri dhe admini gjithçka, eksperti
-ato që ia jep admini, përdoruesi i thjeshtë të vetat. E njëjta ndarje vlen
+ato që i jepen, përdoruesi i thjeshtë të vetat. E njëjta ndarje vlen
 edhe për **shënimet** — pa të, dikush do të mos e shihte terminin e huaj te
 lista, por do t'i lexonte shënimet e tij përmes API-së.
 

@@ -9,13 +9,18 @@ import type { FormState } from "@/lib/types";
 /**
  * Kush e sheh cilin termin.
  *
- * Aksesin e jep dhe e heq VETËM administratori. Kontrolli bëhet në tri
- * shtresa, dhe secila mjafton më vete:
+ * Aksesin e japin dhe e heqin menaxheri dhe administratori. Deri para pak e
+ * bënte vetëm admini, dhe kjo e kthente atë në pengesë te puna e përditshme:
+ * menaxheri e cakton terminin dhe e njeh rastin, por duhej të priste dikë
+ * tjetër vetëm për t'ia dhënë një eksperti.
+ *
+ * Kontrolli bëhet në tri shtresa, dhe secila mjafton më vete:
  *
  *   1. Faqja nuk e vizaton fare panelin për të tjerët.
  *   2. Këto funksione e kontrollojnë rolin vetë — mund të thirren edhe pa
  *      kaluar nga faqja jonë.
- *   3. Rregullat e bazës (`supabase/eksperti.sql`) e kërkojnë `is_admin()`.
+ *   3. Rregullat e bazës (`supabase/ekspertet-menaxheri.sql`) e kërkojnë
+ *      `is_manager()`.
  *
  * E treta është ajo që mban vërtet. Dy të parat janë që përdoruesi të marrë
  * një mesazh të kuptueshëm në vend të një gabimi teknik.
@@ -33,7 +38,7 @@ export async function grantExpert(
   const user = await requireUser();
   const t = await getDict();
 
-  if (!user.isAdmin) return { error: t.errExpertsAdminOnly };
+  if (!user.isManager) return { error: t.errExpertsManagerOnly };
 
   const appointmentId = String(formData.get("appointmentId") ?? "");
   const expertId = String(formData.get("expertId") ?? "");
@@ -43,7 +48,7 @@ export async function grantExpert(
   const supabase = await createClient();
 
   // Vetëm një llogari me rolin `expert` mund të marrë akses. Pa këtë,
-  // admini do të mund t'i jepte "akses" një menaxheri — gjë që s'do të
+  // do të mund t'i jepej "akses" një menaxheri — gjë që s'do të
   // ndryshonte gjë, por do të linte rreshta që nuk thonë asgjë.
   const { data: profili } = await supabase
     .from("profiles")
@@ -90,7 +95,7 @@ export async function grantExpertBulk(
   const user = await requireUser();
   const t = await getDict();
 
-  if (!user.isAdmin) return { error: t.errExpertsAdminOnly };
+  if (!user.isManager) return { error: t.errExpertsManagerOnly };
 
   const expertId = String(formData.get("expertId") ?? "");
   if (!expertId) return { error: t.errExpertMissing };
@@ -152,7 +157,7 @@ export async function revokeExpert(
   const user = await requireUser();
   const t = await getDict();
 
-  if (!user.isAdmin) return { error: t.errExpertsAdminOnly };
+  if (!user.isManager) return { error: t.errExpertsManagerOnly };
 
   const appointmentId = String(formData.get("appointmentId") ?? "");
   const expertId = String(formData.get("expertId") ?? "");
@@ -170,7 +175,7 @@ export async function revokeExpert(
   if (error) return { error: `${t.errExpertFailed}: ${error.message}` };
   // Pa `select` + kontroll, një fshirje që rregullat e bazës nuk e lejojnë
   // do të dukej sikur u krye.
-  if (!data || data.length === 0) return { error: t.errExpertsAdminOnly };
+  if (!data || data.length === 0) return { error: t.errExpertsManagerOnly };
 
   fresko();
   return { ok: true, message: t.expertsRevoked(email) };

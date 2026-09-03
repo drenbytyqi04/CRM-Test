@@ -30,7 +30,13 @@ const DITE = 14;
 function lejet(role: string, t: Dict): { po: string[]; jo: string[] } {
   if (role === "admin") {
     return {
-      po: [t.permReadAll, t.permEditAnyNote, t.permEditAppointments, t.permSeeUsers],
+      po: [
+        t.permReadAll,
+        t.permEditAnyNote,
+        t.permEditAppointments,
+        t.permGrantExperts,
+        t.permSeeUsers,
+      ],
       jo: [t.permNoChangeRolesAdmin],
     };
   }
@@ -42,6 +48,7 @@ function lejet(role: string, t: Dict): { po: string[]; jo: string[] } {
         t.permCreateAppointments,
         t.permEditAppointments,
         t.permDeleteAppointments,
+        t.permGrantExperts,
       ],
       jo: [t.permNoSeeUsers, t.permNoChangeRoles],
     };

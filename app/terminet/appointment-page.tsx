@@ -87,8 +87,8 @@ export default async function AppointmentPage({
       .from("profiles")
       .select("id, email, role")
       .returns<{ id: string; email: string | null; role: string }[]>(),
-    // Kush e sheh këtë termin. E lexon edhe menaxheri (rregullat e bazës e
-    // lejojnë), por paneli i ndryshimit del vetëm për adminin.
+    // Kush e sheh këtë termin. E lexojnë dhe e ndryshojnë të dy: menaxheri
+    // dhe admini.
     user.isManager
       ? supabase
           .from("appointment_experts")
@@ -183,8 +183,9 @@ export default async function AppointmentPage({
           { id: "rezultati", label: t.tabResult },
           { id: "detaje", label: t.tabDetails },
           { id: "feedback", label: t.tabFeedback(notes.length) },
-          // Skeda e ekspertëve rri vetëm te admini: vetëm ai e ndryshon.
-          ...(user.isAdmin
+          // Skeda e ekspertëve: menaxheri dhe admini. Të tjerët as nuk e
+          // shohin se ekziston.
+          ...(user.isManager
             ? [
                 {
                   id: "eksperte",
@@ -360,7 +361,7 @@ export default async function AppointmentPage({
         </p>
       </section>
       </TabPanel>
-      {user.isAdmin && (
+      {user.isManager && (
         <TabPanel id="eksperte">
           <Experts
             appointmentId={termini.id}
