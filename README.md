@@ -932,6 +932,19 @@ përdorues i zakonshëm. Prandaj rregulli ka një degë të dytë: **secili e sh
 gjithmonë rreshtin e vet**, edhe pa hyrje. Nuk rrjedh asgjë — sheh vetëm
 veten, dhe asnjë veprim tjetër nuk i hapet.
 
+> **E ZBATUAR ✅** — `supabase/hyrja-e-hequr.sql` u ekzekutua më 3 shtator 2026
+> mbi bazën e vërtetë, dhe u mat aty me llogaritë reale. Nga 10 llogari, 5
+> ishin pa hyrje: pas skedës secila prej tyre sheh **0 termine, 0 shënime dhe
+> vetëm rreshtin e vet**, dhe nuk cakton e nuk shkruan dot asgjë — përfshirë
+> një llogari me rolin `admin` së cilës i ishte hequr hyrja. Të pesë llogaritë
+> me hyrje nuk u prekën fare.
+>
+> Këshilluesi i Supabase-it shtoi një paralajmërim të vetëm: `eshte_aktiv()`
+> i bashkohet katër funksioneve të tjera që janë `security definer`. Kjo është
+> e qëllimshme — funksioni duhet ta lexojë profilin edhe kur vetë rregullat e
+> profileve nuk do ta lejonin — dhe nuk rrjedh asgjë: kthen vetëm nëse ai që
+> pyet e ka hyrjen, gjë që ai e merr vesh gjithsesi duke provuar të hyjë.
+
 **Ridrejtimi te `/login` do të bëhej unazë.** Proxy-ja e sheh çelësin ende të
 mirë, e quan njeriun të kyçur, dhe e kthen nga `/login` te «/». Prandaj u
 shtua `/auth/dil`: aty sesioni fshihet vërtet, dhe pastaj s'ka më ku të
