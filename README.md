@@ -468,6 +468,7 @@ supabase/
   ndryshimi-menaxherit.sql  Terminin e ndryshon vetëm menaxheri, as useri të vetin
   ekspertet-menaxheri.sql   Aksesin e ekspertit e jep edhe menaxheri
   datat.sql                 Filtri sipas datës së terminit + indekset e tij
+  pastrimi.sql              Heqja e të dhënave të provës — dhe si kthehen
   hyrja-e-hequr.sql         Llogaria e hequr ndalet menjëherë, edhe me çelësin e vjetër
   rls-shpejtesi.sql         Rregullat: një llogaritje për kërkesë, jo për rresht
   mbetur.sql                Të dyja migrimet e fundit, në një skedë
@@ -984,6 +985,38 @@ të dhëna shëndetësore (mjekime, trajtime). Depoja `CRM-Test` te GitHub-i ës
 **publike**; një kopje e futur atje do të ishte e lexueshme nga kushdo në
 botë. Kodi nuk përmban çelësa — ata rrinë te `.env.local`, i cili nuk dërgohet
 kurrë — por të dhënat janë punë tjetër.
+
+### Pastrimi i të dhënave të provës — 3 shtator 2026
+
+Baza mbante 21 termine prove, të krijuara duke e ndërtuar aplikacionin: emra
+si «adwdawd», «TEST-01», «dilill». Nga 3 shtatori puna nis me të dhëna të
+vërteta, prandaj ato u hoqën: **21 termine, 24 shënime, 4 akses ekspertësh**.
+Llogaritë, rolet dhe orët e punës nuk u prekën.
+
+**Kopja u bë brenda vetë bazës**, te skema `arkiv` — jo si skedë diku tjetër.
+Kështu asnjë rresht nuk kalon nëpër duar dhe nuk ka si të humbasë ndonjë
+shkronjë gjatë kopjimit, dhe rikthimi është një `insert ... select` i vetëm.
+Skema nuk është nder ato që Supabase i nxjerr te API-ja, dhe `usage` mbi të u
+hoq shprehimisht nga `anon` e `authenticated` — pra edhe sikur të hapej një
+ditë pa dashje, një token i zakonshëm nuk lexon dot asgjë prej saj (e matur:
+`has_schema_privilege` kthen `false` për të dyja).
+
+Kopja u krahasua me origjinalin jo vetëm me numrin e rreshtave, por edhe me
+përmbajtjen — `except` në të dy drejtimet. Të tria tabelat dolën identike
+rresht për rresht.
+
+Numri i shkurtër u kthye te **#1000**: tabela mbeti bosh, prandaj s'ka si të
+përplaset. Termini i parë i vërtetë është sërish #1000, jo #1077.
+
+> **Një kurth që u kap vetëm duke e matur.** Fshirjen e shkrova në fillim
+> brenda `begin; … ` pa `commit;`. Përgjigjja tregoi «u fshinë 21 termine» —
+> dhe asgjë nuk ishte fshirë: transaksioni u kthye mbrapsht kur lidhja u
+> lirua. Vetëm numërimi pas fshirjes e tregoi. Prandaj çdo veprim mbi bazën
+> matet **pas** tij, jo nga ajo që kthen vetë veprimi.
+
+Të gjitha hapat, bashkë me udhëzimin e rikthimit, rrinë te
+`supabase/pastrimi.sql`. Kopja mbahet derisa të kalojë ca kohë me të dhënat e
+reja; hiqet me `drop schema arkiv cascade`, dhe kjo është e pakthyeshme.
 
 ---
 
