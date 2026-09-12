@@ -7,7 +7,7 @@ import { getI18n } from "@/lib/i18n-server";
 import {
   ROLE_CLASSES,
   beogradDay,
-  formatDateOnly,
+  formatDateOnlyShkurt,
   formatDuration,
   isRecent,
   roleLabel,
@@ -100,34 +100,47 @@ export default async function AdminPage() {
         </p>
       )}
 
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+      {/* PA SCROLL ANËSOR — tabela hyn e tëra brenda ekranit.
+          Me `p-4` te shtatë kolona, vetëm hapësira e brendshme zinte 224px.
+          Shtoji emailin me `whitespace-nowrap`, datën e plotë («11. September
+          2026») dhe dy butonat njëri pas tjetrit, dhe tabela kërkonte 1023px
+          kur dritarja i jepte më së shumti 982. Pra rrëshqiste gjithmonë,
+          edhe te ekrani më i gjerë.
+
+          Tani: hapësira zvogëlohet, emaili dhe data thyhen, butonat rrinë
+          njëri mbi tjetrin kur s'ka vend, dhe kolonat dytësore vijnë vetëm
+          kur ka hapësirë. */}
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-slate-200 text-left text-slate-500">
-              <th className="p-4 font-medium">{t.usersColEmail}</th>
-              <th className="p-4 font-medium">{t.usersColRole}</th>
-              <th className="p-4 font-medium">{t.usersColActiveToday}</th>
-              <th className="p-4 font-medium">{t.usersColAppointments}</th>
-              <th className="p-4 font-medium">{t.usersColNotes}</th>
-              <th className="p-4 font-medium">{t.usersColRegistered}</th>
-              <th className="p-4 font-medium"></th>
+              <th className="px-2 py-3 font-medium md:px-3 lg:px-4">{t.usersColEmail}</th>
+              <th className="px-2 py-3 font-medium md:px-3 lg:px-4">{t.usersColRole}</th>
+              <th className="hidden px-2 py-3 font-medium lg:table-cell lg:px-4">{t.usersColActiveToday}</th>
+              <th className="hidden px-2 py-3 font-medium md:table-cell md:px-3 lg:px-4">{t.usersColAppointments}</th>
+              <th className="hidden px-2 py-3 font-medium md:table-cell md:px-3 lg:px-4">{t.usersColNotes}</th>
+              <th className="hidden px-2 py-3 font-medium lg:table-cell lg:px-4">{t.usersColRegistered}</th>
+              <th className="px-2 py-3 font-medium md:px-3 lg:px-4"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200">
             {profiles.map((profile) => (
               <tr key={profile.id}>
-                <td className="p-4 whitespace-nowrap">
-                  <div className="flex items-center gap-2">
+                <td className="px-2 py-3 md:px-3 lg:px-4">
+                  {/* `flex-wrap` + `break-all`: emaili është një fjalë e vetme
+                      e gjatë. Me `whitespace-nowrap` kolona nuk ngushtohej dot
+                      nën gjatësinë e tij — 249px vetëm për të. */}
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <span
-                      className={`inline-block h-2 w-2 rounded-full ${
+                      className={`inline-block h-2 w-2 shrink-0 rounded-full ${
                         eshteAktiv(profile.id) ? "bg-emerald-500" : "bg-slate-300"
                       }`}
                       title={eshteAktiv(profile.id) ? t.usersActiveNow : t.usersNotActive}
                     />
                     <span
-                      className={
+                      className={`min-w-0 break-all ${
                         profile.active ? "text-slate-900" : "text-slate-400"
-                      }
+                      }`}
                     >
                       {profile.email ?? "—"}
                     </span>
@@ -138,34 +151,34 @@ export default async function AdminPage() {
                     )}
                   </div>
                 </td>
-                <td className="p-4">
+                <td className="px-2 py-3 md:px-3 lg:px-4">
                   <span
-                    className={`rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${
+                    className={`inline-block rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${
                       ROLE_CLASSES[profile.role] ?? ROLE_CLASSES.user
                     }`}
                   >
                     {roleLabel(profile.role, t)}
                   </span>
                 </td>
-                <td className="p-4 whitespace-nowrap text-slate-600">
+                <td className="hidden px-2 py-3 whitespace-nowrap text-slate-600 lg:table-cell lg:px-4">
                   {formatDuration(sotSekonda.get(profile.id) ?? 0)}
                 </td>
-                <td className="p-4 text-slate-600">
+                <td className="hidden px-2 py-3 text-slate-600 tabular-nums md:table-cell md:px-3 lg:px-4">
                   {termineCounts.get(profile.id) ?? 0}
                 </td>
-                <td className="p-4 text-slate-600">
+                <td className="hidden px-2 py-3 text-slate-600 tabular-nums md:table-cell md:px-3 lg:px-4">
                   {noteCounts.get(profile.id) ?? 0}
                 </td>
-                <td className="p-4 whitespace-nowrap text-slate-500">
-                  {formatDateOnly(beogradDay(profile.created_at), locale)}
+                <td className="hidden px-2 py-3 text-slate-500 lg:table-cell lg:px-4">
+                  {formatDateOnlyShkurt(beogradDay(profile.created_at), locale)}
                 </td>
-                <td className="p-4 align-middle">
-                  {/* Dy veprimet e llogarisë, njëri pas tjetrit: i pari e
-                      rikthen personin në punë, i dyti e nxjerr jashtë.
-                      `justify-end` i shtyn djathtas, `nowrap` i mban në një
-                      rresht — ndryshe etiketat thyheshin në dy rreshta dhe
-                      rreshtat e tabelës dilnin të pabarabartë. */}
-                  <div className="flex items-center justify-end gap-2">
+                <td className="px-2 py-3 align-middle md:px-3 lg:px-4">
+                  {/* Dy veprimet e llogarisë: i pari e rikthen personin në
+                      punë, i dyti e nxjerr jashtë. Etiketa e secilit mbetet
+                      në një rresht (`nowrap` te vetë butoni), por të dy bashkë
+                      thyhen njëri mbi tjetrin kur kolona ngushtohet — kjo është
+                      ajo që e lejon tabelën të hyjë te ekrani i vogël. */}
+                  <div className="flex flex-wrap items-center justify-end gap-2">
                     <PasswordForm
                       userId={profile.id}
                       email={profile.email ?? "—"}

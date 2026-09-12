@@ -930,6 +930,17 @@ kutiza fshihet, shenja me ngjyrë majtas kalon te kolona e numrit — përndrysh
 rreshti do të mbetej pa të pikërisht te ekrani i vogël, ku dallimi duhet më
 shumë.
 
+**E njëjta gjë te faqja *Përdoruesit*.** Aty ishte edhe më keq: shtatë kolona
+me `p-4` zinin **224px** vetëm hapësirë të brendshme, emaili kishte
+`whitespace-nowrap` (249px vetëm ai), data ishte e plotë («11. September
+2026», 162px) dhe dy butonat rrinin patjetër njëri pas tjetrit. Tabela
+kërkonte **1023px** kur dritarja i jep më së shumti 982 — pra rrëshqiste
+gjithmonë, edhe te ekrani më i gjerë. Tani hapësira zvogëlohet, emaili dhe
+data thyhen, butonat rrinë njëri mbi tjetrin kur s'ka vend, dhe kolonat
+dytësore (*Termine*, *Shënime* nga 768px; *Aktiv sot*, *Regjistruar* nga
+1024px) vijnë vetëm kur ka hapësirë. Emaili, roli dhe të dy butonat nuk
+humbin kurrë — pa to faqja s'ka kuptim.
+
 **Matur, jo parë me sy.** Një `overflow-x-auto` e fsheh problemin: pamja duket
 në rregull dhe tabela është e prerë. Prandaj prova mat `scrollWidth` kundrejt
 `clientWidth` te **dhjetë gjerësi** (360 … 1920px), në të dyja gjuhët, me
@@ -939,6 +950,11 @@ prova e vërtetë: «Termindatum» dhe «Versicherung» janë dukshëm më të g
 shqipja, dhe tri herë tabela doli jashtë vetëm në gjermanisht — një herë me
 **3px**. Kontrollohet edhe se vetë faqja nuk rrëshqet anash, dhe se
 `overflow-x` nuk është kthyer fshehurazi në `auto`.
+
+> **Mbetet për t'u bërë:** faqja *Aktiviteti* rrëshqet ende anash nën 1280px
+> (33px te 1024, 472px te 360), dhe *Dashboard-i* nën 768px (rreth 125px).
+> Te terminet e hapur, tabela e shënimeve hyn e tëra kudo. Rregullimi është i
+> njëjti si këtu.
 
 ---
 

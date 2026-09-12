@@ -721,3 +721,19 @@ export function formatBeogradNdare(
     }).format(çasti),
   };
 }
+
+/**
+ * Vetëm data, me muajin shkurt: "11 sht 2026" / "11. Sept. 2026".
+ *
+ * Si `formatDateOnly`, por për tabela ku kolona duhet të jetë e ngushtë.
+ * «11. September 2026» zë 162px dhe, me `whitespace-nowrap`, ishte një nga
+ * tri kolonat që e nxirrnin tabelën e përdoruesve jashtë ekranit.
+ */
+export function formatDateOnlyShkurt(day: string, locale = "de-DE"): string {
+  return new Intl.DateTimeFormat(locale, {
+    timeZone: "UTC",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(`${day.slice(0, 10)}T12:00:00Z`));
+}
