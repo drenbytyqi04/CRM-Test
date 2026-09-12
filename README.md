@@ -241,6 +241,12 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
   fshin të tjerët: ndërro rezultatin dhe data mbetet; kërko dhe të dyja
   mbeten. Ndërrimi i një filtri e kthen listën te faqja e parë — rezultatet
   janë të tjera, prandaj faqja 7 e mëparshme s'ka kuptim.
+- **Tabela nuk rrëshqet anash.** Lista hyn e tëra brenda ekranit, pa shirit
+  rrëshqitës poshtë. Sa kolona duken varet nga hapësira: numri, emri, data e
+  terminit dhe rezultati duken gjithmonë; nga 768px shtohen kutizat e
+  zgjedhjes, *Pers.* dhe *Kontr.*; nga 1024px edhe *Sigurimi* dhe *Shën.*
+  Asgjë nuk pritet me tri pika — çdo vlerë duket e plotë, edhe kur i duhen dy
+  rreshta. Data rri në dy rreshta: data sipër, ora poshtë.
 - **Hap një termin:** kliko mbi emrin. Faqja ndahet në pesë skeda —
   *Personalia*, *Të dhëna teknike*, *Rezultati*, *Detaje*, *Feedback* — dhe
   duket vetëm njëra njëherësh, që të mos zbresësh gjatë. Butoni *Ruaj
@@ -891,6 +897,48 @@ brenda një transaksioni që u përmbys.
 > termine punojnë saktë; mbi atë kufi Supabase i pret rreshtat në heshtje dhe
 > numrat dalin më të vegjël se e vërteta. Rregullimi është i njëjti: numrat
 > t'i llogarisë baza.
+
+### Tabela pa shirit rrëshqitës
+
+Lista rrinte brenda një `overflow-x-auto`: kur tabela s'hynte, poshtë saj
+dilte një shirit që duhej tërhequr me dorë, dhe kolonat e fundit rrinin të
+fshehura derisa dikush ta vinte re se ekzistonin.
+
+Heqja e atij shiriti është pjesa e lehtë. E vështira është ta bësh tabelën të
+hyjë vërtet — përndryshe scroll-i thjesht ndërron vend, nga tabela te vetë
+dritarja. Deshën katër gjëra, dhe asnjëra s'mjafton vetëm:
+
+1. **Asgjë e gjatë e ndaluar të thyhet.** Data («14. September 2026 um 14:00»)
+   ishte teksti më i gjatë i tabelës dhe kishte `whitespace-nowrap`. Vetëm ajo
+   e nxirrte tabelën jashtë. Tani rri në dy rreshta — data sipër, ora poshtë —
+   dhe me muajin shkurt: «14. Sept. 2026».
+2. **Emaili nën emër thyhet kudo** (`break-all`). Më parë kishte `truncate`,
+   që në një tabelë me gjerësi automatike **nuk pret asgjë**: `truncate` do
+   një gjerësi të caktuar për të prerë, dhe pa të vetëm ndalon thyerjen — pra
+   e zgjeronte kolonën në vend që ta ngushtonte.
+3. **Kolonat vijnë kur ka vërtet vend.** Kufijtë e Tailwind-it maten sipas
+   dritares, kurse tabela e ka menynë anash që i merr **224px** — dhe menyja
+   shfaqet pikërisht te 640px, në të njëjtin çast kur hapeshin kolona të reja
+   `sm:`. Pra hapësira binte nga 597px në 374px dhe kërkesa rritej bashkë me
+   të. Tani secila kolonë vjen një shkallë më vonë.
+4. **Hapësira anësore zvogëlohet te ekranet e vogla**, dhe teksti bëhet
+   `text-xs` nën 768px.
+
+Shiriti i zgjedhjes me shumicë nis nga 768px e lart: kolona e kutizave zë 38px
+nga 374px që ka te 640px, dhe pikërisht ajo e nxirrte tabelën jashtë. Kur
+kutiza fshihet, shenja me ngjyrë majtas kalon te kolona e numrit — përndryshe
+rreshti do të mbetej pa të pikërisht te ekrani i vogël, ku dallimi duhet më
+shumë.
+
+**Matur, jo parë me sy.** Një `overflow-x-auto` e fsheh problemin: pamja duket
+në rregull dhe tabela është e prerë. Prandaj prova mat `scrollWidth` kundrejt
+`clientWidth` te **dhjetë gjerësi** (360 … 1920px), në të dyja gjuhët, me
+përmbajtje qëllimisht të gjatë — një emër prej 35 shkronjash, një sigurim
+«Krankenkasse Luzerner Hinterland», një email i gjatë. Gjermanishtja është
+prova e vërtetë: «Termindatum» dhe «Versicherung» janë dukshëm më të gjata se
+shqipja, dhe tri herë tabela doli jashtë vetëm në gjermanisht — një herë me
+**3px**. Kontrollohet edhe se vetë faqja nuk rrëshqet anash, dhe se
+`overflow-x` nuk është kthyer fshehurazi në `auto`.
 
 ---
 

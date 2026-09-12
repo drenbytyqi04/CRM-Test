@@ -20,7 +20,7 @@ import {
   eshteDite,
   fillimiIDites,
   formatDuration,
-  formatBeograd,
+  formatBeogradNdare,
   todayInBeograd,
   type Appointment,
 } from "@/lib/types";
@@ -342,28 +342,47 @@ export default async function Page({ searchParams }: PageProps<"/">) {
         </p>
       ) : (
         <BulkAssign eksperte={eksperte} lang={lang} vetemFemijet={!meZgjedhje}>
-        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-          <table className="w-full text-sm">
+        {/* PA SCROLL ANËSOR.
+            Tabela hyn e tëra brenda ekranit dhe asnjë kolonë nuk mbetet e
+            fshehur pas një shiriti rrëshqitës që duhet tërhequr me dorë.
+            Kjo kërkon tri gjëra bashkë, dhe asnjëra s'mjafton vetëm:
+
+              1. Asgjë e gjatë me `whitespace-nowrap`. Data ishte teksti më i
+                 gjatë dhe e ndaluar të thyhej — vetëm ajo e nxirrte tabelën
+                 jashtë. Tani rri në dy rreshta.
+              2. Emaili nën emër thyhet kudo (`break-all`). Pa këtë, një adresë
+                 e gjatë është një «fjalë» e vetme që kolona s'e ngushton dot
+                 më poshtë se gjatësia e saj.
+              3. Kolonat shtohen kur ka VËRTET vend. Kufijtë maten sipas
+                 ekranit, kurse tabela e ka menynë anash që ia merr 224px —
+                 prandaj te 640px dilnin shtatë kolona në 376px hapësirë.
+                 Tani secila kolonë vjen një shkallë më vonë.
+
+            `overflow-hidden` mbetet për qoshet e rrumbullakëta: pa të,
+            ngjyra e rreshtit të parë e del jashtë harkut. */}
+        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+          <table className="w-full text-xs md:text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-left text-slate-500">
-                {meZgjedhje && <th className="w-10 p-3 pl-4" />}
-                <th className="p-3 pl-4 font-medium whitespace-nowrap">{t.colNr}</th>
-                <th className="p-3 font-medium">{t.colName}</th>
-                <th className="p-3 font-medium whitespace-nowrap">{t.colDate}</th>
-                <th className="hidden p-3 font-medium lg:table-cell">{t.colInsurance}</th>
-                <th className="hidden p-3 text-right font-medium sm:table-cell">{t.colPersons}</th>
-                <th className="hidden p-3 text-right font-medium sm:table-cell">{t.colContracts}</th>
-                <th className="hidden p-3 text-right font-medium md:table-cell">{t.colNotes}</th>
-                <th className="p-3 pr-4 font-medium whitespace-nowrap">{t.colStatus}</th>
+                {meZgjedhje && <th className="hidden w-9 py-3 pr-1.5 pl-4 md:table-cell md:pr-2" />}
+                <th className="py-3 pr-1.5 pl-3 font-medium whitespace-nowrap md:pr-2 md:pl-4 lg:pr-3">{t.colNr}</th>
+                <th className="px-1.5 py-3 font-medium md:px-2 lg:px-3">{t.colName}</th>
+                <th className="px-1.5 py-3 font-medium md:px-2 lg:px-3">{t.colDate}</th>
+                <th className="hidden px-1.5 py-3 font-medium md:px-2 lg:table-cell lg:px-3">{t.colInsurance}</th>
+                <th className="hidden px-1 py-3 text-right font-medium md:table-cell lg:px-3">{t.colPersons}</th>
+                <th className="hidden px-1 py-3 text-right font-medium md:table-cell lg:px-3">{t.colContracts}</th>
+                <th className="hidden px-1 py-3 text-right font-medium lg:table-cell lg:px-3">{t.colNotes}</th>
+                <th className="py-3 pr-3 pl-1.5 font-medium md:pr-4 md:pl-2 lg:pl-3">{t.colStatus}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {terminet.map((termini) => {
                 const ngj = categoryStyle(termini.category);
+                const dataETerminit = formatBeogradNdare(termini.scheduled_at, locale);
                 return (
                 <tr key={termini.id} className={`transition ${ngj.rresht}`}>
                   {meZgjedhje && (
-                    <td className="relative w-10 p-3 pl-4">
+                    <td className="relative hidden w-9 py-3 pr-1.5 pl-4 md:table-cell md:pr-2">
                       <span
                         aria-hidden
                         className={`absolute inset-y-0 left-0 w-1 ${ngj.shirit}`}
@@ -379,40 +398,50 @@ export default async function Page({ searchParams }: PageProps<"/">) {
                   )}
                   {/* Shiriti me ngjyrë majtas: dallimi kapet edhe me bisht
                       të syrit, pa e ngarkuar rreshtin me ngjyrë të fortë. */}
-                  <td className="relative p-3 pl-4 whitespace-nowrap text-slate-600 tabular-nums">
-                    {!meZgjedhje && (
-                      <span
-                        aria-hidden
-                        className={`absolute inset-y-0 left-0 w-1 ${ngj.shirit}`}
-                      />
-                    )}
+                  <td className="relative py-3 pr-1.5 pl-3 whitespace-nowrap text-slate-600 tabular-nums md:pr-2 md:pl-4 lg:pr-3">
+                    {/* Shiriti i ngjyrës rri te kolona e parë E DUKSHME. Kur
+                        kutiza e zgjedhjes fshihet poshtë 768px, ai kalon këtu
+                        — përndryshe rreshti do të mbetej pa shenjën e vet
+                        pikërisht te ekrani i vogël, ku dallimi duhet më shumë. */}
+                    <span
+                      aria-hidden
+                      className={`absolute inset-y-0 left-0 w-1 ${ngj.shirit} ${
+                        meZgjedhje ? "md:hidden" : ""
+                      }`}
+                    />
                     {termini.nr != null ? `#${termini.nr}` : "—"}
                   </td>
-                  <td className="p-3">
+                  <td className="px-1.5 py-3 md:px-2 lg:px-3">
                     {/* Lidhja rri te emri: një rresht i tërë i klikueshëm
                         nuk lejohet brenda një tabele pa e prishur kuptimin. */}
                     <Link
                       href={appointmentPath(termini, user.role)}
-                      className="font-medium text-slate-900 underline-offset-2 hover:underline"
+                      className="font-medium break-words text-slate-900 underline-offset-2 hover:underline"
                     >
                       {termini.name}
                     </Link>
                     {termini.user_id !== user.id && (
-                      <span className="block truncate text-xs text-slate-600">
+                      // `break-all`: një email është një fjalë e vetme e gjatë,
+                      // dhe pa të kolona nuk ngushtohet dot nën gjatësinë e
+                      // tij. Më parë kishte `truncate`, që në një tabelë me
+                      // gjerësi automatike nuk pret asgjë — vetëm e ndalon
+                      // thyerjen, pra e zgjeronte kolonën.
+                      <span className="block text-xs break-all text-slate-600">
                         {agjentet.get(termini.user_id) ?? "—"}
                       </span>
                     )}
                   </td>
-                  <td className="p-3 whitespace-nowrap text-slate-600">
-                    {formatBeograd(termini.scheduled_at, locale)}
+                  <td className="px-1.5 py-3 text-slate-600 md:px-2 lg:px-3">
+                    <span className="block">{dataETerminit.data}</span>
+                    <span className="block tabular-nums">{dataETerminit.ora}</span>
                   </td>
-                  <td className="hidden p-3 text-slate-600 lg:table-cell">
+                  <td className="hidden px-1.5 py-3 break-words text-slate-600 md:px-2 lg:table-cell lg:px-3">
                     {termini.current_insurance || "—"}
                   </td>
-                  <td className="hidden p-3 text-right text-slate-600 tabular-nums sm:table-cell">
+                  <td className="hidden px-1 py-3 text-right text-slate-600 tabular-nums md:table-cell lg:px-3">
                     {termini.persons_count}
                   </td>
-                  <td className="hidden p-3 text-right tabular-nums sm:table-cell">
+                  <td className="hidden px-1 py-3 text-right tabular-nums md:table-cell lg:px-3">
                     <span
                       className={
                         termini.contracts_closed > 0
@@ -423,12 +452,12 @@ export default async function Page({ searchParams }: PageProps<"/">) {
                       {termini.contracts_closed}
                     </span>
                   </td>
-                  <td className="hidden p-3 text-right text-slate-600 tabular-nums md:table-cell">
+                  <td className="hidden px-1 py-3 text-right text-slate-600 tabular-nums lg:table-cell lg:px-3">
                     {noteCounts.get(termini.id) ?? 0}
                   </td>
-                  <td className="p-3 pr-4 whitespace-nowrap">
+                  <td className="py-3 pr-3 pl-1.5 md:pr-4 md:pl-2 lg:pl-3">
                     <span
-                      className={`rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${ngj.shenje}`}
+                      className={`inline-block rounded-full px-1.5 py-0.5 text-xs font-medium break-words ring-1 ring-inset md:px-2 md:py-1 ${ngj.shenje}`}
                     >
                       {appointmentCategoryLabel(termini.category, t)}
                     </span>

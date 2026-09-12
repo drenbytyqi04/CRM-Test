@@ -688,3 +688,36 @@ export function dataShkurt(dita: string): string {
   const [v, m, d] = dita.split("-");
   return `${Number(d)}.${Number(m)}.${v}`;
 }
+
+/**
+ * Data e terminit e ndarë në dy pjesë, për listën: `{ data, ora }`.
+ *
+ * Te lista, data e plotë («14. September 2026 um 14:00») ishte teksti më i
+ * gjatë i tërë tabelës dhe, me `whitespace-nowrap`, ajo e vetme e detyronte
+ * tabelën të dilte jashtë ekranit. E ndarë në dy rreshta — data sipër, ora
+ * poshtë — zë gjysmën e gjerësisë dhe lexohet më shpejt, sepse syri e kërkon
+ * orën veç.
+ *
+ * Muaji shkurt («14. Sept. 2026»), sërish për gjerësinë. Emri i plotë i
+ * muajit mbetet aty ku ka vend: brenda vetë terminit.
+ */
+export function formatBeogradNdare(
+  iso: string,
+  locale = "de-DE"
+): { data: string; ora: string } {
+  const çasti = new Date(iso);
+  return {
+    data: new Intl.DateTimeFormat(locale, {
+      timeZone: TZ,
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }).format(çasti),
+    ora: new Intl.DateTimeFormat(locale, {
+      timeZone: TZ,
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: ORA24,
+    }).format(çasti),
+  };
+}

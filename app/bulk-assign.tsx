@@ -75,8 +75,14 @@ export default function BulkAssign({
 
   return (
     <form ref={formRef} action={action} onChange={rinumero}>
+      {/* Shiriti i zgjedhjes nis nga 768px e lart.
+          Poshtë tij nuk ka hapësirë: te 640px shfaqet menyja anash dhe i merr
+          tabelës 224px, prandaj mbeten 374px për gjithë rreshtin. Kolona e
+          kutizave do t'i hante 38 prej tyre dhe tabela do të dilte jashtë
+          ekranit — pikërisht ajo që u hoq. Caktimi me shumicë është punë
+          tavoline gjithsesi; te telefoni termini hapet një nga një. */}
       <div
-        className={`mb-3 flex flex-wrap items-center gap-3 rounded-xl border px-4 py-3 transition ${
+        className={`mb-3 hidden flex-wrap items-center gap-3 rounded-xl border px-4 py-3 transition md:flex ${
           sa > 0
             ? "border-slate-300 bg-white"
             : "border-dashed border-slate-200 bg-transparent"
