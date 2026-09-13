@@ -178,6 +178,23 @@ export async function changeUserPassword(
  *   2. Të heqësh adminin e fundit.
  *   3. Ta bësh pa qenë admin (kontrollohet që në rreshtin e parë).
  */
+/**
+ * A do të thotë ky gabim «llogaria s'ekziston më te Auth-i»?
+ *
+ * Kontrollohen të tria: kodi, statusi dhe teksti. Vetëm teksti nuk mjafton
+ * — ai ndryshon me gjuhën dhe me versionin e Supabase-it — dhe vetëm statusi
+ * as ai, sepse 404 mund të vijë edhe nga një adresë e gabuar.
+ */
+function eshteEFshireTashme(error: { message: string; status?: number; code?: string }) {
+  const kodi = (error.code ?? "").toLowerCase();
+  const teksti = (error.message ?? "").toLowerCase();
+  return (
+    kodi === "user_not_found" ||
+    error.status === 404 ||
+    teksti.includes("user not found")
+  );
+}
+
 export async function deleteUserAccount(
   _prevState: FormState,
   formData: FormData
@@ -228,8 +245,19 @@ export async function deleteUserAccount(
     return { error: e instanceof Error ? e.message : "Lidhja s'u hap dot." };
   }
 
+  // «Nuk u gjet» NUK është dështim.
+  //
+  // Nëse llogaria te Auth-i është fshirë tashmë — me dorë nga paneli i
+  // Supabase-it, ose nga një klikim i mëparshëm që u ndërpre në mes —
+  // atëherë ajo që duam ka ndodhur: personi nuk hyn dot. Po ta trajtonim si
+  // gabim, siç bënim, rreshti do të mbetej përgjithmonë i shënuar «hyn ende»
+  // dhe butoni do të kthente «User not found» sa herë klikohej. Pra llogaria
+  // s'hiqej dot kurrë nga aplikacioni.
+  //
+  // Prandaj vazhdohet me shënimin e profilit. Kjo e bën veprimin të
+  // përsëritshëm pa dëm: dy klikime radhazi japin të njëjtin përfundim.
   const { error } = await sherbimi.auth.admin.deleteUser(userId);
-  if (error) {
+  if (error && !eshteEFshireTashme(error)) {
     return { error: `${t.errAccessNotRemoved}: ${error.message}` };
   }
 

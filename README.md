@@ -477,6 +477,7 @@ supabase/
   numrat.sql                Numërimi për person te baza, jo duke tërhequr tabelën
   ndryshimi-menaxherit.sql  Terminin e ndryshon vetëm menaxheri, as useri të vetin
   ekspertet-menaxheri.sql   Aksesin e ekspertit e jep edhe menaxheri
+  llogaria-e-fshire.sql     Fshirja me dorë te Auth-i shënon vetë profilin
   datat.sql                 Filtri sipas datës së terminit + indekset e tij
   pastrimi.sql              Heqja e të dhënave të provës — dhe si kthehen
   hyrja-e-hequr.sql         Llogaria e hequr ndalet menjëherë, edhe me çelësin e vjetër
@@ -1123,6 +1124,50 @@ një termin dikujt që s'hyn dot do të thotë ta lësh atë termin pa u parë n
 askush, dhe pa asnjë shenjë se ashtu ndodhi. Kufiri rri në dy shtresa: menyja
 nuk i tregon, dhe `grantExpert`/`grantExpertBulk` e refuzojnë edhe nëse
 kërkesa vjen pa kaluar nga faqja jonë.
+
+### Llogaria «fantazmë»: fshirë te Auth-i, por ende «hyn ende» te profili
+
+Aplikacioni e di se kush hyn nga shenja `profiles.active`. Atë shenjë e vë
+butoni *Hiqi hyrjen*: fshin llogarinë te `auth.users`, pastaj shënon
+`active = false`.
+
+Por llogaria mund të fshihet edhe **nga jashtë** — me dorë, te Table Editor-i
+i Supabase-it. Atëherë `auth.users` mbetet pa të, kurse `profiles` vazhdon të
+thotë `active = true`. Del një llogari **fantazmë**:
+
+- duket te lista sikur hyn ende;
+- nuk hyn dot, sepse s'ka llogari;
+- dhe **nuk hiqet dot** nga aplikacioni, sepse butoni provon të fshijë një
+  llogari që s'ekziston dhe kthen `User not found`.
+
+Pra rreshti mbetej aty përgjithmonë. Te baza e vërtetë ishin **gjashtë** të
+tillë — nga 19 profile, vetëm 6 kishin llogari te Auth-i.
+
+**Dy mbrojtje, dhe secila mjafton më vete:**
+
+1. **Trigger-i `on_auth_user_deleted`** (`supabase/llogaria-e-fshire.sql`).
+   Simetrik me `on_auth_user_created`, që ekzistonte tashmë: njëri e krijon
+   profilin kur lind llogaria, tjetri e shënon kur ajo fshihet. Kështu s'ka
+   rëndësi nga vjen fshirja — nga butoni ynë apo nga paneli — dy tabelat
+   mbeten në përputhje vetë, dhe fantazma as nuk lind më.
+2. **«Nuk u gjet» nuk është dështim** (`app/admin/actions.ts`). Nëse llogaria
+   te Auth-i ka ikur tashmë, ajo që duam ka ndodhur: personi nuk hyn dot.
+   Prandaj vazhdohet me shënimin e profilit në vend që të kthehet gabim. Kjo
+   e bën veprimin të përsëritshëm pa dëm — dy klikime radhazi japin të njëjtin
+   përfundim — dhe i heq edhe fantazmat e vjetra, të krijuara para trigger-it.
+
+Gabimi njihet nga kodi (`user_not_found`), statusi (404) **ose** teksti. Vetëm
+teksti nuk mjafton: ndryshon me gjuhën dhe me versionin e Supabase-it.
+
+**Profili nuk fshihet, vetëm shënohet.** Ai mban emrin e autorit: terminet,
+shënimet dhe orët e punës vazhdojnë të tregojnë se kush i bëri.
+
+> **E ZBATUAR ✅** — `supabase/llogaria-e-fshire.sql` u ekzekutua më 13 shtator
+> 2026 mbi bazën e vërtetë, pas një kopjeje të plotë të `profiles` te skema
+> `arkiv`. Gjashtë fantazmat u shënuan; mbetën **zero**. Lista ra nga 19
+> rreshta në 6 — pikërisht gjashtë llogaritë që kanë ende hyrje. Prova e
+> rikrijon gabimin: me rregullimin e hequr, ajo kthen fjalë për fjalë
+> «Hyrja nuk u hoq: User not found».
 
 **Te faqja** (`lib/auth.ts`). Roli lexohet te çdo kërkesë; tani lexohet edhe
 `active`. Nëse është `false`, personi trajtohet si i pakyçur dhe dërgohet të
