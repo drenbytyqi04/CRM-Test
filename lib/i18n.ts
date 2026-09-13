@@ -278,6 +278,8 @@ const de = {
   expertsCount: (n: number) => sasi(n, "Experte", "Experten"),
   expertsGrantedBy: "hinzugefügt von",
   errExpertsManagerOnly: "Zugriff vergeben nur Manager und Administrator.",
+  errExpertNoAccess:
+    "Dieses Konto hat keinen Zugang mehr. Es kann keine Termine erhalten.",
   errBulkNoneSelected: "Bitte mindestens einen Termin auswählen.",
   bulkSelected: (n: number) => `${sasi(n, "Termin", "Termine")} ausgewählt`,
   bulkAssign: "Einem Experten zuweisen",
@@ -418,7 +420,7 @@ const de = {
   // ---------- Përdoruesit ----------
   usersTitle: "Benutzer",
   usersSubtitle:
-    "Alle Konten des Systems. Nur Sie legen neue Konten an und entziehen den Zugang.",
+    "Alle Konten, die sich anmelden können. Nur Sie legen neue Konten an und entziehen den Zugang.",
   usersCountsMissing:
     "Die Zahlen für Termine und Feedback konnten nicht geladen werden: supabase/numrat.sql wurde noch nicht ausgeführt. Bis dahin stehen hier Nullen — sie sind nicht echt.",
   usersLoadError: "Benutzer konnten nicht geladen werden",
@@ -455,7 +457,7 @@ const de = {
   usersRemoveConfirm: "Ja, Zugang entziehen",
   usersRemoving: "Wird entzogen…",
   usersKeepDataNote:
-    "Wenn Sie jemandem den Zugang entziehen, wird das Konto gelöscht und die Person kann sich nicht mehr anmelden — aber ihre Termine, Notizen und Arbeitszeiten bleiben und tragen weiterhin ihren Namen. Deshalb verschwindet die Zeile nicht aus dieser Liste; sie wird als «kein Zugang» markiert.",
+    "Diese Liste zeigt nur Konten, die sich noch anmelden können. Wenn Sie jemandem den Zugang entziehen, verschwindet die Zeile von hier — aber ihre Termine, Notizen und Arbeitszeiten bleiben und tragen weiterhin ihren Namen. Auch die Datensicherung enthält weiterhin alle Konten.",
   usersRolesNote:
     "Rollen werden nur im Supabase-Panel geändert (Table Editor → profiles), damit sich niemand über die Anwendung selbst zum Admin machen kann. Werte:",
 
@@ -767,6 +769,8 @@ const sq: Dict = {
   expertsCount: (n) => sasi(n, "ekspert", "ekspertë"),
   expertsGrantedBy: "shtuar nga",
   errExpertsManagerOnly: "Aksesin e jep vetëm menaxheri ose administratori.",
+  errExpertNoAccess:
+    "Kjo llogari nuk hyn më. Nuk mund t'i jepen termine.",
   errBulkNoneSelected: "Zgjidh të paktën një termin.",
   bulkSelected: (n) => `${sasi(n, "termin", "termine")} të zgjedhur`,
   bulkAssign: "Jepja një eksperti",
@@ -901,7 +905,7 @@ const sq: Dict = {
 
   usersTitle: "Përdoruesit",
   usersSubtitle:
-    "Të gjitha llogaritë e sistemit. Vetëm ti hap llogari të reja dhe u heq hyrjen atyre që largohen.",
+    "Të gjitha llogaritë që hyjnë në sistem. Vetëm ti hap llogari të reja dhe u heq hyrjen atyre që largohen.",
   usersCountsMissing:
     "Numrat e termineve dhe të feedback-ut nuk u lexuan dot: supabase/numrat.sql s'është ekzekutuar ende. Deri atëherë këtu rrinë zero — ato nuk janë të vërteta.",
   usersLoadError: "Nuk u lexuan dot përdoruesit",
@@ -936,7 +940,7 @@ const sq: Dict = {
   usersRemoveConfirm: "Po, hiqia hyrjen",
   usersRemoving: "Duke e hequr…",
   usersKeepDataNote:
-    "Kur i heq hyrjen dikujt, llogaria e tij fshihet dhe nuk hyn më — por terminet, shënimet dhe orët e tij mbeten, dhe vazhdojnë të mbajnë emrin e tij. Prandaj rreshti nuk zhduket nga kjo listë; shënohet «pa hyrje».",
+    "Kjo listë tregon vetëm llogaritë që hyjnë ende. Kur i heq hyrjen dikujt, rreshti i tij ikën nga këtu — por terminet, shënimet dhe orët e tij mbeten, dhe vazhdojnë të mbajnë emrin e tij. Edhe kopja e të dhënave i merr të gjitha llogaritë, përfshirë ato të hequra.",
   usersRolesNote:
     "Rolet ndryshohen vetëm nga paneli i Supabase-it (Table Editor → profiles), që askush të mos e bëjë dot veten admin nga aplikacioni. Vlerat:",
 

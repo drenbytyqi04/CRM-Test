@@ -83,10 +83,15 @@ export default async function AppointmentPage({
       .eq("appointment_id", termini.id)
       .order("created_at", { ascending: false })
       .returns<Note[]>(),
+    // `active` lexohet bashkë me të tjerat: emailet e TË GJITHËVE duhen për
+    // të treguar kush e shkroi çfarë — edhe të atyre që s'hyjnë më — kurse
+    // për zgjedhjen e ekspertit duhen vetëm ata që hyjnë ende.
     supabase
       .from("profiles")
-      .select("id, email, role")
-      .returns<{ id: string; email: string | null; role: string }[]>(),
+      .select("id, email, role, active")
+      .returns<
+        { id: string; email: string | null; role: string; active: boolean | null }[]
+      >(),
     // Kush e sheh këtë termin. E lexojnë dhe e ndryshojnë të dy: menaxheri
     // dhe admini.
     user.isManager
@@ -125,8 +130,11 @@ export default async function AppointmentPage({
     granted_by_email: e.granted_by ? (emailet.get(e.granted_by) ?? null) : null,
   }));
   const kaAkses = new Set(meAkses.map((e) => e.expert_id));
+  // Vetëm ekspertët që hyjnë ende. T'i japësh një termin dikujt që s'hyn dot
+  // do të thotë ta lësh atë termin pa u parë nga askush — dhe pa asnjë shenjë
+  // se ashtu ndodhi.
   const ekspertetELira = (profilesResult.data ?? [])
-    .filter((p) => p.role === "expert" && !kaAkses.has(p.id))
+    .filter((p) => p.role === "expert" && p.active !== false && !kaAkses.has(p.id))
     .map((p) => ({ id: p.id, email: p.email ?? "—" }));
 
   return (

@@ -34,9 +34,23 @@ export default async function AdminPage() {
 
   const [profilesResult, punaResult, activityResult] =
     await Promise.all([
+    // VETËM LLOGARITË QË HYJNË ENDE.
+    //
+    // Më parë këtu dilnin edhe ato me hyrjen e hequr, të shënuara «pa hyrje»,
+    // që emri i tyre të mos zhdukej. Por lista mbushej: sa herë hapet sërish
+    // një llogari me të njëjtin email, rreshti i vjetër mbetet përkrah të
+    // riut — dhe pas disa muajsh gjysma e listës janë llogari që nuk hyjnë
+    // dot më. Ato as nuk ndryshohen dot: nuk kanë as fjalëkalim për të
+    // ndërruar, as hyrje për t'u hequr.
+    //
+    // Të dhënat e tyre NUK preken: terminet, shënimet dhe orët mbeten te
+    // baza dhe vazhdojnë të mbajnë emrin e autorit, ashtu si më parë. Edhe
+    // kopja e të dhënave (Pjesa 12) i merr të gjitha llogaritë, përfshirë
+    // këto. Ndryshon vetëm kjo listë.
     supabase
       .from("profiles")
       .select("id, email, role, active, created_at")
+      .eq("active", true)
       .order("created_at", { ascending: true })
       .returns<Profile[]>(),
     // Numërimin e bën baza (`supabase/numrat.sql`): një rresht për person, në
@@ -137,18 +151,12 @@ export default async function AdminPage() {
                       }`}
                       title={eshteAktiv(profile.id) ? t.usersActiveNow : t.usersNotActive}
                     />
-                    <span
-                      className={`min-w-0 break-all ${
-                        profile.active ? "text-slate-900" : "text-slate-400"
-                      }`}
-                    >
+                    {/* Pa shenjën «pa hyrje»: llogaritë e hequra nuk vijnë
+                        më deri këtu, prandaj çdo rresht i kësaj liste është
+                        një llogari që hyn. */}
+                    <span className="min-w-0 break-all text-slate-900">
                       {profile.email ?? "—"}
                     </span>
-                    {!profile.active && (
-                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
-                        {t.usersNoAccess}
-                      </span>
-                    )}
                   </div>
                 </td>
                 <td className="px-2 py-3 md:px-3 lg:px-4">

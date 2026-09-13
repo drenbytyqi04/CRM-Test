@@ -191,10 +191,15 @@ export default async function Page({ searchParams }: PageProps<"/">) {
           )
           .returns<{ appointment_id: string }[]>()
       : Promise.resolve({ data: [], error: null }),
+    // `active` lexohet bashkë me të tjerat: emailet e TË GJITHËVE duhen për
+    // kolonën «kush e caktoi» — edhe të atyre që s'hyjnë më — kurse te menyja
+    // e ekspertëve duhen vetëm ata që hyjnë ende.
     supabase
       .from("profiles")
-      .select("id, email, role")
-      .returns<{ id: string; email: string | null; role: string }[]>(),
+      .select("id, email, role, active")
+      .returns<
+        { id: string; email: string | null; role: string; active: boolean | null }[]
+      >(),
     // Koha ime e sotme — çdo përdorues e sheh numrin e vet.
     supabase
       .from("activity_days")
@@ -232,7 +237,9 @@ export default async function Page({ searchParams }: PageProps<"/">) {
   // të kujt t'ia japë. Kufiri i vërtetë rri te baza; kjo është thjesht pamje.
   const eksperte = user.isManager
     ? (agjentetResult.data ?? [])
-        .filter((p) => p.role === "expert")
+        // Vetëm ekspertët që hyjnë ende: një termin i dhënë dikujt pa hyrje
+        // mbetet pa u parë nga askush, dhe asgjë s'e tregon.
+        .filter((p) => p.role === "expert" && p.active !== false)
         .map((p) => ({ id: p.id, email: p.email ?? "—" }))
     : [];
   const meZgjedhje = user.isManager && eksperte.length > 0;

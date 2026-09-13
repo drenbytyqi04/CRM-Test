@@ -253,6 +253,10 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
   ndryshimet* i ruan të gjitha skedat njëherësh, jo vetëm atë që sheh.
 - **Menyja anash:** shtylla e majtë mban lidhjet, emailin, rolin dhe *Dil*.
   Në telefon shndërrohet në një shirit të hollë sipër.
+- **Përdoruesit:** vetëm llogaritë që hyjnë ende. Kur i heq hyrjen dikujt,
+  rreshti i tij ikën nga kjo listë — por terminet, shënimet dhe orët e tij
+  mbeten dhe vazhdojnë të mbajnë emrin e tij. Edhe kopja e të dhënave i merr
+  të gjitha llogaritë, përfshirë ato të hequra.
 - **Dashboard:** numrat e përgjithshëm — sa termine, sa u mbajtën, sa kontrata
   dolën, sa janë të ardhshme — plus ndarja sipas statusit, të regjistruarit
   ditë pas dite, dhe terminet e radhës. Admini sheh edhe ndarjen sipas
@@ -1097,6 +1101,28 @@ pyeste nëse llogaria ishte ende e gjallë. Ato pyesnin vetëm për rolin.
 
 Prandaj shenja `active` te `profiles`, e cila deri tani vinte vetëm një
 etiketë te lista e llogarive, u bë kusht i vërtetë, në dy shtresa:
+
+### Llogaritë e hequra nuk rrinë më te lista
+
+Deri para pak, rreshti i një llogarie të hequr mbetej te faqja *Përdoruesit*,
+i shënuar «pa hyrje», që emri i saj të mos zhdukej. Ideja ishte e drejtë, por
+në praktikë lista mbushej: sa herë hapet sërish një llogari me të njëjtin
+email, rreshti i vjetër mbetet përkrah të riut. Me 19 llogari, **7 ishin pa
+hyrje** — dhe me to nuk bëhet gjë: nuk kanë as fjalëkalim për të ndërruar, as
+hyrje për t'u hequr. Tani lista tregon vetëm ato që hyjnë.
+
+**Çfarë NUK ndryshoi, dhe kjo është gjëja që duhet provuar:** të dhënat
+mbeten. Rreshti te `profiles` nuk fshihet, vetëm shënohet `active = false`;
+terminet, shënimet dhe orët e tij vazhdojnë të mbajnë emailin e tij te lista;
+dhe kopja e të dhënave (Pjesa 12) i merr të gjitha llogaritë, përfshirë këto.
+Ikën vetëm rreshti nga një faqe, jo asnjë e dhënë.
+
+**Edhe menyja e ekspertëve u pastrua bashkë me të.** Një ekspert pa hyrje nuk
+ofrohet më as te shiriti i zgjedhjes, as te paneli brenda terminit — t'i japësh
+një termin dikujt që s'hyn dot do të thotë ta lësh atë termin pa u parë nga
+askush, dhe pa asnjë shenjë se ashtu ndodhi. Kufiri rri në dy shtresa: menyja
+nuk i tregon, dhe `grantExpert`/`grantExpertBulk` e refuzojnë edhe nëse
+kërkesa vjen pa kaluar nga faqja jonë.
 
 **Te faqja** (`lib/auth.ts`). Roli lexohet te çdo kërkesë; tani lexohet edhe
 `active`. Nëse është `false`, personi trajtohet si i pakyçur dhe dërgohet të

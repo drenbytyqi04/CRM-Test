@@ -47,17 +47,28 @@ export async function grantExpert(
 
   const supabase = await createClient();
 
-  // Vetëm një llogari me rolin `expert` mund të marrë akses. Pa këtë,
-  // do të mund t'i jepej "akses" një menaxheri — gjë që s'do të
-  // ndryshonte gjë, por do të linte rreshta që nuk thonë asgjë.
+  // Vetëm një llogari me rolin `expert`, dhe që hyn ende, mund të marrë
+  // akses. Pa kontrollin e rolit, do të mund t'i jepej "akses" një menaxheri
+  // — gjë që s'do të ndryshonte gjë, por do të linte rreshta që nuk thonë
+  // asgjë. Pa kontrollin e hyrjes, termini do të mbetej i dhënë dikujt që
+  // s'hyn dot: pa u parë nga askush, dhe pa asnjë shenjë se ashtu ndodhi.
+  //
+  // Menyja nuk i tregon më ata pa hyrje, por kjo nuk mjafton: kërkesa mund
+  // të vijë edhe pa kaluar nga faqja jonë.
   const { data: profili } = await supabase
     .from("profiles")
-    .select("id, email, role")
+    .select("id, email, role, active")
     .eq("id", expertId)
-    .maybeSingle<{ id: string; email: string | null; role: string }>();
+    .maybeSingle<{
+      id: string;
+      email: string | null;
+      role: string;
+      active: boolean | null;
+    }>();
 
   if (!profili) return { error: t.errExpertMissing };
   if (profili.role !== "expert") return { error: t.errExpertNotExpert };
+  if (profili.active === false) return { error: t.errExpertNoAccess };
 
   const { error } = await supabase
     .from("appointment_experts")
@@ -111,12 +122,18 @@ export async function grantExpertBulk(
 
   const { data: profili } = await supabase
     .from("profiles")
-    .select("id, email, role")
+    .select("id, email, role, active")
     .eq("id", expertId)
-    .maybeSingle<{ id: string; email: string | null; role: string }>();
+    .maybeSingle<{
+      id: string;
+      email: string | null;
+      role: string;
+      active: boolean | null;
+    }>();
 
   if (!profili) return { error: t.errExpertMissing };
   if (profili.role !== "expert") return { error: t.errExpertNotExpert };
+  if (profili.active === false) return { error: t.errExpertNoAccess };
 
   // Cilat i ka tashmë. Pa këtë, çelësi kryesor do ta rrëzonte tërë shtimin.
   const { data: ekzistueset } = await supabase
