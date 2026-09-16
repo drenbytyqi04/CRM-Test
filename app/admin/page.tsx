@@ -51,6 +51,15 @@ export default async function AdminPage() {
       .from("profiles")
       .select("id, email, role, active, created_at")
       .eq("active", true)
+      // Llogaritë e shënuara `hidden` nuk duken këtu për ASKËND — as për
+      // adminët e tjerë (`supabase/llogari-e-fshehur.sql`). Kjo ndryshon
+      // vetëm pamjen e kësaj liste: ato hyjnë si gjithmonë, e mbajnë rolin,
+      // dhe puna e tyre numërohet kudo tjetër.
+      //
+      // Shenja vihet nga paneli i Supabase-it, si roli. Tabela `profiles` ka
+      // një rregull të vetëm leximi dhe asnjë rregull ndryshimi, prandaj as
+      // admini nuk e prek dot këtë kolonë nga faqja.
+      .eq("hidden", false)
       .order("created_at", { ascending: true })
       .returns<Profile[]>(),
     // Numërimin e bën baza (`supabase/numrat.sql`): një rresht për person, në

@@ -478,6 +478,7 @@ supabase/
   ndryshimi-menaxherit.sql  Terminin e ndryshon vetëm menaxheri, as useri të vetin
   ekspertet-menaxheri.sql   Aksesin e ekspertit e jep edhe menaxheri
   llogaria-e-fshire.sql     Fshirja me dorë te Auth-i shënon vetë profilin
+  llogari-e-fshehur.sql     Kolona `hidden`: llogari që s'duket te lista
   datat.sql                 Filtri sipas datës së terminit + indekset e tij
   pastrimi.sql              Heqja e të dhënave të provës — dhe si kthehen
   hyrja-e-hequr.sql         Llogaria e hequr ndalet menjëherë, edhe me çelësin e vjetër
@@ -1125,6 +1126,35 @@ askush, dhe pa asnjë shenjë se ashtu ndodhi. Kufiri rri në dy shtresa: menyja
 nuk i tregon, dhe `grantExpert`/`grantExpertBulk` e refuzojnë edhe nëse
 kërkesa vjen pa kaluar nga faqja jonë.
 
+### Llogari e fshehur nga lista
+
+Një llogari mund të duhet të punojë normalisht, por të mos duket te faqja
+*Përdoruesit* — as për adminët e tjerë. Për këtë ka kolonën `hidden`
+(`supabase/llogari-e-fshehur.sql`).
+
+Fshehja prek **vetëm atë listë**. Llogaria hyn si gjithmonë, e mban rolin e
+vet, puna e saj numërohet te dashboard-i, dhe emaili i saj vazhdon të dalë te
+terminet si autor. Nuk është heqje aksesi me emër tjetër — dhe prova e mat
+pikërisht këtë, jo vetëm zhdukjen e rreshtit.
+
+Pse një kolonë e re dhe jo «secili admin s'e sheh veten»: ashtu admini tjetër
+do ta shihte prapë. Dhe pse jo një email i shkruar brenda kodit: do të mbetej
+aty përgjithmonë, i dukshëm te depoja publike, dhe do të duhej një version i
+ri i aplikacionit sa herë ndryshon mendja.
+
+Vihet dhe hiqet **si roli**: te paneli i Supabase-it, **Table Editor →
+profiles → hidden** (`true` e fsheh, `false` e kthen). Aplikacioni vetëm e
+lexon: `profiles` ka një rregull të vetëm leximi dhe asnjë rregull ndryshimi,
+prandaj as admini nuk e prek dot këtë kolonë nga faqja.
+
+> **KUJDES.** Një admin i fshehur nuk mbikëqyret dot më nga adminët e tjerë —
+> ata as nuk e dinë se ekziston. Përdore rrallë.
+
+> **E ZBATUAR ✅** — kolona u shtua më 16 shtator 2026, dhe
+> `dren.bytyqi19@gmail.com` u shënua e fshehur. Mbetet admin: hyn, e hap
+> faqen e përdoruesve dhe i sheh faqet vetëm-për-admin. Lista e përdoruesve
+> tregon tani 5 rreshta në vend të 6.
+
 ### Llogaria «fantazmë»: fshirë te Auth-i, por ende «hyn ende» te profili
 
 Aplikacioni e di se kush hyn nga shenja `profiles.active`. Atë shenjë e vë
@@ -1161,6 +1191,13 @@ teksti nuk mjafton: ndryshon me gjuhën dhe me versionin e Supabase-it.
 
 **Profili nuk fshihet, vetëm shënohet.** Ai mban emrin e autorit: terminet,
 shënimet dhe orët e punës vazhdojnë të tregojnë se kush i bëri.
+
+**Një hollësi që e kapi këshilluesi i Supabase-it.** Postgres-i i jep çdo
+funksioni të ri `execute` te `public` — pra edhe te `anon`. Kështu
+`handle_deleted_user` doli si `/rest/v1/rpc/...`, i thirrshëm pa u kyçur
+fare, ndërsa `handle_new_user` nuk ishte. Grantet u hoqën që të dy të jenë
+njësoj. Trigger-i vazhdon të punojë — `security definer` e xhiron me të
+drejtat e pronarit, jo të atij që e nxit.
 
 > **E ZBATUAR ✅** — `supabase/llogaria-e-fshire.sql` u ekzekutua më 13 shtator
 > 2026 mbi bazën e vërtetë, pas një kopjeje të plotë të `profiles` te skema

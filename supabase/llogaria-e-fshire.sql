@@ -43,6 +43,18 @@ begin
 end;
 $$;
 
+-- Grantet hiqen shprehimisht.
+--
+-- Postgres-i i jep çdo funksioni të ri `execute` te `public` — pra edhe te
+-- `anon` dhe `authenticated`, dhe Supabase e nxjerr atëherë si
+-- `/rest/v1/rpc/handle_deleted_user`. Një funksion trigger-i nuk duhet të
+-- jetë i thirrshëm nga API-ja; `handle_new_user` nuk është, dhe as ky.
+--
+-- Trigger-i vazhdon të punojë: `security definer` e xhiron me të drejtat e
+-- pronarit, jo të atij që e nxit. E provuar duke shtuar e fshirë një llogari
+-- brenda një transaksioni të kthyer mbrapsht — profili u shënua saktë.
+revoke all on function public.handle_deleted_user() from public, anon, authenticated;
+
 comment on function public.handle_deleted_user is
   'Shenon profilin si pa hyrje kur llogaria fshihet te auth.users — edhe kur '
   'fshirja behet me dore nga paneli i Supabase-it, jo nga aplikacioni.';
