@@ -299,6 +299,7 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
 | Shkruan shënime | ✅\* | ✅\*\* | ✅ | ✅ |
 | Cakton termine | ❌ | ✅ | ✅ | ✅ |
 | Ndryshon termine — edhe të vetat | ❌ | ❌ | ✅ | ✅ |
+| Shënon **rezultatin** e terminit | ✅\*\*\* | ❌ | ✅ | ✅ |
 | Fshin termine | ❌ | ❌ | ✅ | ✅ |
 | Jep akses ekspertëve | ❌ | ❌ | ✅ | ✅ |
 | Hap llogari dhe heq hyrjen | ❌ | ❌ | ❌ | ✅ |
@@ -306,6 +307,8 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
 
 \* Eksperti shkruan shënime vetëm te terminet që i janë caktuar.
 \*\* Përdoruesi i thjeshtë vetëm te terminet e veta.
+\*\*\* Vetëm rezultatin — kategorinë, arsyen, kontratat — dhe vetëm te terminet që i janë dhënë. Emrin, telefonin, adresën dhe datën nuk i prek dot.
+Shih **Pjesa 9**.
 
 **Përdoruesi i thjeshtë** cakton terminet e veta dhe shkruan feedback mbi to
 — dhe sheh vetëm ato. Terminet e të tjerëve për të nuk ekzistojnë: nuk dalin
@@ -314,9 +317,13 @@ drejtpërdrejtë kthen 404 — jo «nuk ke leje», që as vetë numri të mos tr
 nëse ekziston.
 
 **Ndryshimin e bën vetëm menaxheri ose admini** — edhe te terminet që i ka
-caktuar vetë useri. Pra useri nuk e mbyll dot terminin e vet: rezultatin
-përfundimtar e shënon menaxheri. Fshirja po ashtu i mbetet menaxherit: ajo
-merr me vete edhe shënimet e terminit dhe nuk kthehet mbrapsht.
+caktuar vetë useri. Pra useri nuk e mbyll dot terminin e vet. Fshirja po
+ashtu i mbetet menaxherit: ajo merr me vete edhe shënimet e terminit dhe
+nuk kthehet mbrapsht.
+
+**Një përjashtim i vetëm: rezultati.** Ekspertit që shkon te termini i
+lejohet ta shënojë vetë se si përfundoi — kategorinë, arsyen, kontratat.
+Asgjë tjetër: emri, telefoni, adresa dhe data mbeten të paprekshme për të.
 
 > **KUJDES gjatë kalimit.** Deri para kësaj, përdoruesi i thjeshtë i lexonte
 > TË GJITHA terminet dhe nuk caktonte asnjë. Pas `supabase/useri.sql` ai sheh
@@ -441,6 +448,7 @@ app/
     experts.tsx             Paneli i adminit: kush e sheh këtë termin
     expert-actions.ts       Dhënia dhe heqja e aksesit
     appointment-form.tsx    Formulari i terminit (caktim dhe ndryshim)
+    result-form.tsx         Vetëm rezultati — formulari i ekspertit
     note-form.tsx           Kutia e shpejtë për të shtuar shënim
     note-row.tsx            Një rresht i tabelës, me ndryshim brenda rreshtit
     [nr]/page.tsx           Adresa e vjetër pa prefiks -> te ajo e rolit
@@ -525,11 +533,21 @@ ato që i jepen, përdoruesi i thjeshtë të vetat. E njëjta ndarje vlen
 edhe për **shënimet** — pa të, dikush do të mos e shihte terminin e huaj te
 lista, por do t'i lexonte shënimet e tij përmes API-së.
 
-Shkrimi është më i ngushtë se leximi: terminin e vet e ndryshon ai që e
-caktoi, çdo termin vetëm menaxheri, dhe fshirjen e bën vetëm menaxheri.
-`user_id` merret gjithmonë nga sesioni, kurrë nga formulari, dhe rregulli i
-shtimit e kërkon `user_id = auth.uid()` — pra askush nuk shkruan dot një
-termin në emër të dikujt tjetër, as duke e thirrur bazën jashtë faqes sonë.
+Shkrimi është më i ngushtë se leximi: terminin e ndryshon vetëm menaxheri
+dhe admini, dhe fshirjen po ashtu. `user_id` merret gjithmonë nga sesioni,
+kurrë nga formulari, dhe rregulli i shtimit e kërkon `user_id = auth.uid()`
+— pra askush nuk shkruan dot një termin në emër të dikujt tjetër, as duke e
+thirrur bazën jashtë faqes sonë.
+
+**Një kufi i katërt: cilat kolona.** Eksperti e shënon rezultatin e terminit
+të vet, por asgjë tjetër të tijin. Këtë rregullat e RLS-së nuk e bëjnë dot:
+ato vendosin nëse rreshti preket, jo se ç'pjesë e tij. Prandaj te
+`appointments` rri edhe një trigger `before update`
+(`supabase/rezultati-ekspertit.sql`) që, kur ai që shkruan është ekspert,
+krahason rreshtin para dhe pas dhe e refuzon çdo ndryshim jashtë pesë
+fushave të rezultatit. Fshehja e fushave te formulari nuk do të mjaftonte:
+ajo është pamje, dhe një kërkesë e dërguar drejt te baza nuk e sheh fare.
+Shih **Pjesa 9**.
 
 Lista e profileve lexohet nga të gjithë (`profiles_select_all`), sepse tabela
 e feedback-ut tregon se kush e shkroi secilin shënim — por vetëm lexohet,
@@ -699,7 +717,7 @@ katër rregulla:
 | --- | --- | --- |
 | Cakton termin | vetëm menaxheri | kushdo veç ekspertit |
 | Lexon terminet | të gjithë i shihnin të gjitha | menaxheri të gjitha, useri të vetat, eksperti të caktuarat |
-| Ndryshon terminin | vetëm menaxheri | **vetëm menaxheri** (pa ndryshim) |
+| Ndryshon terminin | vetëm menaxheri | **vetëm menaxheri** — veç rezultatit, që e shënon edhe eksperti |
 | Lexon shënimet | të gjithë i lexonin të gjitha | ashtu si terminet |
 
 Fshirja **nuk** ndryshoi: mbetet te menaxheri dhe admini. Ajo merr me vete
@@ -712,11 +730,11 @@ mbyllte. Pastaj kjo u hoq me kërkesë (`supabase/ndryshimi-menaxherit.sql`):
 useri e cakton terminin dhe shkruan feedback mbi të, por nuk e prek më pas.
 
 Pasoja duhet ditur: **useri nuk e mbyll dot terminin e vet.** Ai mbetet «në
-bisedim» derisa menaxheri t'i shënojë rezultatin. Numrat e raporteve —
-«e suksesshme», kontratat — dalin nga rezultati, jo nga feedback-u, prandaj
-një termin i mbaruar mirë por i pashënuar nga menaxheri nuk numërohet askund.
-Kjo është zgjedhje pune, jo teknike: rezultatin e vendos ai që mban përgjegjësi
-për të.
+bisedim» derisa t'i shënohet rezultati. Numrat e raporteve — «e suksesshme»,
+kontratat — dalin nga rezultati, jo nga feedback-u, prandaj një termin i
+mbaruar mirë por i pashënuar nuk numërohet askund. Kjo është zgjedhje pune,
+jo teknike: rezultatin e vendos ai që ishte atje ose ai që mban përgjegjësi
+për të — eksperti i caktuar, menaxheri, admini. Jo useri që e caktoi.
 
 **Përse `not is_expert()` te dega e leximit.** Te terminet e ekspertit,
 `user_id` është ai që ia caktoi, jo vetë eksperti. Pa atë kusht, një llogari
@@ -748,6 +766,83 @@ user        0      0    |   po           JO         |    JO      JO   |   JO
 > `supabase/ndryshimi-menaxherit.sql` i del JO edhe te termini i vet — matur
 > sërish mbi bazën e vërtetë më 30 gusht 2026, bashkë me kontrollin se
 > feedback-un te termini i vet ende e shkruan.
+
+### Rezultatin e shënon edhe eksperti
+
+Te termini shkon eksperti. Ai e di nëse u mbajt, nëse u nënshkrua kontratë,
+dhe sa. Deri tani nuk kishte ku ta shkruante: ajo e dhënë duhej kaluar me
+gojë te menaxheri, që ta shënonte ai — dhe numrat e dashboard-it varen
+pikërisht prej saj. Tani e shënon vetë, te skeda **Rezultati** e terminit.
+
+> **E ZBATUAR ✅** — `supabase/rezultati-ekspertit.sql` u ekzekutua më
+> 23 shtator 2026 mbi bazën e vërtetë. Matrica e lejeve u mat aty, brenda një
+> transaksioni të kthyer mbrapsht, dhe doli siç pritej.
+
+Ky është **i vetmi** përjashtim nga rregulli i mësipërm, dhe është i ngushtë
+me qëllim. Ekspertit i lejohen pesë fusha:
+
+**Kategoria · Arsyeja · Kontratat e mbyllura · Kontratë shumëvjeçare · Trajtim**
+
+Emri, telefoni, adresa, data e terminit, numri i personave, autori — jo. As
+fshirja. Formulari i plotë i menaxherit mbetet ashtu siç ishte.
+
+#### Kufiri ka dy pjesë, dhe secila përgjigjet për një pyetje tjetër
+
+| Pyetja | Kush e vendos |
+| --- | --- |
+| **CILAT RRESHTA** i prek dot | rregulli i RLS-së |
+| **CILAT KOLONA** i prek dot brenda rreshtit | trigger-i `before update` |
+
+Kjo ndarje nuk është zbukurim. Rregullat e RLS-së vendosin **nëse** rreshti
+preket, jo **se ç'pjesë** e tij. Pa pjesën e dytë, «eksperti shënon
+rezultatin» do të ishte në fakt «eksperti ndryshon terminin»: mjaftonte të
+dërgonte një kërkesë pa kaluar nga faqja jonë, dhe emri ose data e terminit
+do të ndryshonin. Fshehja e fushave te formulari nuk mbron asgjë — ajo është
+pamje, dhe pamja nuk e ndalon askënd.
+
+**Përse jo `grant` në nivel kolone.** Zgjidhja e parë që vjen ndër mend është
+`grant update (status, category, …) on appointments to authenticated`. Nuk
+bën: te Postgres-i menaxheri dhe eksperti janë i **njëjti** rol —
+`authenticated`. Një `grant` i tillë do t'i kufizonte të dy. Dallimin e bën
+vetëm `is_expert()`, dhe atë e lexon trigger-i.
+
+**Përse krahasim i tërë rreshtit, jo kolonë për kolonë.** Trigger-i e kthen
+rreshtin në `jsonb`, heq prej të dyve — të vjetrit dhe të riut — kolonat e
+lejuara, dhe kërkon që ajo që mbetet të jetë identike. Po të shkruanim listën
+e kolonave **të ndaluara**, një kolonë e re e shtuar nesër te `appointments`
+do të ishte e lejuar pa e vënë re askush. Kështu siç është, ajo është e
+ndaluar vetvetiu.
+
+#### Matrica, mbi bazën e vërtetë
+
+Matur me `GET DIAGNOSTICS n = row_count`, jo me gabime: një ndryshim që
+rregullat nuk e lejojnë shpesh **nuk jep gabim** — thjesht nuk prek asnjë
+rresht. Po të kishim matur vetëm gabimet, «eksperti ndryshon terminin e huaj»
+do të dukej i lejuar.
+
+```
+ekspert: rezultati i tij                1 rresht
+ekspert: emri i tij                     refuzuar
+ekspert: data e tij                     refuzuar
+ekspert: rezultati i huaj               0 rresht
+menaxher: emri                          1 rresht
+menaxher: rezultati                     1 rresht
+
+gabimi i trigger-it: Eksperti ndryshon vetem rezultatin e terminit, jo name .
+```
+
+Vini re dallimin midis dy rreshtave të fundit të ekspertit: **«refuzuar»**
+është trigger-i që ndal një kolonë të ndaluar te një termin i tiji;
+**«0 rresht»** është RLS-ja që as nuk e sheh fare terminin e huaj. Dy kufij
+të ndryshëm, dhe secili duhet të mbajë vetë.
+
+#### Rregullat e rezultatit vlejnë njësoj
+
+Formulari i ekspertit kalon nga të njëjtat kontrolle si ai i menaxherit:
+kontratat nuk i kalojnë dot personat e terminit, arsyeja duhet t'i përkasë
+kategorisë së zgjedhur, dhe «e suksesshme» pa asnjë kontratë refuzohet. Numri
+i personave lexohet nga baza, jo nga formulari — përndryshe do të mjaftonte
+ta dërgonte vetë më të madh.
 
 ---
 

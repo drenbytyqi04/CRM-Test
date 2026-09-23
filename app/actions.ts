@@ -416,6 +416,105 @@ export async function updateAppointment(
 }
 
 /**
+ * Eksperti shënon rezultatin e një termini që i është dhënë.
+ *
+ * NJË VEPRIM I VEÇANTË, jo një degë brenda `updateAppointment`, dhe kjo nuk
+ * është hollësi: ai i fundit i lexon e i shkruan të gjitha fushat e
+ * formularit. Sikur ekspertin ta lëshonim aty, mjaftonte një fushë e vetme e
+ * harruar te kontrolli dhe ai do të shkruante emrin, telefonin ose datën e
+ * terminit. Këtu s'ka çfarë të harrohet: lexohen VETËM pesë fushat e
+ * rezultatit, dhe vetëm ato shkruhen.
+ *
+ * Tri shtresa, si te aksesi i ekspertit — dhe e fundit është ajo që mban:
+ *   1. Faqja ia vizaton formularin vetëm ekspertit dhe menaxherit.
+ *   2. Ky funksion e kontrollon vetë rolin dhe aksesin.
+ *   3. Baza e ka rregullin dhe trigger-in (`supabase/rezultati-ekspertit.sql`):
+ *      rregulli vendos CILIN termin, trigger-i CILAT kolona.
+ */
+export async function updateAppointmentResult(
+  _prevState: FormState,
+  formData: FormData
+): Promise<FormState> {
+  const user = await requireUser();
+  const t = await getDict();
+  const id = String(formData.get("appointmentId") ?? "");
+  if (!id) return { error: t.errAppointmentMissing };
+
+  const supabase = await createClient();
+
+  // `persons_count` duhet për kontrollin «kontratat nuk kalojnë personat».
+  // Lexohet nga baza, jo nga formulari: formulari i ekspertit as nuk e ka
+  // atë fushë, dhe po ta kishte, do të ishte e ndryshueshme prej tij.
+  const { data: termini } = await supabase
+    .from("appointments")
+    .select("id, persons_count")
+    .eq("id", id)
+    .maybeSingle<{ id: string; persons_count: number }>();
+
+  if (!termini) return { error: t.errAppointmentNotFound };
+
+  if (!user.isManager && !user.isExpert) return { error: t.errResultNotYours };
+
+  // Eksperti vetëm te terminet që i janë dhënë. Rregulli i bazës e ndalon
+  // gjithsesi, por atëherë përgjigjja do të ishte «0 rreshta ndryshuan» —
+  // e vërtetë, por e pakuptueshme për atë që e lexon.
+  if (user.isExpert) {
+    const { count } = await supabase
+      .from("appointment_experts")
+      .select("expert_id", { count: "exact", head: true })
+      .eq("appointment_id", id)
+      .eq("expert_id", user.id);
+    if (!count) return { error: t.errResultNotYours };
+  }
+
+  const contracts = Number(formData.get("contractsClosed") ?? 0);
+  const status = String(formData.get("status") ?? "open");
+  const category = String(formData.get("category") ?? "talking");
+  const multiYear = formData.get("multiYearContract") != null;
+  const treatment = formData.get("treatment") != null;
+
+  // Të njëjtat rregulla si te formulari i plotë. Një rezultat i shënuar nga
+  // eksperti nuk mund të jetë më i lirë se një i shënuar nga menaxheri —
+  // ndryshe numrat e dashboard-it do të kishin dy kuptime.
+  if (!Number.isInteger(contracts) || contracts < 0) return { error: t.errContractsBad };
+  if (contracts > termini.persons_count) {
+    return { error: t.errContractsTooMany(contracts, termini.persons_count) };
+  }
+  if (!APPOINTMENT_CATEGORIES.some((c) => c.value === category)) {
+    return { error: t.errUnknownCategory };
+  }
+  const eArsyes = categoryOfStatus(status);
+  if (!eArsyes) return { error: t.errUnknownStatus };
+  if (eArsyes !== category) return { error: t.errReasonNotInCategory };
+  if (category === "success" && contracts < 1) {
+    return { error: t.errSuccessNeedsContract };
+  }
+
+  const { data, error } = await supabase
+    .from("appointments")
+    .update({
+      status,
+      category,
+      contracts_closed: contracts,
+      multi_year_contract: multiYear,
+      treatment,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .select("id");
+
+  if (error) {
+    return { error: `${t.errAppointmentNotSaved}: ${error.message}` };
+  }
+  // Pa `select` + kontroll, një ndryshim që rregullat e bazës nuk e lejojnë
+  // do të dukej sikur u krye.
+  if (!data || data.length === 0) return { error: t.errChangesRejected };
+
+  freskoTerminet();
+  return { ok: true, message: t.appointmentUpdated };
+}
+
+/**
  * Fshin një termin. E bën menaxheri ose admini.
  *
  * KUJDES: shënimet e atij termini fshihen bashkë me të — kështu e kërkon

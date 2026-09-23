@@ -247,6 +247,10 @@ const de = {
   // Butonat e formularit
   createAppointment: "Termin anlegen",
   saveChanges: "Änderungen speichern",
+  resultOnlyHint:
+    "Nur das Ergebnis. Name, Adresse und Termindatum ändert der Manager.",
+  errResultNotYours:
+    "Das Ergebnis trägt nur der zugewiesene Experte oder der Manager ein.",
   appointmentCreated: "Termin wurde angelegt.",
   appointmentUpdated: "Termin wurde aktualisiert.",
 
@@ -740,6 +744,10 @@ const sq: Dict = {
 
   createAppointment: "Cakto terminin",
   saveChanges: "Ruaj ndryshimet",
+  resultOnlyHint:
+    "Vetëm rezultati. Emrin, adresën dhe datën e terminit i ndryshon menaxheri.",
+  errResultNotYours:
+    "Rezultatin e shënon vetëm eksperti që e ka terminin, ose menaxheri.",
   appointmentCreated: "Termini u caktua.",
   appointmentUpdated: "Termini u përditësua.",
 

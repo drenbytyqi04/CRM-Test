@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import AppointmentForm from "./appointment-form";
+import ResultForm from "./result-form";
 import NoteForm from "./note-form";
 import NoteRow from "./note-row";
 import { Tabs, TabPanel } from "./tabs";
@@ -121,6 +122,15 @@ export default async function AppointmentPage({
   // lexon dhe shkruan feedback. Kufiri i vërtetë rri te baza
   // (`supabase/ndryshimi-menaxherit.sql`); kjo vendos vetëm ç'të vizatohet.
   const mundTaNdryshoje = user.isManager;
+
+  // Eksperti e shënon vetë rezultatin — dhe VETËM rezultatin — te terminet
+  // që i janë dhënë. Te kjo faqe ai arrin vetëm për ato: rregulli i leximit
+  // ia fsheh të tjerat, dhe adresa e drejtpërdrejtë kthen 404.
+  //
+  // Arsyeja është e thjeshtë: te termini shkon ai. Ai e di nëse u mbajt dhe
+  // nëse doli kontratë. Pa këtë, ajo e dhënë duhej kaluar me gojë te dikush
+  // tjetër — dhe numrat e dashboard-it varen pikërisht prej saj.
+  const mundTaShenojeRezultatin = user.isExpert;
 
   // Ekspertët: ata që e shohin tashmë, dhe llogaritë që mund të shtohen.
   const meAkses = ekspertetResult.data ?? [];
@@ -272,24 +282,28 @@ export default async function AppointmentPage({
             <h2 className="mb-4 text-base font-semibold text-slate-900">
               {t.tabResult}
             </h2>
-            <dl className="grid gap-4 text-sm sm:grid-cols-3">
-              <Fusha
-                etiketa={t.fCategory}
-                vlera={appointmentCategoryLabel(termini.category, t)}
-              />
-              <Fusha
-                etiketa={t.fStatus}
-                vlera={appointmentStatusLabel(termini.status, t)}
-              />
-              <Fusha
-                etiketa={t.fContractsClosed}
-                vlera={String(termini.contracts_closed)}
-              />
-              <Fusha
-                etiketa={t.fMultiYear}
-                vlera={termini.multi_year_contract ? t.yes : t.noValue}
-              />
-            </dl>
+            {mundTaShenojeRezultatin ? (
+              <ResultForm appointment={termini} lang={lang} />
+            ) : (
+              <dl className="grid gap-4 text-sm sm:grid-cols-3">
+                <Fusha
+                  etiketa={t.fCategory}
+                  vlera={appointmentCategoryLabel(termini.category, t)}
+                />
+                <Fusha
+                  etiketa={t.fStatus}
+                  vlera={appointmentStatusLabel(termini.status, t)}
+                />
+                <Fusha
+                  etiketa={t.fContractsClosed}
+                  vlera={String(termini.contracts_closed)}
+                />
+                <Fusha
+                  etiketa={t.fMultiYear}
+                  vlera={termini.multi_year_contract ? t.yes : t.noValue}
+                />
+              </dl>
+            )}
           </section>
 
           </TabPanel>
