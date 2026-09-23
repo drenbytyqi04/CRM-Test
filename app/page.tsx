@@ -177,7 +177,7 @@ export default async function Page({ searchParams }: PageProps<"/">) {
     ndryshimi: Partial<GjendjaEListes> & { faqe?: number } = {}
   ) => adresaEListes(gjendja, ndryshimi);
 
-  const [notesResult, agjentetResult, aktivitetiIm, permbledhja] = await Promise.all([
+  const [notesResult, aksesetResult, agjentetResult, aktivitetiIm, permbledhja] = await Promise.all([
     // Shënimet vetëm për terminet e KËSAJ faqeje. Me të gjitha id-të, adresa
     // e kërkesës arrinte 72 KB dhe serveri e kthente me 431 — pa gabim të
     // dukshëm, thjesht çdo rresht tregonte 0 shënime.
@@ -190,6 +190,26 @@ export default async function Page({ searchParams }: PageProps<"/">) {
             terminet.map((t) => t.id)
           )
           .returns<{ appointment_id: string }[]>()
+      : Promise.resolve({ data: [], error: null }),
+    // Kujt i është dhënë secili termin — vetëm për terminet e KËSAJ faqeje,
+    // për të njëjtën arsye si te shënimet: me të gjitha id-të adresa e
+    // kërkesës del shumë e gjatë dhe serveri e kthen me 431.
+    //
+    // Vetëm për menaxherin dhe adminin, dhe kjo s'është zgjedhje pamjeje:
+    // rregulli i bazës e lejon ekspertin të shohë VETËM rreshtat e vet, dhe
+    // përdoruesin e thjeshtë asnjë. Po ta tregonim kolonën edhe atyre, te
+    // eksperti do të dilte emri i tij te çdo rresht — pa ata që e ndajnë
+    // terminin bashkë me të — dhe te useri do të dilte bosh edhe kur termini
+    // i tij ËSHTË dhënë. Një kolonë që gënjen është më keq se asnjë kolonë.
+    terminet.length > 0 && user.isManager
+      ? supabase
+          .from("appointment_experts")
+          .select("appointment_id, expert_id")
+          .in(
+            "appointment_id",
+            terminet.map((t) => t.id)
+          )
+          .returns<{ appointment_id: string; expert_id: string }[]>()
       : Promise.resolve({ data: [], error: null }),
     // `active` lexohet bashkë me të tjerat: emailet e TË GJITHËVE duhen për
     // kolonën «kush e caktoi» — edhe të atyre që s'hyjnë më — kurse te menyja
@@ -233,6 +253,23 @@ export default async function Page({ searchParams }: PageProps<"/">) {
     (agjentetResult.data ?? []).map((p) => [p.id, p.email ?? "—"])
   );
 
+  // Ekspertët e secilit termin, sipas id-së së terminit.
+  //
+  // Emrat merren nga `agjentet`, që i ka TË GJITHË profilet — edhe ata pa
+  // hyrje. Një termin i dhënë dikujt që më pas i është hequr hyrja duhet të
+  // vazhdojë ta tregojë atë emër: ndryshe rreshti do të dukej i padhënë,
+  // kurse në të vërtetë rri te dikush që s'e hap dot.
+  //
+  // Radha alfabetike: pa të, baza mund t'i kthejë ndryshe sa herë, dhe i
+  // njëjti rresht do të ndërronte pamje pa ndryshuar asgjë.
+  const ekspertetETerminit = new Map<string, string[]>();
+  for (const rr of aksesetResult.data ?? []) {
+    const lista = ekspertetETerminit.get(rr.appointment_id) ?? [];
+    lista.push(agjentet.get(rr.expert_id) ?? "—");
+    ekspertetETerminit.set(rr.appointment_id, lista);
+  }
+  for (const lista of ekspertetETerminit.values()) lista.sort();
+
   // Shiriti i zgjedhjes duket për menaxherin dhe adminin, dhe vetëm nëse ka
   // të kujt t'ia japë. Kufiri i vërtetë rri te baza; kjo është thjesht pamje.
   const eksperte = user.isManager
@@ -243,6 +280,12 @@ export default async function Page({ searchParams }: PageProps<"/">) {
         .map((p) => ({ id: p.id, email: p.email ?? "—" }))
     : [];
   const meZgjedhje = user.isManager && eksperte.length > 0;
+
+  // Kolona «Eksperti» duket vetëm për menaxherin dhe adminin — shih kërkesën
+  // te `Promise.all` më lart. Ndryshe nga shiriti i zgjedhjes, ajo nuk varet
+  // nga ekzistenca e ekspertëve: pa asnjë ekspert, kolona tregon «—» te çdo
+  // rresht, dhe kjo është e vërteta.
+  const meEkspert = user.isManager;
 
   // Nëse `supabase/faqosja.sql` s'është ngritur ende, funksioni mungon.
   // Atëherë tregohet vetëm numri i termineve — i saktë gjithsesi, sepse vjen
@@ -376,9 +419,18 @@ export default async function Page({ searchParams }: PageProps<"/">) {
                 <th className="px-1.5 py-3 font-medium md:px-2 lg:px-3">{t.colName}</th>
                 <th className="px-1.5 py-3 font-medium md:px-2 lg:px-3">{t.colDate}</th>
                 <th className="hidden px-1.5 py-3 font-medium md:px-2 lg:table-cell lg:px-3">{t.colInsurance}</th>
-                <th className="hidden px-1 py-3 text-right font-medium md:table-cell lg:px-3">{t.colPersons}</th>
-                <th className="hidden px-1 py-3 text-right font-medium md:table-cell lg:px-3">{t.colContracts}</th>
-                <th className="hidden px-1 py-3 text-right font-medium lg:table-cell lg:px-3">{t.colNotes}</th>
+                <th className="hidden px-1 py-3 text-right font-medium md:table-cell lg:px-3 xl:px-2">{t.colPersons}</th>
+                <th className="hidden px-1 py-3 text-right font-medium md:table-cell lg:px-3 xl:px-2">{t.colContracts}</th>
+                <th className="hidden px-1 py-3 text-right font-medium lg:table-cell lg:px-3 xl:px-2">{t.colNotes}</th>
+                {/* Kolona e ekspertit shfaqet vetëm nga 1280px e sipër, një
+                    shkallë më lart se Sigurimi dhe Shënimet. Poshtë saj
+                    emailet — fjalë të vetme të gjata — copëtoheshin në gjashtë
+                    rreshta dhe rreshti i tabelës trefishohej në lartësi.
+                    Tabela nuk duhet të dalë me shirit rrëshqitës, prandaj
+                    kolona pret derisa të ketë vërtet vend për të. */}
+                {meEkspert && (
+                  <th className="hidden px-1.5 py-3 font-medium xl:table-cell xl:px-2">{t.colExpert}</th>
+                )}
                 <th className="py-3 pr-3 pl-1.5 font-medium md:pr-4 md:pl-2 lg:pl-3">{t.colStatus}</th>
               </tr>
             </thead>
@@ -445,10 +497,10 @@ export default async function Page({ searchParams }: PageProps<"/">) {
                   <td className="hidden px-1.5 py-3 break-words text-slate-600 md:px-2 lg:table-cell lg:px-3">
                     {termini.current_insurance || "—"}
                   </td>
-                  <td className="hidden px-1 py-3 text-right text-slate-600 tabular-nums md:table-cell lg:px-3">
+                  <td className="hidden px-1 py-3 text-right text-slate-600 tabular-nums md:table-cell lg:px-3 xl:px-2">
                     {termini.persons_count}
                   </td>
-                  <td className="hidden px-1 py-3 text-right tabular-nums md:table-cell lg:px-3">
+                  <td className="hidden px-1 py-3 text-right tabular-nums md:table-cell lg:px-3 xl:px-2">
                     <span
                       className={
                         termini.contracts_closed > 0
@@ -459,12 +511,38 @@ export default async function Page({ searchParams }: PageProps<"/">) {
                       {termini.contracts_closed}
                     </span>
                   </td>
-                  <td className="hidden px-1 py-3 text-right text-slate-600 tabular-nums lg:table-cell lg:px-3">
+                  <td className="hidden px-1 py-3 text-right text-slate-600 tabular-nums lg:table-cell lg:px-3 xl:px-2">
                     {noteCounts.get(termini.id) ?? 0}
                   </td>
+                  {meEkspert && (
+                    <td className="hidden px-1.5 py-3 text-xs text-slate-600 xl:table-cell xl:px-2">
+                      {(ekspertetETerminit.get(termini.id) ?? []).length > 0 ? (
+                        // `break-all` si te emaili poshtë emrit: një email
+                        // është një fjalë e vetme e gjatë, dhe pa të kolona
+                        // nuk ngushtohet dot nën gjatësinë e tij.
+                        (ekspertetETerminit.get(termini.id) ?? []).map((email) => (
+                          // `mt-1` te çdo email veç të parit: dy adresa të
+                          // gjata një mbi një, pa hapësirë mes tyre, duken si
+                          // një adresë e vetme e thyer.
+                          <span key={email} className="mt-1 block break-all first:mt-0">
+                            {email}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-slate-400">{t.noExpert}</span>
+                      )}
+                    </td>
+                  )}
                   <td className="py-3 pr-3 pl-1.5 md:pr-4 md:pl-2 lg:pl-3">
                     <span
-                      className={`inline-block rounded-full px-1.5 py-0.5 text-xs font-medium break-words ring-1 ring-inset md:px-2 md:py-1 ${ngj.shenje}`}
+                      // `xl:whitespace-nowrap`: aty ku shtohet kolona e
+                      // ekspertit, shenja e rezultatit thyhej në dy rreshta.
+                      // Duke e ndaluar thyerjen, kolona kërkon gjerësinë që i
+                      // duhet dhe ajo e ekspertit e lëshon — emailet aty
+                      // thyhen kudo (`break-all`), prandaj kanë nga ku të
+                      // ngushtohen. Poshtë 1280px kolona s'ekziston fare, dhe
+                      // gjithçka mbetet saktësisht si ishte.
+                      className={`inline-block rounded-full px-1.5 py-0.5 text-xs font-medium break-words ring-1 ring-inset md:px-2 md:py-1 xl:whitespace-nowrap ${ngj.shenje}`}
                     >
                       {appointmentCategoryLabel(termini.category, t)}
                     </span>

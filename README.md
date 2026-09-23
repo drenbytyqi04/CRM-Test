@@ -302,6 +302,7 @@ update public.profiles set role = 'manager' where email = 'dikush@shembull.com';
 | Shënon **rezultatin** e terminit | ✅\*\*\* | ❌ | ✅ | ✅ |
 | Fshin termine | ❌ | ❌ | ✅ | ✅ |
 | Jep akses ekspertëve | ❌ | ❌ | ✅ | ✅ |
+| Sheh kolonën *Eksperti* te lista | ❌ | ❌ | ✅ | ✅ |
 | Hap llogari dhe heq hyrjen | ❌ | ❌ | ❌ | ✅ |
 | Faqja *Përdoruesit* dhe *Aktiviteti* | ❌ | ❌ | ❌ | ✅ |
 
@@ -344,8 +345,10 @@ rolin te `supabase/eksperti.sql` (dega e ekspertit) dhe pastaj te
 **shënimet** — ndryshe dikush do të mos e shihte terminin e huaj te lista,
 por do t'i lexonte shënimet e tij përmes API-së. Shih **Pjesa 9**.
 
-Një termin mund t'u jepet **disa ekspertëve** njëherësh. Aksesin e japin —
-dhe e heqin — **menaxheri dhe admini**, në dy mënyra:
+Një termin mund t'u jepet **disa ekspertëve** njëherësh. Kujt i është dhënë
+secili termin duket te kolona *Eksperti* e listës — për menaxherin dhe
+adminin, nga 1280px e sipër (shih **Pjesa 11**). Aksesin e japin — dhe e
+heqin — **menaxheri dhe admini**, në dy mënyra:
 
 - **Nga lista, disa njëherësh.** Te lista dalin kutiza majtas çdo rreshti.
   Zgjidhen sa termine të duhen — ose të gjitha me një klikim — zgjidhet
@@ -1056,6 +1059,61 @@ shqipja, dhe tri herë tabela doli jashtë vetëm në gjermanisht — një herë
 > (33px te 1024, 472px te 360), dhe *Dashboard-i* nën 768px (rreth 125px).
 > Te terminet e hapur, tabela e shënimeve hyn e tëra kudo. Rregullimi është i
 > njëjti si këtu.
+
+### Kolona «Eksperti» te lista
+
+Kush e ka terminin dukej vetëm duke e hapur atë, te skeda *Ekspertët*. Me
+dyzet termine te një faqe, kjo do të thoshte dyzet hapje për të parë se cili
+rresht ishte dhënë e cili jo. Tani duket te vetë lista.
+
+**Vetëm menaxheri dhe admini e shohin kolonën**, dhe kjo nuk është zgjedhje
+pamjeje — e detyron rregulli i bazës. `appointment_experts_select` e lejon
+ekspertin të lexojë VETËM rreshtat ku emri i tij gjendet, dhe përdoruesin e
+thjeshtë asnjë. Pra:
+
+| Roli | Ç'do të tregonte kolona | Prandaj |
+| --- | --- | --- |
+| Menaxher / admin | të gjithë ekspertët e secilit termin | **tregohet** |
+| Ekspert | vetëm veten, te çdo rresht — pa ata që e ndajnë terminin me të | fshihet |
+| Përdorues | «—» te çdo rresht, edhe kur termini i tij ËSHTË dhënë | fshihet |
+
+Një kolonë që tregon gjysmën e së vërtetës është më keq se asnjë kolonë: te
+useri do të thoshte «askush s'e ka marrë» për një termin që dikush e ka.
+
+**Kërkesa merr vetëm terminet e kësaj faqeje**, si ajo e shënimeve. Me të
+gjitha id-të, adresa e kërkesës del shumë e gjatë dhe serveri e kthen me 431
+— pa gabim të dukshëm, thjesht çdo rresht do të dukej i padhënë.
+
+**Emrat merren nga lista e plotë e profileve, edhe e atyre pa hyrje.** Një
+termin i dhënë dikujt që më pas i është hequr hyrja duhet ta tregojë ende atë
+emër — ndryshe rreshti do të dukej i lirë, kurse në të vërtetë rri te dikush
+që s'e hap dot. Radha është alfabetike: pa të, baza mund t'i kthejë ndryshe
+sa herë, dhe i njëjti rresht do të ndërronte pamje pa ndryshuar asgjë.
+
+#### Pse pret deri te 1280px
+
+Kolona e tetë nuk hyri falas. E matur, doli kështu:
+
+| Gjerësia | Çfarë ndodhi |
+| --- | --- |
+| 1024px, gjermanisht | tabela doli **16px** jashtë — shirit rrëshqitës |
+| 1024px, pas ngushtimit të mbushjes | hynte, por emailet copëtoheshin në **gjashtë** rreshta dhe rreshti trefishohej |
+| 1280px e sipër | hyn e tëra, emaili në një ose dy rreshta |
+
+Prandaj kolona vjen te **1280px**, një shkallë më lart se *Sigurimi* dhe
+*Shënimet*. Poshtë saj nuk shfaqet fare, dhe gjithçka tjetër mbetet
+saktësisht si ishte — mbushja e kolonave të numrave ngushtohet vetëm te
+1280px e sipër, aty ku kolona e re ka nevojë për vend.
+
+**Shenja e rezultatit.** Kolona e re ia hoqi *Rezultatit* 35px, dhe «Në
+bisedim» u thye në dy rreshta — diçka që matja e gjerësisë nuk e kap, sepse
+tabela vazhdon të hyjë. Zgjidhja është `xl:whitespace-nowrap` te shenja:
+kolona kërkon gjerësinë që i duhet, dhe ajo e ekspertit e lëshon, sepse
+emailet aty thyhen kudo (`break-all`) dhe kanë nga ku të ngushtohen. Numri i
+rreshtave të tekstit matet me `Range.getClientRects()`, jo me lartësinë
+pjesëtuar me `line-height` — mbushja e shenjës e prish atë llogari.
+
+**Matur te 16 gjerësi × 2 gjuhë = 32 matje, asnjëra jashtë.**
 
 ---
 
